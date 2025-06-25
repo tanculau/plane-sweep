@@ -1,0 +1,74 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/ui/app",
+    "crates/common",
+    "crates/ui/controller",
+    "crates/ui/intersection_table",
+    "crates/plane-sweep",
+    "crates/ui/segment_plotter",
+    "crates/ui/segment_table",
+    "crates/ui/third_party_licenses",
+    "crates/ui/tracing-gui",
+    "crates/workspace-hack",
+    "crates/algorithm/brute-force",
+    #"crates/algorithm/sweep",
+]
+
+[workspace.package]
+version = "0.1.0"
+authors = ["tanculau <117458673+tanculau@users.noreply.github.com>"]
+edition = "2024"
+homepage = "https://tanculau.github.io/plane-sweep"
+publish = false
+repository = "https://github.com/tanculau/plane-sweep"
+description = "Implementation and Visualization of Plane Sweep"
+license = "Apache-2.0 OR MIT"
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+
+
+[workspace.metadata.typos]
+default.extend-words.egui = "egui"
+default.extend-words.flate2 = "flate2"
+default.extend-words.typ = "typ"
+files.extend-exclude = [
+    "dist/*",
+    "crates/third_party_licenses/src/third_party_licences_generated.md",
+]
+
+[workspace.metadata.cargo-shear]
+ignored = ["workspace-hack"]
+
+[profile.dev]
+debug = 0
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.ci]
+inherits = "dev"
+debug = 0
+opt-level = 0
+overflow-checks = true
+debug-assertions = true
+
+[profile.ci.package."*"]
+debug = 0
+opt-level = 0
+overflow-checks = true
+debug-assertions = true
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+opt-level = 's'
+
+[profile.release-native]
+inherits = "release"
+opt-level = 3

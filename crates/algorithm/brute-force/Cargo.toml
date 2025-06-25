@@ -1,0 +1,34 @@
+[package]
+name = "brute-force"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+publish.workspace = true
+repository.workspace = true
+description.workspace = true
+license.workspace = true
+
+[dependencies]
+auto_enums = { version = "0.8.7", default-features = false }
+common = { version = "0.1.0", path = "../../common" }
+controller = { version = "0.1.0", path = "../../ui/controller" }
+eframe = { version = "0.31.1", default-features = false }
+egui_extras = { version = "0.31.1", default-features = false }
+intersection_table = { version = "0.1.0", path = "../../ui/intersection_table" }
+segment_plotter = { version = "0.1.0", path = "../../ui/segment_plotter" }
+segment_table = { version = "0.1.0", path = "../../ui/segment_table" }
+serde = { version = "1.0.219", features = ["derive"], optional = true }
+tracing = "0.1.41"
+web-time = "1.1.0"
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+
+[lints]
+workspace = true
+
+[features]
+serde = ["dep:serde", "common/serde", "controller/serde", "intersection_table/serde", "segment_plotter/serde", "segment_table/serde"]
+
+[dev-dependencies]
+common = { path = "../../common", features = ["test"] }
+googletest = "0.14.1"
