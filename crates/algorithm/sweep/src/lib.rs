@@ -130,6 +130,10 @@ impl AlgrorithmStep for Step {
     fn intersections(&self) -> impl Iterator<Item = common::intersection::IntersectionIdx> {
         iter::empty()
     }
+
+    fn sweep_line(&self) -> Option<CartesianCoord> {
+        self.event.as_ref().map(|v| (v.x.0, v.y.0).into())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

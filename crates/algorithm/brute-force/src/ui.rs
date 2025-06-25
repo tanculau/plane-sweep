@@ -124,6 +124,7 @@ impl MyWidget<()> for BruteForce {
                 segments: &self.segments,
                 intersections: &self.intersections,
                 step: self.step,
+                steps: &self.steps,
             },
         );
         self.intersection_table.show(
