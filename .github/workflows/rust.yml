@@ -96,7 +96,7 @@ jobs:
       - name: Doctests
         run: cargo test --doc
       - name: Test
-        run: cargo nextest run --all-features --no-fail-fast --profile ci
+        run: cargo nextest run --all-features --no-fail-fast --cargo-profile ci
 
   cargo-deny:
     runs-on: ubuntu-latest
