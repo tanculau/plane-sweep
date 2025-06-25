@@ -1,0 +1,5 @@
+[build]
+minify = "on_release"
+dist = "dist"
+[watch]
+ignore = ["crates/ui/third_party_licenses/src/third_party_licences_generated.md"]

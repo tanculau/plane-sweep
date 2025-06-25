@@ -1,0 +1,120 @@
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches: [main]
+
+name: CI
+env:
+  RUSTFLAGS: -D warnings
+  CARGO_TERM_COLOR: always
+  CARGO_PROFILE_TEST_DEBUG: 0
+
+jobs:
+  lint_clippy:
+    name: Lint (clippy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Lint (clippy)
+        run: cargo clippy --all-features --all-targets --profile ci
+
+  lint_rustfmt:
+    name: Lint (rustfmt)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: Lint (rustfmt)
+        run: cargo fmt --check
+
+  check:
+    name: Check
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+          - macos-latest
+          - macos-13
+          - windows-latest
+          - windows-11-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - name: Build No Default Features
+        run: cargo c --workspace --no-default-features --all-targets --profile ci
+      - name: Build All Features
+        run: cargo c --workspace --all-features --all-targets --profile ci
+
+  check-wasm:
+    name: Check WASM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+      - name: Build No Default Features
+        run: cargo c --workspace --no-default-features --all-targets --target wasm32-unknown-unknown --profile ci
+      - name: Build All Features
+        run: cargo c --workspace --all-features --all-targets --target wasm32-unknown-unknown --profile ci
+
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: miri
+      - uses: Swatinem/rust-cache@v2
+      - name: Install latest nextest release
+        uses: taiki-e/install-action@nextest
+      - name: Doctests
+        run: cargo test --doc
+      - name: Test
+        run: cargo nextest run --all-features --no-fail-fast --profile ci
+
+  cargo-deny:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: EmbarkStudios/cargo-deny-action@v2
+
+  workspace-hack-check:
+    name: Check workspace-hack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 # v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-hakari
+        uses: taiki-e/install-action@v2 # v2
+        with:
+          tool: cargo-hakari
+      - name: Check workspace-hack Cargo.toml is up-to-date
+        run: cargo hakari generate --diff
+      - name: Check all crates depend on workspace-hack
+        run: cargo hakari manage-deps --dry-run

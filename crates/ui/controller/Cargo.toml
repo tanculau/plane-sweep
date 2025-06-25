@@ -1,0 +1,22 @@
+[package]
+name = "controller"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+publish.workspace = true
+repository.workspace = true
+description.workspace = true
+license.workspace = true
+
+[dependencies]
+eframe = { version = "0.31.1", default-features = false }
+common = { version = "0.1.0", path = "../../common" }
+serde = { version = "1.0.219", features = ["derive"], optional = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+tracing = "0.1.41"
+[lints]
+workspace = true
+
+[features]
+serde =[ "dep:serde", "common/serde"]

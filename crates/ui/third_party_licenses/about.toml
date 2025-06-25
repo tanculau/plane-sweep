@@ -1,0 +1,24 @@
+accepted = [
+    "MIT",
+    "Apache-2.0",
+    "OFL-1.1",
+    "Ubuntu-font-1.0",
+    "Unicode-3.0",
+    "Zlib",
+    "ISC",
+    "Unlicense",
+]
+
+ignore-build-dependencies = true
+ignore-dev-dependencies = true
+ignore-transitive-dependencies = false
+workarounds = ["ring", "rustls", "bitvec"]
+
+
+[rustix.clarify]
+license = "Apache-2.0 OR MIT"
+
+[[rustix.clarify.files]]
+path = 'LICENSE-MIT'
+license = 'MIT'
+checksum = '30fefc3a7d6a0041541858293bcbea2dde4caa4c0a5802f996a7f7e8c0085652'
