@@ -1,6 +1,7 @@
 use brute_force::ui::BruteForce;
 use common::ToggleAbleWidget;
 use eframe::egui;
+use sweep::ui::PlaneSweep;
 
 #[derive(Default, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -9,9 +10,11 @@ pub struct App {
     #[cfg_attr(feature = "serde", serde(skip))]
     third_party_licences: ToggleAbleWidget<third_party_licenses::ThirdPartyLicences, ()>,
     brute_force: BruteForce,
+    plane_sweep: PlaneSweep,
     selected: AlgorithmChoice,
     #[cfg_attr(feature = "serde", serde(skip))]
     tracing: ToggleAbleWidget<tracing_gui::Tracing, ()>,
+    last_id: usize,
 }
 
 impl App {
@@ -25,7 +28,9 @@ impl App {
         #[cfg(feature = "serde")]
         {
             if let Some(storage) = cc.storage {
-                return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+                let app: Self = eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+                common::segment::set_counter(app.last_id);
+                return app;
             }
         }
         let _ = cc;
@@ -35,6 +40,7 @@ impl App {
 }
 impl eframe::App for App {
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
+        self.last_id = common::segment::get_counter();
         #[cfg(feature = "serde")]
         {
             eframe::set_value(storage, eframe::APP_KEY, &self);
@@ -85,7 +91,11 @@ impl eframe::App for App {
                 AlgorithmChoice::None => {}
                 AlgorithmChoice::PlaneSweepBruteForce => {
                     use common::MyWidget;
-                    self.brute_force.show(ui.ctx(), &mut true, ());
+                    self.brute_force.ui(ui, ());
+                }
+                AlgorithmChoice::PlaneSweep => {
+                    use common::MyWidget;
+                    self.plane_sweep.ui(ui, ());
                 }
             }
             self.third_party_licences.view(ui.ctx(), ());
@@ -100,15 +110,17 @@ enum AlgorithmChoice {
     #[default]
     None,
     PlaneSweepBruteForce,
+    PlaneSweep,
 }
 
 impl AlgorithmChoice {
-    pub const CHOICES: &[Self] = &[Self::None, Self::PlaneSweepBruteForce];
+    pub const CHOICES: &[Self] = &[Self::None, Self::PlaneSweepBruteForce, Self::PlaneSweep];
 
     pub const fn name(self) -> &'static str {
         match self {
             Self::None => "None",
             Self::PlaneSweepBruteForce => "Plane Sweep - Brute Force",
+            Self::PlaneSweep => "Plane Sweep",
         }
     }
 }

@@ -89,7 +89,10 @@ mod line {
     }
 
     mod intersects {
-        use common::math::homogeneous::*;
+        use common::{
+            math::{cartesian::CartesianCoord, homogeneous::*},
+            segment::Segment,
+        };
         use googletest::prelude::*;
 
         #[gtest]
@@ -109,9 +112,28 @@ mod line {
         fn does_not_intersect() {
             use common::test::approx_eq;
             let x = HomogeneousLine::Y_AXIS;
-            let y = HomogeneousLine::horizontal(12);
+            let y = HomogeneousLine::vertical(12);
             let intersect = x.intersection(y);
             expect_that!(intersect, field!(HomogeneousCoord.z, approx_eq(0.0)));
+        }
+
+        #[gtest]
+        fn endpoint() {
+            use common::test::approx_eq;
+
+            let segment = Segment::new((-2, 2), (2, -2));
+            let p_y = 2;
+            let horizontal = HomogeneousLine::horizontal(p_y);
+            let seg = dbg!(segment.line());
+            let x = horizontal.intersection(seg).cartesian();
+            assert_that!(x, ok(approx_eq(CartesianCoord::new(-2, 2))));
+
+            let segment = Segment::new((2, 2), (-2, -2));
+            let p_y = 2;
+            let horizontal = HomogeneousLine::horizontal(p_y);
+            let seg = dbg!(segment.line());
+            let x = horizontal.intersection(seg).cartesian();
+            assert_that!(x, ok(approx_eq(CartesianCoord::new(2, 2))));
         }
     }
 }

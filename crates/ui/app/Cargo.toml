@@ -12,7 +12,7 @@ license.workspace = true
 [features]
 "persistence" = ["serde"]
 "accesskit" = []
-serde = ["dep:serde", "brute-force/serde"]
+serde = ["dep:serde", "brute-force/serde", "sweep/serde"]
 "x11" = []
 "wayland" = []
 "mimalloc" = []
@@ -24,6 +24,7 @@ brute-force = { version = "0.1.0", path = "../../algorithm/brute-force" }
 common = { version = "0.1.0", path = "../../common" }
 eframe = { version = "0.31.1", default-features = false }
 serde = { version = "1.0", features = ["derive"], optional = true }
+sweep = { version = "0.1.0", path = "../../algorithm/sweep" }
 third_party_licenses = { version = "0.1.0", path = "../third_party_licenses" }
 tracing-gui = { version = "0.1.0", path = "../tracing-gui" }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

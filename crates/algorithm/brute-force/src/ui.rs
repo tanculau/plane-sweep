@@ -114,6 +114,7 @@ impl MyWidget<()> for BruteForce {
             (&mut should_reset, &mut self.segments),
         );
         if should_reset {
+            self.step = 0.into();
             calculate_steps(&self.segments, &mut self.intersections, &mut self.steps);
         }
         self.segment_plotter.show(
@@ -127,7 +128,7 @@ impl MyWidget<()> for BruteForce {
         );
         self.intersection_table.show(
             ctx,
-            &mut self.is_segment_plotter_open,
+            &mut self.is_intersection_table_open,
             IntersectionTableState {
                 segments: &self.segments,
                 intersections: &self.intersections,
