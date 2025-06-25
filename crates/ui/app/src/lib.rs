@@ -40,9 +40,9 @@ impl App {
 }
 impl eframe::App for App {
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
+        self.last_id = common::segment::get_counter();
         #[cfg(feature = "serde")]
         {
-            self.last_id = common::segment::get_counter();
             eframe::set_value(storage, eframe::APP_KEY, &self);
         }
         let _ = storage;
