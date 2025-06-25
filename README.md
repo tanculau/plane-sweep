@@ -1,4 +1,4 @@
-# [Implementation and Visualization of Plane Sweep](https://tanculau.github.io/plane-sweep-page/)
+# [Implementation and Visualization of Plane Sweep](https://tanculau.github.io/plane-sweep/)
 
 ## Implemented Algorithm
 
@@ -14,7 +14,7 @@
 
 ### Web
 
- [Website](https://tanculau.github.io/plane-sweep-page/)
+ [Website](https://tanculau.github.io/plane-sweep/)
 
 ### Web Locally
 
