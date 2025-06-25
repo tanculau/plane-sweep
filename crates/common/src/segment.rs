@@ -1,6 +1,6 @@
 use core::{hash::Hash, sync::atomic::AtomicUsize};
 
-use float_cmp::{ApproxEq, F64Margin};
+use float_cmp::{ApproxEq, F64Margin, approx_eq};
 use ordered_float::OrderedFloat;
 use tracing::{debug, instrument};
 use typed_index_collections::TiVec;
@@ -212,6 +212,56 @@ impl Segment {
                 step,
             ))
         } else {
+            // Check if lines are parallel.
+
+            // Check if Segments lie on each other
+            if approx_eq!(CartesianCoord, *upper1, *upper2)
+                && approx_eq!(CartesianCoord, *lower1, *lower2)
+            {
+                return Some(Intersection::new(
+                    IntersectionType::Parallel {
+                        line: Self {
+                            upper: *upper1,
+                            lower: *lower1,
+                            id: usize::MAX,
+                            mark: false,
+                            shown: false,
+                        },
+                    },
+                    vec![key1, key2],
+                    step,
+                ));
+            }
+
+            let p1 = line1.contains_coord(upper2).then_some(upper2);
+            let p2 = line1.contains_coord(lower2).then_some(lower2);
+            let p3 = line2.contains_coord(upper1).then_some(upper1);
+            let p4 = line2.contains_coord(lower1).then_some(lower1);
+            let mut iter = p1.iter().chain(p2.iter()).chain(p3.iter()).chain(p4.iter());
+            if let (Some(&&p1), Some(&&p2)) = (iter.next(), iter.next()) {
+                if approx_eq!(CartesianCoord, p1, p2) {
+                    return Some(Intersection::new(
+                        IntersectionType::Point { coord: p1 },
+                        vec![key1, key2],
+                        step,
+                    ));
+                }
+
+                let mut segment = Self {
+                    upper: p1,
+                    lower: p2,
+                    id: usize::MAX,
+                    mark: false,
+                    shown: false,
+                };
+                segment.update();
+                return Some(Intersection::new(
+                    IntersectionType::Parallel { line: segment },
+                    vec![key1, key2],
+                    step,
+                ));
+            }
+
             debug!(
                 "No intersection found between segments {segment_left:?} and {segment_right:?} in step {step}"
             );
