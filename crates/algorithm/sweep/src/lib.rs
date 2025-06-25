@@ -287,12 +287,18 @@ impl StatusQueue {
         self.inner.iter()
     }
 
-    pub fn remove(&mut self, elements : &HashSet<SegmentIdx>, y :impl Into<Float>, segments: &Segments) {
+    pub fn remove(
+        &mut self,
+        elements: &HashSet<SegmentIdx>,
+        y: impl Into<Float>,
+        segments: &Segments,
+    ) {
         let y = y.into();
         let a = std::mem::take(self);
         *self = a
             .into_iter()
-            .flat_map(|s| s.segments.into_iter()).filter(|s| !elements.contains(s))
+            .flat_map(|s| s.segments.into_iter())
+            .filter(|s| !elements.contains(s))
             .map(|s| Status::new(y, segments[s], s))
             .collect();
     }

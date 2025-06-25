@@ -80,8 +80,8 @@ impl Intersection {
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum IntersectionType {
-    Point {  coord: CartesianCoord },
-    Parallel {  line: Segment },
+    Point { coord: CartesianCoord },
+    Parallel { line: Segment },
 }
 
 impl IntersectionType {

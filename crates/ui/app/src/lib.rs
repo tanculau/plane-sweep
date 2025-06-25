@@ -14,7 +14,7 @@ pub struct App {
     selected: AlgorithmChoice,
     #[cfg_attr(feature = "serde", serde(skip))]
     tracing: ToggleAbleWidget<tracing_gui::Tracing, ()>,
-    last_id : usize,
+    last_id: usize,
 }
 
 impl App {

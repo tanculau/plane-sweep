@@ -36,7 +36,7 @@ impl Line {
         Self::new(0, -1, y.into())
     }
 
-    pub fn vertical(x :impl Into<Float>) -> Self {
+    pub fn vertical(x: impl Into<Float>) -> Self {
         Self::new(-1, 0, x.into())
     }
 
