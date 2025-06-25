@@ -232,6 +232,21 @@ impl Segment {
         self.line().contains_coord(coord) && max_y >= y && min_y <= y && max_x >= x && min_x <= x
     }
 
+    pub fn update(&mut self) {
+        let p1 = self.upper;
+        let p2 = self.lower;
+
+        let mut coords = [(p1), p2];
+        coords.sort_unstable_by(|l, r| {
+            OrderedFloat(l.y)
+                .cmp(&OrderedFloat(r.y))
+                .reverse()
+                .then(OrderedFloat(l.x).cmp(&OrderedFloat(r.x)))
+        });
+        self.upper = coords[0];
+        self.lower = coords[1];
+    }
+
     /// Returns the [`HomogeneousLine`]  defined by this [`Segment`]
     #[must_use]
     pub fn line(&self) -> HomogeneousLine {
