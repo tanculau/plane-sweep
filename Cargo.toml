@@ -12,7 +12,7 @@ members = [
     "crates/ui/tracing-gui",
     "crates/workspace-hack",
     "crates/algorithm/brute-force",
-    #"crates/algorithm/sweep",
+    "crates/algorithm/sweep",
 ]
 
 [workspace.package]
