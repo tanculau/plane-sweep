@@ -1,5 +1,7 @@
-mod set_view;
+mod code_view;
 mod events_view;
+mod set_view;
+mod status_view;
 
 use common::{
     AlgoStepIdx, AlgoSteps, MyWidget, WidgetName,
@@ -14,7 +16,12 @@ use segment_table::SegmentTable;
 
 use crate::{
     Step, calculate_steps,
-    ui::set_view::{SetView, SetViewState},
+    ui::{
+        code_view::{CodeView, CodeViewState},
+        events_view::{EventsView, EventsViewState},
+        set_view::{SetView, SetViewState},
+        status_view::{StatusView, StatusViewState},
+    },
 };
 
 #[derive(Debug, Clone)]
@@ -36,6 +43,12 @@ pub struct PlaneSweep {
     is_segment_table_open: bool,
     set_view: SetView,
     is_set_view_open: bool,
+    events_view: EventsView,
+    is_events_view_open: bool,
+    code_view: CodeView,
+    is_code_view_open: bool,
+    status_view: StatusView,
+    is_status_view_open: bool,
 }
 
 impl WidgetName for PlaneSweep {
@@ -64,6 +77,8 @@ impl PlaneSweep {
         );
         ui.toggle_value(&mut self.is_controller_open, self.controller.name());
         ui.toggle_value(&mut self.is_set_view_open, self.set_view.name());
+        ui.toggle_value(&mut self.is_events_view_open, self.events_view.name());
+        ui.toggle_value(&mut self.is_code_view_open, self.code_view.name());
     }
 }
 
@@ -84,57 +99,83 @@ impl MyWidget<()> for PlaneSweep {
 
                 self.side_panel_groups(ui);
             });
-        // let mut should_reset = false;
-        // self.segment_table.show(
-        //     ctx,
-        //     &mut self.is_segment_table_open,
-        //     (&mut should_reset, &mut self.segments),
-        // );
-        // if should_reset {
-        //     self.step = 0.into();
-        //     calculate_steps(&self.segments, &mut self.intersections, &mut self.steps);
-        // }
-        // self.segment_plotter.show(
-        //     ctx,
-        //     &mut self.is_segment_plotter_open,
-        //     SegmentPlotterState {
-        //         segments: &self.segments,
-        //         intersections: &self.intersections,
-        //         step: self.step,
-        //     },
-        // );
-        // self.intersection_table.show(
-        //     ctx,
-        //     &mut self.is_segment_plotter_open,
-        //     IntersectionTableState {
-        //         segments: &self.segments,
-        //         intersections: &self.intersections,
-        //         step: self.step,
-        //     },
-        // );
-        // self.controller.show(
-        //     ctx,
-        //     &mut self.is_controller_open,
-        //     ControllerState {
-        //         steps: &mut self.steps,
-        //         step: &mut self.step,
-        //         intersections: &mut self.intersections,
-        //     },
-        // );
-        // self.set_view.show(
-        //     ctx,
-        //     &mut self.is_set_view_open,
-        //     SetViewState {
-        //         step: &self.steps[self.step],
-        //         segments: &self.segments,
-        //     },
-        // );
+        let mut should_reset = false;
+        self.segment_table.show(
+            ctx,
+            &mut self.is_segment_table_open,
+            (&mut should_reset, &mut self.segments),
+        );
+        if should_reset {
+            self.step = 0.into();
+            calculate_steps(&self.segments, &mut self.intersections, &mut self.steps);
+        }
+        self.segment_plotter.show(
+            ctx,
+            &mut self.is_segment_plotter_open,
+            SegmentPlotterState {
+                segments: &self.segments,
+                intersections: &self.intersections,
+                step: self.step,
+            },
+        );
+        self.intersection_table.show(
+            ctx,
+            &mut self.is_segment_plotter_open,
+            IntersectionTableState {
+                segments: &self.segments,
+                intersections: &self.intersections,
+                step: self.step,
+            },
+        );
+        self.controller.show(
+            ctx,
+            &mut self.is_controller_open,
+            ControllerState {
+                steps: &mut self.steps,
+                step: &mut self.step,
+                intersections: &mut self.intersections,
+            },
+        );
+        self.set_view.show(
+            ctx,
+            &mut self.is_set_view_open,
+            SetViewState {
+                step: &self.steps[self.step],
+                segments: &self.segments,
+            },
+        );
+        self.events_view.show(
+            ctx,
+            &mut self.is_events_view_open,
+            EventsViewState {
+                step: &self.steps[self.step],
+                segments: &self.segments,
+            },
+        );
+        self.code_view.show(
+            ctx,
+            &mut self.is_code_view_open,
+            CodeViewState {
+                step: self.step,
+                steps: &self.steps,
+                segments: &self.segments,
+                intersections: &self.intersections,
+            },
+        );
+        self.status_view.show(
+            ctx,
+            &mut self.is_status_view_open,
+            StatusViewState {
+                step: &self.steps[self.step],
+                segments: &self.segments,
+            },
+        );
     }
 }
 
 impl Default for PlaneSweep {
     fn default() -> Self {
-        Self {
+        let mut out = Self {
             step: 0.into(),
             segments: [
                 Segment::new((0, 0), (12, 12)),
@@ -156,6 +197,14 @@ impl Default for PlaneSweep {
             is_segment_table_open: true,
             set_view: SetView,
             is_set_view_open: true,
-        }
+            events_view: EventsView,
+            is_events_view_open: true,
+            code_view: CodeView,
+            is_code_view_open: true,
+            status_view: StatusView,
+            is_status_view_open: true,
+        };
+        calculate_steps(&out.segments, &mut out.intersections, &mut out.steps);
+        out
     }
 }

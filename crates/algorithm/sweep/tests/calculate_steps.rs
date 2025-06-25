@@ -60,7 +60,7 @@ fn one() {
                 ..
             }),
             pat!(Step {
-                typ: eq(&StepType::InitQ),
+                typ: pat!(StepType::InitQ { .. }),
                 ..
             }),
             pat!(Step {

@@ -1,7 +1,10 @@
 pub mod cartesian;
 pub mod homogeneous;
 
-use core::ops::{Add, Mul, Sub};
+use core::{
+    cmp::Ordering,
+    ops::{Add, Mul, Sub},
+};
 
 pub type Float = f64;
 
@@ -103,5 +106,68 @@ where
         let (a1, a2, a3) = self;
         let (b1, b2, b3) = rhs;
         a1 * b1 + a2 * b2 + a3 * b3
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[repr(transparent)]
+pub struct OrderedFloat(pub ordered_float::OrderedFloat<Float>);
+
+impl From<f64> for OrderedFloat {
+    fn from(value: f64) -> Self {
+        Self(ordered_float::OrderedFloat(value))
+    }
+}
+
+impl From<&f64> for OrderedFloat {
+    fn from(value: &f64) -> Self {
+        Self::from(*value)
+    }
+}
+impl From<&mut f64> for OrderedFloat {
+    fn from(value: &mut f64) -> Self {
+        Self::from(*value)
+    }
+}
+
+impl From<ordered_float::OrderedFloat<Float>> for OrderedFloat {
+    fn from(value: ordered_float::OrderedFloat<Float>) -> Self {
+        Self(value)
+    }
+}
+
+impl From<&ordered_float::OrderedFloat<Float>> for OrderedFloat {
+    fn from(value: &ordered_float::OrderedFloat<Float>) -> Self {
+        Self::from(*value)
+    }
+}
+impl From<&mut ordered_float::OrderedFloat<Float>> for OrderedFloat {
+    fn from(value: &mut ordered_float::OrderedFloat<Float>) -> Self {
+        Self::from(*value)
+    }
+}
+
+impl_approx_eq!(OrderedFloat, |l, r, m| (*l.0).approx_eq(*r.0, m));
+
+impl PartialEq for OrderedFloat {
+    fn eq(&self, other: &Self) -> bool {
+        f_eq!(*self.0, *other.0)
+    }
+}
+
+impl PartialOrd for OrderedFloat {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for OrderedFloat {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        if self.eq(other) {
+            Ordering::Equal
+        } else {
+            self.0.cmp(&other.0)
+        }
     }
 }

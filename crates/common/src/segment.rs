@@ -23,6 +23,10 @@ pub fn set_counter(value: usize) {
     COUNTER.store(value, core::sync::atomic::Ordering::SeqCst);
 }
 
+pub fn get_counter() -> usize {
+    COUNTER.load(core::sync::atomic::Ordering::SeqCst)
+}
+
 pub type Segments = TiVec<SegmentIdx, Segment>;
 
 impl_idx!(SegmentIdx);

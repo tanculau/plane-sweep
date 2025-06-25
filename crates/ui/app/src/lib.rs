@@ -14,6 +14,7 @@ pub struct App {
     selected: AlgorithmChoice,
     #[cfg_attr(feature = "serde", serde(skip))]
     tracing: ToggleAbleWidget<tracing_gui::Tracing, ()>,
+    last_id : usize,
 }
 
 impl App {
@@ -27,7 +28,9 @@ impl App {
         #[cfg(feature = "serde")]
         {
             if let Some(storage) = cc.storage {
-                return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+                let app: Self = eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+                common::segment::set_counter(app.last_id);
+                return app;
             }
         }
         let _ = cc;
@@ -39,6 +42,7 @@ impl eframe::App for App {
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
         #[cfg(feature = "serde")]
         {
+            self.last_id = common::segment::get_counter();
             eframe::set_value(storage, eframe::APP_KEY, &self);
         }
         let _ = storage;

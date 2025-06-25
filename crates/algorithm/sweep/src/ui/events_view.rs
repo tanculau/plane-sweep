@@ -5,6 +5,7 @@ use egui_extras::{Column, Size, StripBuilder, TableBuilder};
 use crate::{Event, Step};
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct EventsView;
 
 impl EventsView {
@@ -19,7 +20,7 @@ impl EventsView {
             .column(Column::auto())
             .column(Column::auto())
             .column(Column::auto())
-            .column(Column::auto())
+            .column(Column::remainder())
             .min_scrolled_height(0.0)
             .max_scroll_height(available_height);
         table
@@ -59,16 +60,16 @@ impl WidgetName for EventsView {
 }
 
 pub struct EventsViewState<'a, 'b> {
-    step: &'a Step,
-    segments: &'b Segments,
+    pub step: &'a Step,
+    pub segments: &'b Segments,
 }
 
 impl<'a, 'b> MyWidget<EventsViewState<'a, 'b>> for EventsView {
     fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<EventsViewState<'a, 'b>>) {
         let EventsViewState { step, segments } = state.into();
         if let Some(event) = &step.event {
-            ui.label("Current Event:");
-            ui.label(format!("Coordinate: ({:.2},{:.2})", *event.x, *event.y));
+            ui.heading("Current Event:");
+            ui.label(format!("Coordinate: ({:.2} , {:.2})", *event.x, *event.y));
             ui.label(format!("Segments: {}", format_segment(event, segments)));
             ui.separator();
         }

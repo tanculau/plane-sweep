@@ -3,8 +3,8 @@
 #![allow(dead_code)]
 pub mod ui;
 
-use core::{borrow::Borrow, iter, ops::Bound};
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use core::{borrow::Borrow, hash::Hash, iter, ops::Bound};
+use std::collections::{BTreeSet, HashSet};
 
 use bon::Builder;
 use common::{
@@ -14,7 +14,7 @@ use common::{
     segment::{Segment, SegmentIdx, Segments},
 };
 
-use ordered_float::OrderedFloat;
+use common::math::OrderedFloat;
 
 #[derive(Builder, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -38,12 +38,14 @@ pub struct Step {
     pub intersection: Option<IntersectionIdx>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum StepType {
     Init,
     StartInitQ,
-    InitQ,
+    InitQ {
+        segment: SegmentIdx,
+    },
     InitT,
     PopQ,
     HEPUpdateT,
@@ -59,8 +61,8 @@ pub enum StepType {
         s_r: Vec<SegmentIdx>,
     },
     UpCpNotEmpty {
-        s_dash: SegmentIdx,
-        s_dash_dash: SegmentIdx,
+        s_dash: Option<SegmentIdx>,
+        s_dash_dash: Option<SegmentIdx>,
         s_l: Vec<SegmentIdx>,
         s_r: Vec<SegmentIdx>,
     },
@@ -71,16 +73,58 @@ pub enum StepType {
     InsertIntersectionEvent {
         s_l: SegmentIdx,
         s_r: SegmentIdx,
-        intersection: (OrderedFloat<Float>, OrderedFloat<Float>),
+        intersection: (OrderedFloat, OrderedFloat),
     },
     End,
+}
+impl StepType {
+    #[must_use]
+    pub const fn is_init(&self) -> bool {
+        matches!(self, Self::Init)
+    }
+    #[must_use]
+    pub const fn is_find_intersections(&self) -> bool {
+        matches!(
+            self,
+            Self::StartInitQ | Self::InitQ { .. } | Self::InitT | Self::PopQ
+        )
+    }
+    #[must_use]
+    pub const fn is_handle_event_point(&self) -> bool {
+        matches!(
+            self,
+            Self::HEPUpdateT
+                | Self::CalculateSets
+                | Self::CalculateUpCpLp { .. }
+                | Self::ReportIntersections
+                | Self::DeleteLp
+                | Self::InsertUp
+                | Self::UpCpEmpty { .. }
+                | Self::UpCpNotEmpty { .. }
+        )
+    }
+
+    #[must_use]
+    pub const fn is_find_new_event(&self) -> bool {
+        matches!(
+            self,
+            Self::FindNewEvent { .. } | Self::InsertIntersectionEvent { .. }
+        )
+    }
+    #[must_use]
+    pub const fn is_finished(&self) -> bool {
+        matches!(self, Self::End)
+    }
 }
 
 impl AlgrorithmStep for Step {
     fn segments(&self) -> impl Iterator<Item = common::segment::SegmentIdx> {
-        self.event.iter().flat_map(|s| s.segments.iter())
+        self.event
+            .iter()
+            .flat_map(|s| s.segments.iter())
             .chain(self.c_p.iter())
-            .chain(self.l_p.iter()).copied()
+            .chain(self.l_p.iter())
+            .copied()
     }
 
     fn intersections(&self) -> impl Iterator<Item = common::intersection::IntersectionIdx> {
@@ -162,7 +206,7 @@ impl EventQueue {
 #[derive(Debug, Clone, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Status {
-    pub x_intersect: OrderedFloat<Float>,
+    pub x_intersect: OrderedFloat,
     pub segments: Vec<SegmentIdx>,
 }
 impl PartialEq for Status {
@@ -182,8 +226,8 @@ impl Ord for Status {
     }
 }
 
-impl Borrow<OrderedFloat<Float>> for Status {
-    fn borrow(&self) -> &OrderedFloat<Float> {
+impl Borrow<OrderedFloat> for Status {
+    fn borrow(&self) -> &OrderedFloat {
         &self.x_intersect
     }
 }
@@ -196,11 +240,18 @@ impl Status {
         {
             segment.lower.x
         } else {
-            let horizontal = HomogeneousLine::horizontal(dbg!(p_y));
-            let seg = dbg!(segment).line();
-            dbg!(horizontal.intersection(seg).cartesian().unwrap().x)
+            let horizontal = HomogeneousLine::horizontal(p_y);
+            let seg = segment.line();
+            horizontal.intersection(seg).cartesian().unwrap().x
+        };
+
+        let x_intersect = if x_intersect == -0.0 {
+            0.0
+        } else {
+            x_intersect
         }
         .into();
+
         Self {
             x_intersect,
             segments: vec![segment_idx],
@@ -211,10 +262,8 @@ impl Status {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct StatusQueue {
-    inner: BTreeSet<Status>,
+    pub inner: BTreeSet<Status>,
 }
-
-pub type StatusQueue2 = BTreeMap<OrderedFloat<Float>, Vec<SegmentIdx>>;
 
 impl StatusQueue {
     #[must_use]
@@ -226,7 +275,8 @@ impl StatusQueue {
 
     pub fn update(&mut self, y: impl Into<Float>, segments: &Segments) {
         let y = y.into();
-        self.inner = std::mem::take(&mut self.inner)
+        let a = std::mem::take(self);
+        *self = a
             .into_iter()
             .flat_map(|s| s.segments.into_iter())
             .map(|s| Status::new(y, segments[s], s))
@@ -237,31 +287,41 @@ impl StatusQueue {
         self.inner.iter()
     }
 
-    pub fn insert(&mut self, status: Status) {
-        let status = match self.inner.take(&status.x_intersect) {
-            Some(mut v) => {
-                v.segments.extend(status.segments);
-                v
-            }
-            None => status,
-        };
+    pub fn remove(&mut self, elements : &HashSet<SegmentIdx>, y :impl Into<Float>, segments: &Segments) {
+        let y = y.into();
+        let a = std::mem::take(self);
+        *self = a
+            .into_iter()
+            .flat_map(|s| s.segments.into_iter()).filter(|s| !elements.contains(s))
+            .map(|s| Status::new(y, segments[s], s))
+            .collect();
+    }
+
+    pub fn insert(&mut self, mut status: Status) {
+        if let Some(already) = self.inner.take(&status.x_intersect) {
+            status.segments.extend(&already.segments);
+        }
         self.inner.insert(status);
     }
 
-    pub fn left(&self, x: impl Into<OrderedFloat<Float>>) -> Option<&Status> {
+    pub fn left(&self, x: impl Into<OrderedFloat>) -> Option<&Status> {
         let x = &x.into();
         let mut range = self
             .inner
-            .range::<OrderedFloat<Float>, _>((Bound::Unbounded, Bound::Excluded(x)));
+            .range::<OrderedFloat, _>((Bound::Unbounded, Bound::Excluded(x)));
         range.next_back()
     }
 
-    pub fn right(&self, x: impl Into<OrderedFloat<Float>>) -> Option<&Status> {
+    pub fn right(&self, x: impl Into<OrderedFloat>) -> Option<&Status> {
         let x = &x.into();
         let mut range = self
             .inner
-            .range::<OrderedFloat<Float>, _>((Bound::Excluded(x), Bound::Unbounded));
+            .range::<OrderedFloat, _>((Bound::Excluded(x), Bound::Unbounded));
         range.next()
+    }
+
+    pub fn get(&self, x: impl Into<OrderedFloat>) -> Option<&Status> {
+        self.inner.get::<OrderedFloat>(&x.into())
     }
 
     pub fn clear(&mut self) {
@@ -297,7 +357,7 @@ impl<'a> IntoIterator for &'a StatusQueue {
 impl Extend<Status> for StatusQueue {
     fn extend<T: IntoIterator<Item = Status>>(&mut self, iter: T) {
         for v in iter {
-            self.insert(v);
+            (self.insert(v));
         }
     }
 }
@@ -324,6 +384,7 @@ pub fn calculate_steps(
     let mut sc = 0;
     let s = &mut sc;
     steps.clear();
+    intersections.clear();
     steps.push(Step::builder(StepType::Init, step_count(s)).build());
 
     // Initialize an empty event queue Q.
@@ -338,7 +399,7 @@ pub fn calculate_steps(
         let event = Event::new(segment.lower.y, segment.lower.x, std::iter::empty());
         event_queue.insert(event);
         steps.push(
-            Step::builder(StepType::InitQ, step_count(s))
+            Step::builder(StepType::InitQ { segment: id }, step_count(s))
                 .event_queue(event_queue.clone())
                 .build(),
         );
@@ -409,7 +470,7 @@ fn handle_event_point(
     // "Find all segments stored in T that contain p; they are adjacent in T." [1, p. 26]
     let found_in_status = status_queue
         .iter()
-        .filter(|s| f_eq!(*s.x_intersect, p.x))
+        .filter(|s| f_eq!(*s.x_intersect.0, p.x))
         .flat_map(|s| s.segments.iter())
         .copied()
         .collect::<Vec<_>>(); // Map to Segment
@@ -490,14 +551,7 @@ fn handle_event_point(
     // "Delete the segments in L(p) ∪ C(p) from T." [1, p. 26]
     // We only retain elements which are *not* in l_p
     // We do not do u_p, because how the status is defined and calculated, it is not needed
-
-    let a = std::mem::take(&mut status_queue.inner);
-    status_queue.inner = a
-        .into_iter()
-        .flat_map(|s| s.segments)
-        .filter(|s| !l_p.contains(s))
-        .map(|s| Status::new(*event.y, segments[s], s))
-        .collect();
+    status_queue.remove(&l_p, *event.y, segments);
 
     steps.push(
         Step::builder(StepType::DeleteLp, step_count(s))
@@ -562,15 +616,15 @@ fn handle_event_point(
             );
         }
     } else {
-        let s_dash = status_queue.iter().next().unwrap();
-        let s_l = status_queue.left(s_dash.x_intersect);
-        let s_dash_dash = status_queue.iter().next().unwrap();
-        let s_r = status_queue.left(s_dash_dash.x_intersect);
+        let s_dash = status_queue.get(event.x);
+        let s_l = status_queue.left(event.x);
+        let s_dash_dash = status_queue.get(event.x);
+        let s_r = status_queue.right(event.x);
         steps.push(
             Step::builder(
                 StepType::UpCpNotEmpty {
-                    s_dash: *s_dash.segments.first().unwrap(),
-                    s_dash_dash: *s_dash_dash.segments.first().unwrap(),
+                    s_dash: s_dash.and_then(|v| v.segments.first().copied()),
+                    s_dash_dash: s_dash_dash.and_then(|v| v.segments.first().copied()),
                     s_l: s_l.map_or(Vec::new(), |s| s.segments.clone()),
                     s_r: s_r.map_or(Vec::new(), |s| s.segments.clone()),
                 },
@@ -585,7 +639,7 @@ fn handle_event_point(
             .build(),
         );
 
-        if let (Some(left), right) = (s_l, s_dash) {
+        if let (Some(left), Some(right)) = (s_l, s_dash) {
             find_new_event(
                 left,
                 right,
@@ -599,7 +653,7 @@ fn handle_event_point(
                 &l_p.iter().copied().collect::<Vec<_>>(),
             );
         }
-        if let (left, Some(right)) = (s_dash_dash, s_r) {
+        if let (Some(left), Some(right)) = (s_dash_dash, s_r) {
             find_new_event(
                 left,
                 right,
@@ -616,7 +670,10 @@ fn handle_event_point(
     }
 }
 
-#[allow(clippy::too_many_arguments, reason = "because capturing status cost a lot")]
+#[allow(
+    clippy::too_many_arguments,
+    reason = "because capturing status cost a lot"
+)]
 fn find_new_event(
     left: &Status,
     right: &Status,
@@ -675,43 +732,5 @@ fn find_new_event(
                 ));
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-    use googletest::prelude::*;
-
-    #[gtest]
-    #[ignore = "reason"]
-    fn status() {
-        // All our Segments have an EventPoint on 2
-        let segments = Segments::from_iter([
-            Segment::new((-11.54, 2), (-8.46, -3.9)),
-            Segment::new((-2, 2), (2, -2)),
-            Segment::new((-2, 2), (-7, -2)),
-            Segment::new((-12, 2), (17, 2)),
-        ]);
-        let event: CartesianCoord = (-2, 2).into();
-
-        let status_queue: StatusQueue = segments
-            .iter_enumerated()
-            .map(|(idx, segment)| Status::new(event.y, *segment, idx))
-            .collect();
-        dbg!(&segments);
-        dbg!(&status_queue);
-        let left = status_queue.left(event.x);
-        let right = status_queue.right(event.x);
-
-        expect_that!(
-            left,
-            some(field!(Status.x_intersect, eq(&OrderedFloat(-11.54))))
-        );
-        expect_that!(
-            right,
-            some(field!(Status.x_intersect, eq(&OrderedFloat(Float::MAX))))
-        );
     }
 }
