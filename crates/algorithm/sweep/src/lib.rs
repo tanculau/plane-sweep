@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 pub mod ui;
 
-use core::{borrow::Borrow, hash::Hash, iter, ops::Bound};
+use core::{borrow::Borrow, iter, ops::Bound};
 use std::collections::{BTreeSet, HashSet};
 
 use bon::Builder;

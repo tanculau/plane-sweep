@@ -20,6 +20,7 @@ ordered-float = "5.0.0"
 segment_plotter = { version = "0.1.0", path = "../../ui/segment_plotter" }
 segment_table = { version = "0.1.0", path = "../../ui/segment_table" }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [lints]
 workspace = true

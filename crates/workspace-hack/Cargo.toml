@@ -31,6 +31,7 @@ epaint = { version = "0.31", default-features = false, features = ["bytemuck", "
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 num-traits = { version = "0.2" }
+ordered-float = { version = "5", features = ["serde"] }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
 ron = { version = "0.8", features = ["integer128"] }
