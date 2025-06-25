@@ -130,6 +130,10 @@ impl AlgrorithmStep for Step {
     fn intersections(&self) -> impl Iterator<Item = common::intersection::IntersectionIdx> {
         iter::empty()
     }
+
+    fn sweep_line(&self) -> Option<CartesianCoord> {
+        self.event.as_ref().map(|v| (v.x.0, v.y.0).into())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -243,6 +247,7 @@ impl Status {
             let horizontal = HomogeneousLine::horizontal(p_y);
             let seg = segment.line();
             horizontal.intersection(seg).cartesian().unwrap().x
+            // TODO Logik für parallele Linien
         };
 
         let x_intersect = if x_intersect == -0.0 {

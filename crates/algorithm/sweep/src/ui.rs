@@ -116,6 +116,7 @@ impl MyWidget<()> for PlaneSweep {
                 segments: &self.segments,
                 intersections: &self.intersections,
                 step: self.step,
+                steps: &self.steps,
             },
         );
         self.intersection_table.show(
@@ -178,10 +179,9 @@ impl Default for PlaneSweep {
         let mut out = Self {
             step: 0.into(),
             segments: [
-                Segment::new((0, 0), (12, 12)),
-                Segment::new((-25, 12), (112, -12)),
-                Segment::new((0, 12), (112, -12)),
-                Segment::new((33, 33), (96, -12)),
+                Segment::new((2, 2), (-2, -2)),
+                Segment::new((-2, 2), (2, -2)),
+                Segment::new((-1, 2), (-1, -2)),
             ]
             .into_iter()
             .collect(),

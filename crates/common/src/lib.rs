@@ -1,7 +1,7 @@
 use eframe::egui::Window;
 use typed_index_collections::TiVec;
 
-use crate::{intersection::IntersectionIdx, segment::SegmentIdx};
+use crate::{intersection::IntersectionIdx, math::cartesian::CartesianCoord, segment::SegmentIdx};
 
 pub mod intersection;
 pub mod math;
@@ -87,6 +87,10 @@ pub trait AlgrorithmStep {
     fn segments(&self) -> impl Iterator<Item = SegmentIdx>;
     /// Returns the intersections that are currently looked at by the algorithm.
     fn intersections(&self) -> impl Iterator<Item = IntersectionIdx>;
+
+    fn sweep_line(&self) -> Option<CartesianCoord> {
+        None
+    }
 }
 
 pub type AlgoSteps<T> = TiVec<AlgoStepIdx, T>;

@@ -1,12 +1,12 @@
 use core::f64::consts::TAU;
 
 use common::{
-    AlgoStepIdx, MyWidget, WidgetName,
+    AlgoStepIdx, AlgoSteps, AlgrorithmStep, MyWidget, WidgetName,
     intersection::{IntersectionType, Intersections},
     segment::Segments,
 };
-use eframe::egui::{self, ComboBox, ScrollArea, TextWrapMode, remap};
-use egui_plot::{CoordinatesFormatter, Corner, Legend, Line, LineStyle, Plot, PlotPoints};
+use eframe::egui::{self, Color32, ComboBox, DragValue, ScrollArea, TextWrapMode, remap};
+use egui_plot::{CoordinatesFormatter, Corner, HLine, Legend, Line, LineStyle, Plot, PlotPoints};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -18,6 +18,7 @@ pub struct SegmentPlotter {
     show_grid: bool,
     square: bool,
     line_style: LineStyle,
+    radius: f64,
 }
 
 impl SegmentPlotter {
@@ -29,11 +30,16 @@ impl SegmentPlotter {
             show_grid,
             line_style,
             square,
+            radius,
             ..
         } = self;
 
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Radius Intersection:");
+                    ui.add(DragValue::new(radius).range(0.01..=100.0));
+                });
                 ui.checkbox(show_axes, "Show axes");
                 ui.checkbox(show_grid, "Show grid");
                 ui.checkbox(coordinates, "Show coordinates on hover")
@@ -61,10 +67,26 @@ impl SegmentPlotter {
         });
     }
 }
+fn circle(
+    radius: f64,
+    name: String,
+    coord: common::math::cartesian::CartesianCoord,
+) -> Line<'static> {
+    let n = 512;
+    let circle_points: PlotPoints<'static> = (0..=n)
+        .map(|i| {
+            let t: f64 = remap(f64::from(i), 0.0..=f64::from(n), 0.0..=TAU);
+            let r: f64 = radius;
+            [r.mul_add(t.cos(), coord.x), r.mul_add(t.sin(), coord.y)]
+        })
+        .collect();
+    Line::new(name, circle_points)
+}
 
 impl Default for SegmentPlotter {
     fn default() -> Self {
         Self {
+            radius: 0.15,
             proportional: true,
             coordinates: true,
             show_axes: true,
@@ -79,18 +101,19 @@ impl WidgetName for SegmentPlotter {
     const NAME: &'static str = "Segment Plotter";
 }
 
-impl<'segments, 'intersections> MyWidget<SegmentPlotterState<'segments, 'intersections>>
-    for SegmentPlotter
+impl<'segments, 'intersections, 'steps, T: AlgrorithmStep>
+    MyWidget<SegmentPlotterState<'segments, 'intersections, 'steps, T>> for SegmentPlotter
 {
     fn ui(
         &mut self,
         ui: &mut eframe::egui::Ui,
-        state: impl Into<SegmentPlotterState<'segments, 'intersections>>,
+        state: impl Into<SegmentPlotterState<'segments, 'intersections, 'steps, T>>,
     ) {
         let SegmentPlotterState {
             segments,
             intersections,
             step,
+            steps,
         } = state.into();
         ScrollArea::horizontal().show(ui, |ui| {
             self.options_ui(ui);
@@ -137,15 +160,7 @@ impl<'segments, 'intersections> MyWidget<SegmentPlotterState<'segments, 'interse
                 match intersection.typ() {
                     IntersectionType::Point { coord } => {
                         //plot_ui.points(Points::new(name, vec![[coord.x, coord.y]]));
-                        let n = 512;
-                        let circle_points: PlotPoints<'_> = (0..=n)
-                            .map(|i| {
-                                let t: f64 = remap(f64::from(i), 0.0..=f64::from(n), 0.0..=TAU);
-                                let r: f64 = 1.0;
-                                [r.mul_add(t.cos(), coord.x), r.mul_add(t.sin(), coord.y)]
-                            })
-                            .collect();
-                        let line = Line::new(name, circle_points);
+                        let line = circle(self.radius, name, *coord);
                         plot_ui.line(line);
                     }
                     IntersectionType::Parallel { line } => {
@@ -160,13 +175,21 @@ impl<'segments, 'intersections> MyWidget<SegmentPlotterState<'segments, 'interse
                     }
                 }
             }
+
+            if let Some(sweep) = steps[step].sweep_line() {
+                plot_ui.hline(HLine::new("Sweep Line", sweep.y).color(Color32::RED));
+                let line =
+                    circle(self.radius * 2.0, "Event Point".to_string(), sweep).color(Color32::RED);
+                plot_ui.line(line);
+            }
         });
     }
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct SegmentPlotterState<'segments, 'intersections> {
+pub struct SegmentPlotterState<'segments, 'intersections, 'steps, T: AlgrorithmStep> {
     pub segments: &'segments Segments,
     pub intersections: &'intersections Intersections,
     pub step: AlgoStepIdx,
+    pub steps: &'steps AlgoSteps<T>,
 }

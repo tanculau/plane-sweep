@@ -124,28 +124,22 @@ impl SegmentTable {
                         ui.label(segment.id.to_string());
                     });
 
-                    // Upper Y
-                    row.col(|ui| {
-                        let y = &mut segment.upper.y;
-                        if ui.add(egui::DragValue::new(y)).changed() {
-                            *should_reset |= true;
-                            info!("Updating upper Y of segment {} to {}", segment.id, y);
-                        }
-                    });
                     // Upper X
                     row.col(|ui| {
                         let x = &mut segment.upper.x;
                         if ui.add(egui::DragValue::new(x)).changed() {
                             *should_reset |= true;
-                            info!("Updating upper X of segment {} to {}", segment.id, x);
+                            info!("Updating upper Y of segment {} to {}", segment.id, x);
+                            segment.update();
                         }
                     });
-                    // Lower Y
+                    // Upper Y
                     row.col(|ui| {
-                        let y = &mut segment.lower.y;
+                        let y = &mut segment.upper.y;
                         if ui.add(egui::DragValue::new(y)).changed() {
                             *should_reset |= true;
-                            info!("Updating lower Y of segment {} to {}", segment.id, y);
+                            info!("Updating upper X of segment {} to {}", segment.id, y);
+                            segment.update();
                         }
                     });
                     // Lower X
@@ -153,7 +147,17 @@ impl SegmentTable {
                         let x = &mut segment.lower.x;
                         if ui.add(egui::DragValue::new(x)).changed() {
                             *should_reset |= true;
-                            info!("Updating lower X of segment {} to {}", segment.id, x);
+                            info!("Updating lower Y of segment {} to {}", segment.id, x);
+                            segment.update();
+                        }
+                    });
+                    // Lower Y
+                    row.col(|ui| {
+                        let y = &mut segment.lower.y;
+                        if ui.add(egui::DragValue::new(y)).changed() {
+                            *should_reset |= true;
+                            info!("Updating lower X of segment {} to {}", segment.id, y);
+                            segment.update();
                         }
                     });
                     // Active
