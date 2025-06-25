@@ -33,7 +33,11 @@ impl Line {
     }
 
     pub fn horizontal(y: impl Into<Float>) -> Self {
-        Self::new(1, 0, y.into())
+        Self::new(0, -1, y.into())
+    }
+
+    pub fn vertical(x :impl Into<Float>) -> Self {
+        Self::new(-1, 0, x.into())
     }
 
     #[must_use]

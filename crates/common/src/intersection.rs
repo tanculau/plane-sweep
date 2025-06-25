@@ -15,10 +15,10 @@ impl_idx!(IntersectionIdx);
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Intersection {
-    typ: IntersectionType,
-    segments: Vec<SegmentIdx>,
-    mark: bool,
-    step: Option<usize>,
+    pub typ: IntersectionType,
+    pub segments: Vec<SegmentIdx>,
+    pub mark: bool,
+    pub step: Option<usize>,
 }
 
 impl_approx_eq!(Intersection, |l, r, margin| l.typ.approx_eq(r.typ, margin)
@@ -80,8 +80,8 @@ impl Intersection {
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum IntersectionType {
-    Point { coord: CartesianCoord },
-    Parallel { line: Segment },
+    Point {  coord: CartesianCoord },
+    Parallel {  line: Segment },
 }
 
 impl IntersectionType {

@@ -22,6 +22,7 @@ impl WidgetName for Controller {
     const NAME_LONG: &'static str = "Algorithm Controller";
 }
 
+#[derive(Debug)]
 pub struct ControllerState<'a, 'b, 'c, T> {
     pub steps: &'a mut AlgoSteps<T>,
     pub step: &'b mut AlgoStepIdx,
@@ -103,8 +104,7 @@ impl<'a, 'b, 'c, T> MyWidget<ControllerState<'a, 'b, 'c, T>> for Controller {
     ) {
         Window::new(Self::NAME_LONG)
             .open(open)
-            .auto_sized()
-            .scroll(true)
+            .resizable([true, false])
             .show(ctx, |ui| {
                 self.ui(ui, state);
             });
