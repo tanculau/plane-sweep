@@ -6,7 +6,7 @@ use common::{
     segment::{Segment, SegmentIdx, Segments},
 };
 use googletest::prelude::*;
-use sweep::{Step, StepType, calculate_steps};
+use sweep::{step::{Step, StepType}, calculate_steps};
 #[gtest]
 fn empty() {
     let segments = Segments::new();
