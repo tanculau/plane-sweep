@@ -1,10 +1,17 @@
 use core::iter;
 
 use bon::Builder;
-use common::{intersection::IntersectionIdx, math::{cartesian::CartesianCoord, OrderedFloat}, segment::SegmentIdx, AlgrorithmStep};
+use common::{
+    AlgrorithmStep,
+    intersection::IntersectionIdx,
+    math::{OrderedFloat, cartesian::CartesianCoord},
+    segment::SegmentIdx,
+};
 
-use crate::{event::{Event, EventQueue}, status::StatusQueue};
-
+use crate::{
+    event::{Event, EventQueue},
+    status::StatusQueue,
+};
 
 #[derive(Builder, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

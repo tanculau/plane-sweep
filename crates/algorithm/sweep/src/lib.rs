@@ -5,7 +5,6 @@ pub mod status;
 pub mod step;
 pub mod ui;
 
-
 use common::{
     AlgoSteps, f_eq,
     intersection::{Intersection, Intersections},

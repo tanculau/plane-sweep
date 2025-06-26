@@ -719,7 +719,7 @@ mod tests {
 
         sq.insert(0.into(), &segments, event);
 
-        let iter : Vec<_> = sq.iter_contains(&segments, event).collect();
+        let iter: Vec<_> = sq.iter_contains(&segments, event).collect();
 
         expect_that!(iter, elements_are![eq(&0.into())]);
     }
