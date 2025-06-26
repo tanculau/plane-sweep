@@ -2,7 +2,7 @@ use tracing::{debug, instrument};
 
 use crate::{
     f_eq,
-    math::{CrossProduct, DotProduct, Float, homogeneous::HomogeneousCoord},
+    math::{CrossProduct, DotProduct, Float, OrderedFloat, homogeneous::HomogeneousCoord},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -10,6 +10,14 @@ pub struct Line {
     a: Float,
     b: Float,
     c: Float,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Slope {
+    Vertiical,
+    Value(OrderedFloat),
+    Horizontal,
+    Infinity,
 }
 
 impl Line {
@@ -67,6 +75,16 @@ impl Line {
     #[must_use]
     pub fn intersection(self, other: Self) -> HomogeneousCoord {
         self.cross_product(other)
+    }
+
+    #[must_use]
+    pub fn slope(self) -> Slope {
+        match (f_eq!(self.a, 0.0), (f_eq!(self.b, 0.0))) {
+            (true, true) => Slope::Infinity,
+            (true, false) => Slope::Horizontal,
+            (false, true) => Slope::Vertiical,
+            (false, false) => Slope::Value(OrderedFloat((self.b / self.a).abs().into())),
+        }
     }
 }
 

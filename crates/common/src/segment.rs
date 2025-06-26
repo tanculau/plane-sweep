@@ -6,7 +6,7 @@ use tracing::{debug, instrument};
 use typed_index_collections::TiVec;
 
 use crate::{
-    impl_idx,
+    f_eq, impl_idx,
     intersection::{Intersection, IntersectionType},
     math::{
         CrossProduct,
@@ -301,6 +301,15 @@ impl Segment {
     #[must_use]
     pub fn line(&self) -> HomogeneousLine {
         self.upper.homogeneous().line(self.lower.homogeneous())
+    }
+
+    #[must_use]
+    pub fn is_horizontal(&self) -> bool {
+        f_eq!(self.upper.y, self.lower.y)
+    }
+    #[must_use]
+    pub fn is_vertical(&self) -> bool {
+        f_eq!(self.upper.x, self.lower.x)
     }
 }
 

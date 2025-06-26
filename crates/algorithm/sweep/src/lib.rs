@@ -1,385 +1,22 @@
 //! Plane Sweep Algorithm
 //! Based on the book "Computational Geometry" from Mark Berg , Otfried Cheong , Marc Kreveld , Mark Overmars. [DOI](https://doi.org/10.1007/978-3-662-04245-8)
-#![allow(dead_code)]
+pub mod event;
+pub mod status;
+pub mod step;
 pub mod ui;
 
-use core::{borrow::Borrow, iter, ops::Bound};
-use std::collections::{BTreeSet, HashSet};
-
-use bon::Builder;
 use common::{
-    AlgoSteps, AlgrorithmStep, f_eq,
-    intersection::{Intersection, IntersectionIdx, Intersections},
-    math::{Float, cartesian::CartesianCoord, homogeneous::HomogeneousLine},
+    AlgoSteps, f_eq,
+    intersection::{Intersection, Intersections},
+    math::{cartesian::CartesianCoord, float_cmp::approx_eq},
     segment::{Segment, SegmentIdx, Segments},
 };
 
-use common::math::OrderedFloat;
-
-#[derive(Builder, Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[builder(on(usize, into))]
-pub struct Step {
-    #[builder(start_fn)]
-    pub typ: StepType,
-    #[builder(start_fn)]
-    pub step: usize,
-    pub event: Option<Event>,
-    #[builder(default)]
-    pub event_queue: EventQueue,
-    #[builder(default)]
-    pub status_queue: StatusQueue,
-    #[builder(default)]
-    pub u_p: Vec<SegmentIdx>,
-    #[builder(default)]
-    pub c_p: Vec<SegmentIdx>,
-    #[builder(default)]
-    pub l_p: Vec<SegmentIdx>,
-    pub intersection: Option<IntersectionIdx>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum StepType {
-    Init,
-    StartInitQ,
-    InitQ {
-        segment: SegmentIdx,
-    },
-    InitT,
-    PopQ,
-    HEPUpdateT,
-    CalculateSets,
-    CalculateUpCpLp {
-        up_cp_lp: Vec<SegmentIdx>,
-    },
-    ReportIntersections,
-    DeleteLp,
-    InsertUp,
-    UpCpEmpty {
-        s_l: Vec<SegmentIdx>,
-        s_r: Vec<SegmentIdx>,
-    },
-    UpCpNotEmpty {
-        s_dash: Option<SegmentIdx>,
-        s_dash_dash: Option<SegmentIdx>,
-        s_l: Vec<SegmentIdx>,
-        s_r: Vec<SegmentIdx>,
-    },
-    FindNewEvent {
-        s_l: SegmentIdx,
-        s_r: SegmentIdx,
-    },
-    InsertIntersectionEvent {
-        s_l: SegmentIdx,
-        s_r: SegmentIdx,
-        intersection: (OrderedFloat, OrderedFloat),
-    },
-    End,
-}
-impl StepType {
-    #[must_use]
-    pub const fn is_init(&self) -> bool {
-        matches!(self, Self::Init)
-    }
-    #[must_use]
-    pub const fn is_find_intersections(&self) -> bool {
-        matches!(
-            self,
-            Self::StartInitQ | Self::InitQ { .. } | Self::InitT | Self::PopQ
-        )
-    }
-    #[must_use]
-    pub const fn is_handle_event_point(&self) -> bool {
-        matches!(
-            self,
-            Self::HEPUpdateT
-                | Self::CalculateSets
-                | Self::CalculateUpCpLp { .. }
-                | Self::ReportIntersections
-                | Self::DeleteLp
-                | Self::InsertUp
-                | Self::UpCpEmpty { .. }
-                | Self::UpCpNotEmpty { .. }
-        )
-    }
-
-    #[must_use]
-    pub const fn is_find_new_event(&self) -> bool {
-        matches!(
-            self,
-            Self::FindNewEvent { .. } | Self::InsertIntersectionEvent { .. }
-        )
-    }
-    #[must_use]
-    pub const fn is_finished(&self) -> bool {
-        matches!(self, Self::End)
-    }
-}
-
-impl AlgrorithmStep for Step {
-    fn segments(&self) -> impl Iterator<Item = common::segment::SegmentIdx> {
-        self.event
-            .iter()
-            .flat_map(|s| s.segments.iter())
-            .chain(self.c_p.iter())
-            .chain(self.l_p.iter())
-            .copied()
-    }
-
-    fn intersections(&self) -> impl Iterator<Item = common::intersection::IntersectionIdx> {
-        iter::empty()
-    }
-
-    fn sweep_line(&self) -> Option<CartesianCoord> {
-        self.event.as_ref().map(|v| (v.x.0, v.y.0).into())
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Event {
-    pub y: ordered_float::OrderedFloat<Float>,
-    pub x: ordered_float::OrderedFloat<Float>,
-    pub segments: HashSet<SegmentIdx>,
-}
-
-impl Event {
-    #[must_use]
-    pub fn new(
-        y: impl Into<ordered_float::OrderedFloat<Float>>,
-        x: impl Into<ordered_float::OrderedFloat<Float>>,
-        segments: impl Iterator<Item = SegmentIdx>,
-    ) -> Self {
-        Self {
-            y: y.into(),
-            x: x.into(),
-            segments: segments.collect(),
-        }
-    }
-
-    #[must_use]
-    pub fn cheap_copy(&self) -> Self {
-        Self {
-            y: self.y,
-            x: self.x,
-            segments: HashSet::new(),
-        }
-    }
-}
-
-impl Ord for Event {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.y.cmp(&other.y).reverse().then(self.x.cmp(&other.x))
-    }
-}
-
-impl PartialOrd for Event {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct EventQueue {
-    queue: BTreeSet<Event>,
-}
-
-impl EventQueue {
-    #[must_use]
-    pub const fn new() -> Self {
-        Self {
-            queue: BTreeSet::new(),
-        }
-    }
-
-    pub fn insert(&mut self, mut event: Event) {
-        let entry = self.queue.get(&event.cheap_copy());
-        if let Some(entry) = entry {
-            event.segments.extend(entry.segments.iter());
-        }
-        self.queue.replace(event);
-    }
-
-    pub fn pop(&mut self) -> Option<Event> {
-        self.queue.pop_first()
-    }
-}
-
-#[derive(Debug, Clone, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Status {
-    pub x_intersect: OrderedFloat,
-    pub segments: Vec<SegmentIdx>,
-}
-impl PartialEq for Status {
-    fn eq(&self, other: &Self) -> bool {
-        self.x_intersect.eq(&other.x_intersect)
-    }
-}
-
-impl PartialOrd for Status {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-impl Ord for Status {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.x_intersect.cmp(&other.x_intersect)
-    }
-}
-
-impl Borrow<OrderedFloat> for Status {
-    fn borrow(&self) -> &OrderedFloat {
-        &self.x_intersect
-    }
-}
-
-impl Status {
-    #[allow(clippy::missing_panics_doc)]
-    #[must_use]
-    pub fn new(p_y: Float, segment: Segment, segment_idx: SegmentIdx) -> Self {
-        let x_intersect = if f_eq!(segment.upper.y, segment.lower.y) && f_eq!(segment.upper.y, p_y)
-        {
-            segment.lower.x
-        } else {
-            let horizontal = HomogeneousLine::horizontal(p_y);
-            let seg = segment.line();
-            horizontal.intersection(seg).cartesian().unwrap().x
-            // TODO Logik für parallele Linien
-        };
-
-        let x_intersect = if x_intersect == -0.0 {
-            0.0
-        } else {
-            x_intersect
-        }
-        .into();
-
-        Self {
-            x_intersect,
-            segments: vec![segment_idx],
-        }
-    }
-}
-
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct StatusQueue {
-    pub inner: BTreeSet<Status>,
-}
-
-impl StatusQueue {
-    #[must_use]
-    pub const fn new() -> Self {
-        Self {
-            inner: BTreeSet::new(),
-        }
-    }
-
-    pub fn update(&mut self, y: impl Into<Float>, segments: &Segments) {
-        let y = y.into();
-        let a = std::mem::take(self);
-        *self = a
-            .into_iter()
-            .flat_map(|s| s.segments.into_iter())
-            .map(|s| Status::new(y, segments[s], s))
-            .collect();
-    }
-
-    pub fn iter(&self) -> std::collections::btree_set::Iter<'_, Status> {
-        self.inner.iter()
-    }
-
-    pub fn remove(
-        &mut self,
-        elements: &HashSet<SegmentIdx>,
-        y: impl Into<Float>,
-        segments: &Segments,
-    ) {
-        let y = y.into();
-        let a = std::mem::take(self);
-        *self = a
-            .into_iter()
-            .flat_map(|s| s.segments.into_iter())
-            .filter(|s| !elements.contains(s))
-            .map(|s| Status::new(y, segments[s], s))
-            .collect();
-    }
-
-    pub fn insert(&mut self, mut status: Status) {
-        if let Some(already) = self.inner.take(&status.x_intersect) {
-            status.segments.extend(&already.segments);
-        }
-        self.inner.insert(status);
-    }
-
-    pub fn left(&self, x: impl Into<OrderedFloat>) -> Option<&Status> {
-        let x = &x.into();
-        let mut range = self
-            .inner
-            .range::<OrderedFloat, _>((Bound::Unbounded, Bound::Excluded(x)));
-        range.next_back()
-    }
-
-    pub fn right(&self, x: impl Into<OrderedFloat>) -> Option<&Status> {
-        let x = &x.into();
-        let mut range = self
-            .inner
-            .range::<OrderedFloat, _>((Bound::Excluded(x), Bound::Unbounded));
-        range.next()
-    }
-
-    pub fn get(&self, x: impl Into<OrderedFloat>) -> Option<&Status> {
-        self.inner.get::<OrderedFloat>(&x.into())
-    }
-
-    pub fn clear(&mut self) {
-        self.inner.clear();
-    }
-
-    #[must_use]
-    pub fn is_empty(&self) -> bool {
-        self.inner.is_empty()
-    }
-}
-
-impl IntoIterator for StatusQueue {
-    type Item = Status;
-
-    type IntoIter = std::collections::btree_set::IntoIter<Status>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.inner.into_iter()
-    }
-}
-
-impl<'a> IntoIterator for &'a StatusQueue {
-    type Item = &'a Status;
-
-    type IntoIter = std::collections::btree_set::Iter<'a, Status>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.inner.iter()
-    }
-}
-
-impl Extend<Status> for StatusQueue {
-    fn extend<T: IntoIterator<Item = Status>>(&mut self, iter: T) {
-        for v in iter {
-            (self.insert(v));
-        }
-    }
-}
-
-impl FromIterator<Status> for StatusQueue {
-    fn from_iter<T: IntoIterator<Item = Status>>(iter: T) -> Self {
-        let mut ret = Self::new();
-        ret.extend(iter);
-        ret
-    }
-}
+use crate::{
+    event::{Event, EventQueue},
+    status::{Status, StatusQueue},
+    step::{Step, StepType},
+};
 
 const fn step_count(step: &mut usize) -> usize {
     let out = *step;
@@ -460,7 +97,7 @@ fn handle_event_point(
 ) {
     let p: CartesianCoord = (event.x, event.y).into();
 
-    status_queue.update(p.y, segments);
+    status_queue.update(p.y, p.x, segments);
     steps.push(
         Step::builder(StepType::HEPUpdateT, step_count(s))
             .event_queue(event_queue.clone())
@@ -475,31 +112,15 @@ fn handle_event_point(
     let u_p = event
         .segments
         .iter()
-        .map(|&idx| Status::new(p.y, segments[idx], idx))
+        .map(|&idx| Status::new(p.y, p.x, segments[idx], idx))
         .collect::<StatusQueue>();
 
-    // "Find all segments stored in T that contain p; they are adjacent in T." [1, p. 26]
-    let found_in_status = status_queue
+    let (l_p, c_p): (Vec<_>, Vec<_>) = status_queue
         .iter()
         .filter(|s| f_eq!(*s.x_intersect.0, p.x))
         .flat_map(|s| s.segments.iter())
         .copied()
-        .collect::<Vec<_>>(); // Map to Segment
-
-    // "Let L(p) denote the subset of segments found whose lower endpoint is p [...]" [1, p. 26]
-    let l_p = found_in_status
-        .iter()
-        .filter(|&&status| f_eq!(segments[status].lower.y, p.y))
-        .copied()
-        .collect::<HashSet<_>>();
-    // "[...] let C(p) denote the subset of segments found that contain p in their interior." [1, p. 26]
-    let c_p = found_in_status
-        .iter()
-        .filter(|status| !l_p.contains(status)) // Not Lower
-        .filter(|status| !event.segments.contains(status)) // Not Upper
-        .filter(|&&status| segments[status].contains(p))
-        .copied()
-        .collect::<HashSet<_>>();
+        .partition(|v| approx_eq!(CartesianCoord, segments[*v].lower, p));
 
     steps.push(
         Step::builder(StepType::CalculateSets, step_count(s))
@@ -562,7 +183,7 @@ fn handle_event_point(
     // "Delete the segments in L(p) ∪ C(p) from T." [1, p. 26]
     // We only retain elements which are *not* in l_p
     // We do not do u_p, because how the status is defined and calculated, it is not needed
-    status_queue.remove(&l_p, *event.y, segments);
+    status_queue.remove(&l_p.iter().copied().collect(), *event.y, *event.x, segments);
 
     steps.push(
         Step::builder(StepType::DeleteLp, step_count(s))
