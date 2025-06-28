@@ -1,6 +1,7 @@
 //! Plane Sweep Algorithm
 //! Based on the book "Computational Geometry" from Mark Berg , Otfried Cheong , Marc Kreveld , Mark Overmars. [DOI](https://doi.org/10.1007/978-3-662-04245-8)
 pub mod event;
+//pub mod status_old;
 pub mod status;
 pub mod step;
 pub mod ui;
@@ -11,10 +12,11 @@ use common::{
     math::{cartesian::CartesianCoord, float_cmp::approx_eq},
     segment::{Segment, SegmentIdx, Segments},
 };
+use itertools::chain;
 
 use crate::{
     event::{Event, EventQueue},
-    status::{Status, StatusQueue},
+    status::StatusQueue,
     step::{Step, StepType},
 };
 
@@ -61,17 +63,19 @@ pub fn calculate_steps(
             .build(),
     );
 
+    let mut last_event = None;
     // while Q is not empty. do Determine the next event point p in Q and delete it.
     while let Some(event) = event_queue.pop() {
         steps.push(
             Step::builder(StepType::PopQ, step_count(s))
                 .event_queue(event_queue.clone())
-                .status_queue(status_queue.clone())
+                .status_queue(status_queue.iter())
                 .event(event.clone())
                 .build(),
         );
         handle_event_point(
             &event,
+            last_event.as_ref(),
             &mut event_queue,
             segments,
             intersections,
@@ -79,6 +83,7 @@ pub fn calculate_steps(
             s,
             steps,
         );
+        last_event = Some(event);
         // HANDLE EVENT POINT(p)
     }
 
@@ -86,8 +91,10 @@ pub fn calculate_steps(
 }
 
 #[allow(clippy::too_many_lines, reason = "because capturing status cost a lot")]
+#[allow(clippy::too_many_arguments, reason = "because capturing status cost a lot")]
 fn handle_event_point(
     event: &Event,
+    last_event : Option<&Event>,
     event_queue: &mut EventQueue,
     segments: &Segments,
     intersections: &mut Intersections,
@@ -97,11 +104,10 @@ fn handle_event_point(
 ) {
     let p: CartesianCoord = (event.x, event.y).into();
 
-    status_queue.update(p.y, p.x, segments);
     steps.push(
         Step::builder(StepType::HEPUpdateT, step_count(s))
             .event_queue(event_queue.clone())
-            .status_queue(status_queue.clone())
+            .status_queue(status_queue.iter())
             .event(event.clone())
             .build(),
     );
@@ -109,27 +115,20 @@ fn handle_event_point(
     // "Let U(p) be the set of segments whose upper endpoint is p; these segments
     // are stored with the event point p. (For horizontal segments, the upper
     // endpoint is by definition the left endpoint.)" [1, p. 26]
-    let u_p = event
-        .segments
-        .iter()
-        .map(|&idx| Status::new(p.y, p.x, segments[idx], idx))
-        .collect::<StatusQueue>();
+    let u_p = &event.segments;
 
     let (l_p, c_p): (Vec<_>, Vec<_>) = status_queue
-        .iter()
-        .filter(|s| f_eq!(*s.x_intersect.0, p.x))
-        .flat_map(|s| s.segments.iter())
-        .copied()
+        .iter_contains(segments, event.coord())
         .partition(|v| approx_eq!(CartesianCoord, segments[*v].lower, p));
 
     steps.push(
         Step::builder(StepType::CalculateSets, step_count(s))
             .event_queue(event_queue.clone())
-            .status_queue(status_queue.clone())
+            .status_queue(status_queue.iter())
             .event(event.clone())
-            .c_p(c_p.iter().copied().collect())
-            .u_p(event.segments.iter().copied().collect())
-            .l_p(l_p.iter().copied().collect())
+            .c_p(c_p.clone())
+            .u_p(event.segments.clone())
+            .l_p(l_p.clone())
             .build(),
     );
 
@@ -150,11 +149,11 @@ fn handle_event_point(
             step_count(s),
         )
         .event_queue(event_queue.clone())
-        .status_queue(status_queue.clone())
+        .status_queue(status_queue.iter())
         .event(event.clone())
-        .c_p(c_p.iter().copied().collect())
-        .u_p(event.segments.iter().copied().collect())
-        .l_p(l_p.iter().copied().collect())
+        .c_p(c_p.clone())
+        .u_p(event.segments.clone())
+        .l_p(l_p.clone())
         .build(),
     );
 
@@ -168,11 +167,11 @@ fn handle_event_point(
         steps.push(
             Step::builder(StepType::ReportIntersections, step)
                 .event_queue(event_queue.clone())
-                .status_queue(status_queue.clone())
+                .status_queue(status_queue.iter())
                 .event(event.clone())
-                .c_p(c_p.iter().copied().collect())
-                .u_p(event.segments.iter().copied().collect())
-                .l_p(l_p.iter().copied().collect())
+                .c_p(c_p.clone())
+                .u_p(event.segments.clone())
+                .l_p(l_p.clone())
                 .intersection(intersections.len().into())
                 .build(),
         );
@@ -183,54 +182,56 @@ fn handle_event_point(
     // "Delete the segments in L(p) ∪ C(p) from T." [1, p. 26]
     // We only retain elements which are *not* in l_p
     // We do not do u_p, because how the status is defined and calculated, it is not needed
-    status_queue.remove(&l_p.iter().copied().collect(), *event.y, *event.x, segments);
-
+    for s in chain!(&l_p, &c_p) {
+        dbg!((&status_queue, segments[*s], event.coord()));
+        status_queue.delete(*s, segments, last_event.map_or(event.coord(), Event::coord));
+        dbg!(&status_queue);
+    }
     steps.push(
         Step::builder(StepType::DeleteLp, step_count(s))
             .event_queue(event_queue.clone())
-            .status_queue(status_queue.clone())
+            .status_queue(status_queue.iter())
             .event(event.clone())
-            .c_p(c_p.iter().copied().collect())
-            .u_p(event.segments.iter().copied().collect())
-            .l_p(l_p.iter().copied().collect())
+            .c_p(c_p.clone())
+            .u_p(event.segments.clone())
+            .l_p(l_p.clone())
             .build(),
     );
 
     // "Insert the segments in U(p) ∪ C(p) into T." [1, p. 26]
     // C(p) is already in the status_queue, so we do not need this. Only U(p) gets inserted.
-    status_queue.extend(u_p);
-
+    for s in chain!(u_p, &c_p) {
+        dbg!((&status_queue, segments[*s], event.coord()));
+        status_queue.insert(*s, segments, event.coord());
+        dbg!(&status_queue);
+    }
+    
     steps.push(
         Step::builder(StepType::InsertUp, step_count(s))
             .event_queue(event_queue.clone())
-            .status_queue(status_queue.clone())
+            .status_queue(status_queue.iter())
             .event(event.clone())
-            .c_p(c_p.iter().copied().collect())
-            .u_p(event.segments.iter().copied().collect())
-            .l_p(l_p.iter().copied().collect())
+            .c_p(c_p.clone())
+            .u_p(event.segments.clone())
+            .l_p(l_p.clone())
             .build(),
     );
 
+
     // "if U(p) ∪ C(p) = ∅" [1, p. 26]
-    if status_queue.is_empty() {
+    if chain!(u_p, &c_p).next().is_none() {
         // "then Let sl and sr be the left and right neighbors of p in T." [1, p. 26]
-        let l_r = status_queue.left(event.x);
-        let u_r = status_queue.right(event.x);
+        let l_r = status_queue.left_of_event(segments, event.coord());
+        let u_r = status_queue.right_of_event(segments, event.coord());
         steps.push(
-            Step::builder(
-                StepType::UpCpEmpty {
-                    s_l: l_r.map_or(Vec::new(), |s| s.segments.clone()),
-                    s_r: u_r.map_or(Vec::new(), |s| s.segments.clone()),
-                },
-                step_count(s),
-            )
-            .event_queue(event_queue.clone())
-            .status_queue(status_queue.clone())
-            .event(event.clone())
-            .c_p(c_p.iter().copied().collect())
-            .u_p(event.segments.iter().copied().collect())
-            .l_p(l_p.iter().copied().collect())
-            .build(),
+            Step::builder(StepType::UpCpEmpty { s_l: l_r, s_r: u_r }, step_count(s))
+                .event_queue(event_queue.clone())
+                .status_queue(status_queue.iter())
+                .event(event.clone())
+                .c_p(c_p.clone())
+                .u_p(event.segments.clone())
+                .l_p(l_p.clone())
+                .build(),
         );
 
         if let (Some(left), Some(right)) = (l_r, u_r) {
@@ -243,35 +244,35 @@ fn handle_event_point(
                 event_queue,
                 status_queue,
                 steps,
-                &c_p.iter().copied().collect::<Vec<_>>(),
-                &l_p.iter().copied().collect::<Vec<_>>(),
+                &c_p,
+                &l_p,
             );
         }
     } else {
-        let s_dash = status_queue.get(event.x);
-        let s_l = status_queue.left(event.x);
-        let s_dash_dash = status_queue.get(event.x);
-        let s_r = status_queue.right(event.x);
+        let s_dash = status_queue.left_most(segments, event.coord()).unwrap();
+        let s_l = status_queue.left_of_event(segments, event.coord());
+        let s_dash_dash = status_queue.right_most(segments, event.coord()).unwrap();
+        let s_r = status_queue.right_of_event(segments, event.coord());
         steps.push(
             Step::builder(
                 StepType::UpCpNotEmpty {
-                    s_dash: s_dash.and_then(|v| v.segments.first().copied()),
-                    s_dash_dash: s_dash_dash.and_then(|v| v.segments.first().copied()),
-                    s_l: s_l.map_or(Vec::new(), |s| s.segments.clone()),
-                    s_r: s_r.map_or(Vec::new(), |s| s.segments.clone()),
+                    s_dash,
+                    s_dash_dash,
+                    s_l,
+                    s_r,
                 },
                 step_count(s),
             )
             .event_queue(event_queue.clone())
-            .status_queue(status_queue.clone())
+            .status_queue(status_queue.iter())
             .event(event.clone())
-            .c_p(c_p.iter().copied().collect())
-            .u_p(event.segments.iter().copied().collect())
-            .l_p(l_p.iter().copied().collect())
+            .c_p(c_p.clone())
+            .u_p(event.segments.clone())
+            .l_p(l_p.clone())
             .build(),
         );
 
-        if let (Some(left), Some(right)) = (s_l, s_dash) {
+        if let (Some(left), right) = (s_l, s_dash) {
             find_new_event(
                 left,
                 right,
@@ -281,11 +282,11 @@ fn handle_event_point(
                 event_queue,
                 status_queue,
                 steps,
-                &c_p.iter().copied().collect::<Vec<_>>(),
-                &l_p.iter().copied().collect::<Vec<_>>(),
+                &c_p.clone(),
+                &l_p.clone(),
             );
         }
-        if let (Some(left), Some(right)) = (s_dash_dash, s_r) {
+        if let (left, Some(right)) = (s_dash_dash, s_r) {
             find_new_event(
                 left,
                 right,
@@ -295,8 +296,8 @@ fn handle_event_point(
                 event_queue,
                 status_queue,
                 steps,
-                &c_p.iter().copied().collect::<Vec<_>>(),
-                &l_p.iter().copied().collect::<Vec<_>>(),
+                &c_p.clone(),
+                &l_p.clone(),
             );
         }
     }
@@ -307,8 +308,8 @@ fn handle_event_point(
     reason = "because capturing status cost a lot"
 )]
 fn find_new_event(
-    left: &Status,
-    right: &Status,
+    s_l: SegmentIdx,
+    s_r: SegmentIdx,
     event: &Event,
     segments: &Segments,
     s: &mut usize,
@@ -318,51 +319,66 @@ fn find_new_event(
     c_p: &[SegmentIdx],
     l_p: &[SegmentIdx],
 ) {
-    for &s_l in &left.segments {
-        for &s_r in &right.segments {
-            steps.push(
-                Step::builder(StepType::FindNewEvent { s_l, s_r }, step_count(s))
-                    .event_queue(event_queue.clone())
-                    .status_queue(status_queue.clone())
-                    .event(event.clone())
-                    .c_p(c_p.to_vec())
-                    .u_p(event.segments.iter().copied().collect())
-                    .l_p(l_p.to_vec())
-                    .build(),
-            );
+    steps.push(
+        Step::builder(StepType::FindNewEvent { s_l, s_r }, step_count(s))
+            .event_queue(event_queue.clone())
+            .status_queue(status_queue.iter())
+            .event(event.clone())
+            .c_p(c_p.to_vec())
+            .u_p(event.segments.clone())
+            .l_p(l_p.to_vec())
+            .build(),
+    );
 
-            if let Some(intersection) = Segment::intersect([s_l, s_r], segments, 0)
-                && intersection.typ().is_point()
-                && (intersection.point1().y < *event.y
-                    || f_eq!(intersection.point1().y, *event.y)
-                        && intersection.point1().x > *event.x)
-            {
-                steps.push(
-                    Step::builder(
-                        StepType::InsertIntersectionEvent {
-                            s_l,
-                            s_r,
-                            intersection: (
-                                intersection.point1().x.into(),
-                                intersection.point1().y.into(),
-                            ),
-                        },
-                        step_count(s),
-                    )
-                    .event_queue(event_queue.clone())
-                    .status_queue(status_queue.clone())
-                    .event(event.clone())
-                    .c_p(c_p.to_vec())
-                    .u_p(event.segments.iter().copied().collect())
-                    .l_p(l_p.to_vec())
-                    .build(),
-                );
-                event_queue.insert(Event::new(
-                    intersection.point1().y,
-                    intersection.point1().x,
-                    std::iter::empty(),
-                ));
-            }
-        }
+    if let Some(intersection) = Segment::intersect([s_l, s_r], segments, 0)
+        && intersection.typ().is_point()
+        && (intersection.point1().y < *event.y
+            || f_eq!(intersection.point1().y, *event.y) && intersection.point1().x > *event.x)
+    {
+        steps.push(
+            Step::builder(
+                StepType::InsertIntersectionEvent {
+                    s_l,
+                    s_r,
+                    intersection: (
+                        intersection.point1().x.into(),
+                        intersection.point1().y.into(),
+                    ),
+                },
+                step_count(s),
+            )
+            .event_queue(event_queue.clone())
+            .status_queue(status_queue.iter())
+            .event(event.clone())
+            .c_p(c_p.to_vec())
+            .u_p(event.segments.clone())
+            .l_p(l_p.to_vec())
+            .build(),
+        );
+        event_queue.insert(Event::new(
+            intersection.point1().y,
+            intersection.point1().x,
+            std::iter::empty(),
+        ));
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn simple() {
+        let segments = [
+            Segment::new((2, 2), (-2, -2)),
+            Segment::new((-2, 2), (2, -2)),
+            Segment::new((-1, 2), (-1, -2)),
+        ]
+        .into_iter()
+        .collect();
+        let mut intersections = Intersections::new();
+        let mut steps = AlgoSteps::new();
+        calculate_steps(&segments, &mut intersections, &mut steps);
+    }
+
 }

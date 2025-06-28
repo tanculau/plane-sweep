@@ -10,7 +10,6 @@ use common::{
 
 use crate::{
     event::{Event, EventQueue},
-    status::StatusQueue,
 };
 
 #[derive(Builder, Debug, Clone, PartialEq, Eq)]
@@ -25,12 +24,16 @@ pub struct Step {
     #[builder(default)]
     pub event_queue: EventQueue,
     #[builder(default)]
-    pub status_queue: StatusQueue,
+    #[builder(with = FromIterator::from_iter)]	
+    pub status_queue: Vec<SegmentIdx>,
     #[builder(default)]
+    #[builder(with = FromIterator::from_iter)]	
     pub u_p: Vec<SegmentIdx>,
     #[builder(default)]
+    #[builder(with = FromIterator::from_iter)]	
     pub c_p: Vec<SegmentIdx>,
     #[builder(default)]
+    #[builder(with = FromIterator::from_iter)]	
     pub l_p: Vec<SegmentIdx>,
     pub intersection: Option<IntersectionIdx>,
 }
@@ -54,14 +57,14 @@ pub enum StepType {
     DeleteLp,
     InsertUp,
     UpCpEmpty {
-        s_l: Vec<SegmentIdx>,
-        s_r: Vec<SegmentIdx>,
+        s_l: Option<SegmentIdx>,
+        s_r: Option<SegmentIdx>,
     },
     UpCpNotEmpty {
-        s_dash: Option<SegmentIdx>,
-        s_dash_dash: Option<SegmentIdx>,
-        s_l: Vec<SegmentIdx>,
-        s_r: Vec<SegmentIdx>,
+        s_dash: SegmentIdx,
+        s_dash_dash: SegmentIdx,
+        s_l: Option<SegmentIdx>,
+        s_r: Option<SegmentIdx>,
     },
     FindNewEvent {
         s_l: SegmentIdx,

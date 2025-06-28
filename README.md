@@ -3,7 +3,7 @@
 ## Implemented Algorithm
 
 - Plain Brute Force Algorithm
-- Plane Sweep Algorithm (WIP)
+- Plane Sweep Algorithm
 - Voronoi Diagrams (Planned)
 
 ## Screenshots

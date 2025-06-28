@@ -143,8 +143,8 @@ impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
         {
             let s_l = format_segment(s_l.iter(), segments);
             let s_r = format_segment(s_r.iter(), segments);
-            let s_dash = s_dash.map(|s_dash| segments[s_dash].id);
-            let s_dash_dash = s_dash_dash.map(|s_dash_dash| segments[s_dash_dash].id);
+            let s_dash = segments[*s_dash].id;
+            let s_dash_dash = segments[*s_dash_dash].id;
             let text= RichText::new(format!("9. else Let s' be the leftmost segment of U(p) ∪ C(p) in the StatusQueue. s' = s{s_dash:?}")).underline();
             ui.label(text);
             let text = RichText::new(format!(

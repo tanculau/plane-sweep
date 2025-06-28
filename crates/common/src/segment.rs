@@ -311,6 +311,11 @@ impl Segment {
     pub fn is_vertical(&self) -> bool {
         f_eq!(self.upper.x, self.lower.x)
     }
+
+    #[must_use]
+    pub fn angle(&self) -> f64 {
+        self.line().angle()
+    }
 }
 
 fn min(a: f64, b: f64) -> f64 {

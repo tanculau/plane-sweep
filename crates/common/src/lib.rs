@@ -155,5 +155,15 @@ macro_rules! impl_idx {
                 value.0
             }
         }
+        impl From<&$t> for $t {
+            fn from(value: &$t) -> Self {
+                *value
+            }
+        }
+        impl From<&mut $t> for $t {
+            fn from(value: &mut $t) -> Self {
+                *value
+            }
+        }
     };
 }

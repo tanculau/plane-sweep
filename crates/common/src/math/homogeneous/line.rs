@@ -86,6 +86,13 @@ impl Line {
             (false, false) => Slope::Value(OrderedFloat((self.b / self.a).abs().into())),
         }
     }
+
+    #[must_use]
+    pub fn angle(self) -> Float {
+        self.b.atan2(self.a)
+
+
+    }
 }
 
 impl<TA: Into<Float>, TB: Into<Float>, TC: Into<Float>> From<(TA, TB, TC)> for Line {
