@@ -9,6 +9,16 @@ repository.workspace = true
 description.workspace = true
 license.workspace = true
 
+[features]
+serde = [
+    "dep:serde",
+    "common/serde",
+    "controller/serde",
+    "intersection_table/serde",
+    "segment_plotter/serde",
+    "segment_table/serde",
+]
+
 [dependencies]
 auto_enums = { version = "0.8.7", default-features = false }
 common = { version = "0.1.0", path = "../../common" }
@@ -23,12 +33,9 @@ tracing = "0.1.41"
 web-time = "1.1.0"
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
-[lints]
-workspace = true
-
-[features]
-serde = ["dep:serde", "common/serde", "controller/serde", "intersection_table/serde", "segment_plotter/serde", "segment_table/serde"]
-
 [dev-dependencies]
 common = { path = "../../common", features = ["test"] }
 googletest = "0.14.1"
+
+[lints]
+workspace = true
