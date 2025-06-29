@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
-- Fix release
+- Remove apple targets
 
 ## [1.0.0] - 2025-06-29
 
@@ -66,6 +66,7 @@ All notable changes to this project will be documented in this file.
 - Fix hakari again
 - Update Secret
 - Fix deploy
+- Fix release
 - Fix release
 - Fix release
 
