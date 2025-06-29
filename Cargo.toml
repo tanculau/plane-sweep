@@ -24,6 +24,7 @@ publish = false
 repository = "https://github.com/tanculau/plane-sweep"
 description = "Implementation and Visualization of Plane Sweep"
 license = "Apache-2.0 OR MIT"
+rust-version = "1.88.0"
 
 [workspace.lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
