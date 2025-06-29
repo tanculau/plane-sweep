@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
-- Remove apple targets
+- Fix release
 
 ## [1.0.0] - 2025-06-29
 
@@ -69,6 +69,7 @@ All notable changes to this project will be documented in this file.
 - Fix release
 - Fix release
 - Fix release
+- Remove apple targets
 
 ## [0.0.0] - 2025-06-20
 
