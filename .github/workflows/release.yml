@@ -48,16 +48,16 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: plane_sweep
+            artifact_name: plane-sweep
             asset_name: plane_sweep-linux-amd64
           - os: ubuntu-24.04-arm
-            artifact_name: plane_sweep
+            artifact_name: plane-sweep
             asset_name: plane_sweep-linux-arm64
           - os: windows-latest
-            artifact_name: plane_sweep.exe
+            artifact_name: plane-sweep.exe
             asset_name: plane_sweep-windows-amd64.exe
           - os: 	windows-11-arm
-            artifact_name: plane_sweep.exe
+            artifact_name: plane-sweep.exe
             asset_name: plane_sweep-windows-arm64.exe
     steps:
       - uses: actions/checkout@v4
