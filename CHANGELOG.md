@@ -66,6 +66,7 @@ All notable changes to this project will be documented in this file.
 - Fix hakari again
 - Update Secret
 - Fix deploy
+- Fix release
 
 ## [0.0.0] - 2025-06-20
 
