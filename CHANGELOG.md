@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
-- Fix deploy
+- Fix release
 
 ## [1.0.0] - 2025-06-29
 
@@ -65,6 +65,7 @@ All notable changes to this project will be documented in this file.
 - *(changelog)* Remove Merge from changelog
 - Fix hakari again
 - Update Secret
+- Fix deploy
 
 ## [0.0.0] - 2025-06-20
 
