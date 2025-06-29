@@ -8,9 +8,7 @@ use common::{
     segment::SegmentIdx,
 };
 
-use crate::{
-    event::{Event, EventQueue},
-};
+use crate::event::{Event, EventQueue};
 
 #[derive(Builder, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -24,16 +22,16 @@ pub struct Step {
     #[builder(default)]
     pub event_queue: EventQueue,
     #[builder(default)]
-    #[builder(with = FromIterator::from_iter)]	
+    #[builder(with = FromIterator::from_iter)]
     pub status_queue: Vec<SegmentIdx>,
     #[builder(default)]
-    #[builder(with = FromIterator::from_iter)]	
+    #[builder(with = FromIterator::from_iter)]
     pub u_p: Vec<SegmentIdx>,
     #[builder(default)]
-    #[builder(with = FromIterator::from_iter)]	
+    #[builder(with = FromIterator::from_iter)]
     pub c_p: Vec<SegmentIdx>,
     #[builder(default)]
-    #[builder(with = FromIterator::from_iter)]	
+    #[builder(with = FromIterator::from_iter)]
     pub l_p: Vec<SegmentIdx>,
     pub intersection: Option<IntersectionIdx>,
 }

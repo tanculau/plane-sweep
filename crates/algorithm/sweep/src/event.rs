@@ -1,6 +1,9 @@
 use std::collections::{BTreeSet, HashSet};
 
-use common::{math::{cartesian::CartesianCoord, Float}, segment::SegmentIdx};
+use common::{
+    math::{Float, cartesian::CartesianCoord},
+    segment::SegmentIdx,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

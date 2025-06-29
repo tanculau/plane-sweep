@@ -91,10 +91,13 @@ pub fn calculate_steps(
 }
 
 #[allow(clippy::too_many_lines, reason = "because capturing status cost a lot")]
-#[allow(clippy::too_many_arguments, reason = "because capturing status cost a lot")]
+#[allow(
+    clippy::too_many_arguments,
+    reason = "because capturing status cost a lot"
+)]
 fn handle_event_point(
     event: &Event,
-    last_event : Option<&Event>,
+    last_event: Option<&Event>,
     event_queue: &mut EventQueue,
     segments: &Segments,
     intersections: &mut Intersections,
@@ -205,7 +208,7 @@ fn handle_event_point(
         status_queue.insert(*s, segments, event.coord());
         dbg!(&status_queue);
     }
-    
+
     steps.push(
         Step::builder(StepType::InsertUp, step_count(s))
             .event_queue(event_queue.clone())
@@ -216,7 +219,6 @@ fn handle_event_point(
             .l_p(l_p.clone())
             .build(),
     );
-
 
     // "if U(p) ∪ C(p) = ∅" [1, p. 26]
     if chain!(u_p, &c_p).next().is_none() {
@@ -380,5 +382,4 @@ mod tests {
         let mut steps = AlgoSteps::new();
         calculate_steps(&segments, &mut intersections, &mut steps);
     }
-
 }

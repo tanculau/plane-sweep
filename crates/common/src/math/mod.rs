@@ -130,7 +130,7 @@ pub struct OrderedFloat(pub ordered_float::OrderedFloat<Float>);
 
 impl OrderedFloat {
     #[must_use]
-    pub fn new(value : impl Into<Self>) -> Self {
+    pub fn new(value: impl Into<Self>) -> Self {
         value.into()
     }
 

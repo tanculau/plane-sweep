@@ -90,8 +90,6 @@ impl Line {
     #[must_use]
     pub fn angle(self) -> Float {
         self.b.atan2(self.a)
-
-
     }
 }
 

@@ -18,7 +18,6 @@ new_key_type! {struct SQKey;}
 
 type Storage = SlotMap<SQKey, Node>;
 
-
 /// A Status Queue is an ordered collection-
 ///
 /// Segments are sorted by the x-coordinate at which they intersect the sweep line.
@@ -49,7 +48,7 @@ impl StatusQueue {
     }
 
     /// Insert a new [`Segment`] into the [`StatusQueue`].
-    /// 
+    ///
     /// Does nothing if the [`Segment`] is already present.
     pub fn insert(
         &mut self,
@@ -78,7 +77,7 @@ impl StatusQueue {
             .filter(move |s| intersection(segments[*s], event) == OrderedFloat::new(event.x))
     }
 
-    /// Finds the greatest segment that is strictly left of the event point 
+    /// Finds the greatest segment that is strictly left of the event point
     pub fn left_of_event(
         &self,
         segments: &Segments,
@@ -324,7 +323,6 @@ mod tests {
 
     use crate::status::StatusQueue;
 
-
     #[gtest]
     fn test_name() {
         let segments = Segments::from_iter([
@@ -333,11 +331,11 @@ mod tests {
             Segment::new((-1, 2), (-1, -2)),
         ]);
         let mut sq = StatusQueue::new();
-        sq.insert(0.into(), &segments, (2,2));
-        sq.insert(1.into(), &segments, (-1,1));
-        sq.insert(2.into(), &segments, (-1,1));
+        sq.insert(0.into(), &segments, (2, 2));
+        sq.insert(1.into(), &segments, (-1, 1));
+        sq.insert(2.into(), &segments, (-1, 1));
         dbg!(&sq);
-        expect_eq!(sq.right_most(&segments, (-1,1)), Some(1.into()));
-        expect_eq!(sq.right_of_event(&segments, (-1,1)), Some(0.into()));
+        expect_eq!(sq.right_most(&segments, (-1, 1)), Some(1.into()));
+        expect_eq!(sq.right_of_event(&segments, (-1, 1)), Some(0.into()));
     }
 }
