@@ -196,7 +196,7 @@ dependencies = [
 
 [[package]]
 name = "app"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "brute-force",
  "common",
@@ -603,7 +603,7 @@ dependencies = [
 
 [[package]]
 name = "brute-force"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "auto_enums",
  "common",
@@ -777,7 +777,7 @@ dependencies = [
 
 [[package]]
 name = "common"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "eframe",
  "float-cmp",
@@ -814,7 +814,7 @@ dependencies = [
 
 [[package]]
 name = "controller"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "common",
  "eframe",
@@ -1958,7 +1958,7 @@ dependencies = [
 
 [[package]]
 name = "intersection_table"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "common",
  "eframe",
@@ -2825,7 +2825,7 @@ checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
 
 [[package]]
 name = "plane-sweep"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "app",
  "better-panic",
@@ -3152,7 +3152,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "segment_plotter"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "common",
  "eframe",
@@ -3163,7 +3163,7 @@ dependencies = [
 
 [[package]]
 name = "segment_table"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "common",
  "eframe",
@@ -3389,7 +3389,7 @@ dependencies = [
 
 [[package]]
 name = "sweep"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "bon",
  "common",
@@ -3453,7 +3453,7 @@ dependencies = [
 
 [[package]]
 name = "third_party_licenses"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "common",
  "eframe",
@@ -3582,7 +3582,7 @@ dependencies = [
 
 [[package]]
 name = "tracing-gui"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "common",
  "eframe",

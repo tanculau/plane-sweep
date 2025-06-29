@@ -21,17 +21,17 @@ serde = [
 
 [dependencies]
 auto_enums = { version = "0.8.7", default-features = false }
-common = { version = "0.1.0", path = "../../common" }
-controller = { version = "0.1.0", path = "../../ui/controller" }
+common = { path = "../../common" }
+controller = { path = "../../ui/controller" }
 eframe = { version = "0.31.1", default-features = false }
 egui_extras = { version = "0.31.1", default-features = false }
-intersection_table = { version = "0.1.0", path = "../../ui/intersection_table" }
-segment_plotter = { version = "0.1.0", path = "../../ui/segment_plotter" }
-segment_table = { version = "0.1.0", path = "../../ui/segment_table" }
+intersection_table = { path = "../../ui/intersection_table" }
+segment_plotter = { path = "../../ui/segment_plotter" }
+segment_table = { path = "../../ui/segment_table" }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
 tracing = "0.1.41"
 web-time = "1.1.0"
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+workspace-hack = { path = "../../workspace-hack" }
 
 [dev-dependencies]
 common = { path = "../../common", features = ["test"] }

@@ -13,10 +13,10 @@ license.workspace = true
 serde = ["dep:serde", "common/serde"]
 
 [dependencies]
-common = { version = "0.1.0", path = "../../common" }
+common = { path = "../../common" }
 eframe = { version = "0.31.1", default-features = false }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
 tracing = "0.1.41"
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+workspace-hack = { path = "../../workspace-hack" }
 [lints]
 workspace = true

@@ -20,10 +20,10 @@ serde = []
 "warnings" = []
 
 [dependencies]
-common = { version = "0.1.0", path = "../../common" }
+common = { path = "../../common" }
 eframe = { version = "0.31.1", default-features = false }
 egui_commonmark = { version = "0.20.0", features = ["macros"] }
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+workspace-hack = { path = "../../workspace-hack" }
 
 [lints]
 workspace = true

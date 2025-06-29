@@ -21,15 +21,15 @@ serde = [
 
 [dependencies]
 bon = { version = "3.6.4", default-features = false }
-common = { version = "0.1.0", path = "../../common" }
-controller = { version = "0.1.0", path = "../../ui/controller" }
+common = { path = "../../common" }
+controller = { path = "../../ui/controller" }
 eframe = { version = "0.31.1", default-features = false }
 egui_extras = { version = "0.31.1", default-features = false }
-intersection_table = { version = "0.1.0", path = "../../ui/intersection_table" }
+intersection_table = { path = "../../ui/intersection_table" }
 itertools = "0.14.0"
 ordered-float = "5.0.0"
-segment_plotter = { version = "0.1.0", path = "../../ui/segment_plotter" }
-segment_table = { version = "0.1.0", path = "../../ui/segment_table" }
+segment_plotter = { path = "../../ui/segment_plotter" }
+segment_table = { path = "../../ui/segment_table" }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
 slotmap = "1.0.7"
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

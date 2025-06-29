@@ -13,11 +13,11 @@ license.workspace = true
 serde = ["dep:serde", "common/serde", "egui_plot/serde"]
 
 [dependencies]
-common = { version = "0.1.0", path = "../../common" }
+common = { path = "../../common" }
 eframe = { version = "0.31.1", default-features = false }
 egui_plot = "0.32.1"
 serde = { version = "1.0.219", features = ["derive"], optional = true }
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+workspace-hack = { path = "../../workspace-hack" }
 
 [lints]
 workspace = true

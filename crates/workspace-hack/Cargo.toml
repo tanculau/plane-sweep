@@ -39,22 +39,6 @@ serde = { version = "1", features = ["alloc", "derive", "rc"] }
 tracing-core = { version = "0.1" }
 typed-index-collections = { version = "3", features = ["serde"] }
 
-[build-dependencies]
-ahash = { version = "0.8", default-features = false, features = ["no-rng", "serde", "std"] }
-bitflags = { version = "2", default-features = false, features = ["serde"] }
-bytemuck = { version = "1", default-features = false, features = ["derive", "extern_crate_alloc"] }
-ecolor = { version = "0.31", default-features = false, features = ["bytemuck", "serde"] }
-egui = { version = "0.31", features = ["accesskit", "bytemuck", "log", "persistence"] }
-egui_extras = { version = "0.31", default-features = false, features = ["file", "image", "serde"] }
-emath = { version = "0.31", default-features = false, features = ["bytemuck", "serde"] }
-epaint = { version = "0.31", default-features = false, features = ["bytemuck", "default_fonts", "log", "serde"] }
-log = { version = "0.4", default-features = false, features = ["std"] }
-memchr = { version = "2" }
-num-traits = { version = "0.2" }
-ron = { version = "0.8", features = ["integer128"] }
-serde = { version = "1", features = ["alloc", "derive", "rc"] }
-syn = { version = "2", features = ["extra-traits", "full", "visit", "visit-mut"] }
-
 [target.x86_64-unknown-linux-gnu.dependencies]
 ahash = { version = "0.8" }
 bitflags = { version = "2", default-features = false, features = ["std"] }
@@ -73,6 +57,22 @@ winit = { version = "0.30", default-features = false, features = ["rwh_06", "way
 x11rb = { version = "0.13", default-features = false, features = ["dl-libxcb", "randr", "resource_manager", "xinput", "xkb"] }
 x11rb-protocol = { version = "0.13", default-features = false, features = ["randr", "resource_manager", "xinput", "xkb"] }
 xkbcommon-dl = { version = "0.4", default-features = false, features = ["x11"] }
+
+[build-dependencies]
+ahash = { version = "0.8", default-features = false, features = ["no-rng", "serde", "std"] }
+bitflags = { version = "2", default-features = false, features = ["serde"] }
+bytemuck = { version = "1", default-features = false, features = ["derive", "extern_crate_alloc"] }
+ecolor = { version = "0.31", default-features = false, features = ["bytemuck", "serde"] }
+egui = { version = "0.31", features = ["accesskit", "bytemuck", "log", "persistence"] }
+egui_extras = { version = "0.31", default-features = false, features = ["file", "image", "serde"] }
+emath = { version = "0.31", default-features = false, features = ["bytemuck", "serde"] }
+epaint = { version = "0.31", default-features = false, features = ["bytemuck", "default_fonts", "log", "serde"] }
+log = { version = "0.4", default-features = false, features = ["std"] }
+memchr = { version = "2" }
+num-traits = { version = "0.2" }
+ron = { version = "0.8", features = ["integer128"] }
+serde = { version = "1", features = ["alloc", "derive", "rc"] }
+syn = { version = "2", features = ["extra-traits", "full", "visit", "visit-mut"] }
 
 [target.x86_64-unknown-linux-gnu.build-dependencies]
 ahash = { version = "0.8" }

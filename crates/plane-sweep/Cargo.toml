@@ -23,12 +23,12 @@ eframe = { version = "0.31", default-features = false, features = [
     "default_fonts", # Embed the default egui fonts.
     "glow",          # Use the glow rendering backend. Alternative: "wgpu".
 ] }
-workspace-hack = { version = "0.1", path = "../workspace-hack" }
+workspace-hack = { path = "../workspace-hack" }
 
 # native:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-mimalloc = { version = "0.1.47", optional = true }
 better-panic = "0.3.0"
+mimalloc = { version = "0.1.47", optional = true }
 
 # web:
 [target.'cfg(target_arch = "wasm32")'.dependencies]
