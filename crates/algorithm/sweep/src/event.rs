@@ -1,6 +1,9 @@
 use std::collections::{BTreeSet, HashSet};
 
-use common::{math::Float, segment::SegmentIdx};
+use common::{
+    math::{Float, cartesian::CartesianCoord},
+    segment::SegmentIdx,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -31,6 +34,11 @@ impl Event {
             x: self.x,
             segments: HashSet::new(),
         }
+    }
+
+    #[must_use]
+    pub fn coord(&self) -> CartesianCoord {
+        (self.x, self.y).into()
     }
 }
 

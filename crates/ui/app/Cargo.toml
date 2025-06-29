@@ -17,8 +17,6 @@ serde = ["dep:serde", "brute-force/serde", "sweep/serde"]
 "wayland" = []
 "mimalloc" = []
 
-
-
 [dependencies]
 brute-force = { version = "0.1.0", path = "../../algorithm/brute-force" }
 common = { version = "0.1.0", path = "../../common" }

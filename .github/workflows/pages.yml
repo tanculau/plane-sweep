@@ -2,14 +2,9 @@ name: Github Pages
 
 # By default, runs if you push to main. keeps your deployed app in sync with main branch.
 on:
-  push:
-    branches:
-      - main
-# to only run when you do a new github release, comment out above part and uncomment the below trigger.
-# on:
-#   release:
-#     types:
-#       - published
+  release:
+    types:
+    - published
 
 permissions:
   contents: write # for committing to gh-pages branch.
@@ -22,7 +17,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2025-06-14
+          toolchain: stable
           targets	: wasm32-unknown-unknown
       - name: Rust Cache # cache the rust build artefacts
         uses: Swatinem/rust-cache@v2

@@ -133,7 +133,23 @@ mod line {
             let horizontal = HomogeneousLine::horizontal(p_y);
             let seg = dbg!(segment.line());
             let x = horizontal.intersection(seg).cartesian();
-            assert_that!(x, ok(approx_eq(CartesianCoord::new(2, 2))));
+            expect_that!(x, ok(approx_eq(CartesianCoord::new(2, 2))));
+        }
+    }
+
+    mod angle {
+        use common::segment::Segment;
+        use googletest::prelude::*;
+
+        #[gtest]
+        fn simple() {
+            let horizontal = Segment::new((0, 0), (2, 0));
+            let down_right = Segment::new((0, 0), (2, -2));
+            expect_le!(down_right.angle(), horizontal.angle());
+            let vertical = Segment::new((0, 2), (0, 0));
+            expect_le!(vertical.angle(), down_right.angle());
+            let down_left = Segment::new((0, 0), (-2, -2));
+            expect_le!(down_left.angle(), vertical.angle());
         }
     }
 }

@@ -18,7 +18,7 @@ default = ["persistence", "accesskit", "mimalloc", "x11", "wayland"]
 "mimalloc" = ["dep:mimalloc"]
 
 [dependencies]
-app = {path = "../ui/app"}
+app = { path = "../ui/app" }
 eframe = { version = "0.31", default-features = false, features = [
     "default_fonts", # Embed the default egui fonts.
     "glow",          # Use the glow rendering backend. Alternative: "wgpu".
@@ -28,6 +28,7 @@ workspace-hack = { version = "0.1", path = "../workspace-hack" }
 # native:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 mimalloc = { version = "0.1.47", optional = true }
+better-panic = "0.3.0"
 
 # web:
 [target.'cfg(target_arch = "wasm32")'.dependencies]

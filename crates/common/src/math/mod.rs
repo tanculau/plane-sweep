@@ -109,10 +109,36 @@ where
     }
 }
 
+impl<Rhs, T, Out, Temp> DotProduct<(Rhs, Rhs)> for (T, T)
+where
+    T: Mul<Rhs, Output = Temp>,
+    Temp: Add<Output = Out>,
+{
+    type Output = Out;
+
+    fn dot_product(self, rhs: (Rhs, Rhs)) -> Self::Output {
+        let (a1, a2) = self;
+        let (b1, b2) = rhs;
+        a1 * b1 + a2 * b2
+    }
+}
+
 #[derive(Debug, Clone, Copy, Default, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(transparent)]
 pub struct OrderedFloat(pub ordered_float::OrderedFloat<Float>);
+
+impl OrderedFloat {
+    #[must_use]
+    pub fn new(value: impl Into<Self>) -> Self {
+        value.into()
+    }
+
+    #[must_use]
+    pub const fn zero() -> Self {
+        Self(ordered_float::OrderedFloat(0.0))
+    }
+}
 
 impl From<f64> for OrderedFloat {
     fn from(value: f64) -> Self {
