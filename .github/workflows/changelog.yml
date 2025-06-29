@@ -38,5 +38,5 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           set +e
           git add CHANGELOG.md
-          git commit -m "chore(giff): Update changelog"
+          git commit -m "chore(cliff): Update changelog"
           git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git ${GITHUB_REF##*/}
