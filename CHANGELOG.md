@@ -67,6 +67,7 @@ All notable changes to this project will be documented in this file.
 - Update Secret
 - Fix deploy
 - Fix release
+- Fix release
 
 ## [0.0.0] - 2025-06-20
 
