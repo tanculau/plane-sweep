@@ -1,0 +1,42 @@
+name: Changelog
+
+# By default, runs if you push to main. Exclude CHANGELOG so we do not write infinite times.
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+    - 'CHANGELOG.md'
+permissions:
+  contents: write # for committing to gh-pages branch.
+
+jobs:
+  changelog:
+    name: Generate changelog
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --verbose
+        env:
+          OUTPUT: CHANGELOG.md
+          GITHUB_REPO: ${{ github.repository }}
+
+      - name: Commit
+        run: |
+          git checkout ${GITHUB_REF##*/}
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          set +e
+          git add CHANGELOG.md
+          git commit -m "chore(giff): Update changelog"
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git ${GITHUB_REF##*/}
