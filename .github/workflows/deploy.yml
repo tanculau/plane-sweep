@@ -36,6 +36,12 @@ jobs:
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-hakari
+        uses: taiki-e/install-action@v2 # v2
+        with:
+          tool: cargo-hakari
+      - name: disable hakari
+        run: cargo hakari disable
       - name: Install cargo-about
         run: cargo install --locked cargo-about
       - name: Build Release
