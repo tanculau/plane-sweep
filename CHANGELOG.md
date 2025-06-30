@@ -78,6 +78,7 @@ All notable changes to this project will be documented in this file.
 - Debug release
 - Fixed Windows Release
 - Added split debug to linux releases
+- Fix typo
 
 ## [0.0.0] - 2025-06-20
 
