@@ -175,6 +175,7 @@ jobs:
         with:
           toolchain: nightly-2025-06-29
           components: rust-src
+        
       - uses: Swatinem/rust-cache@v2
       - name: Install cargo-hakari
         uses: taiki-e/install-action@v2 # v2
@@ -184,6 +185,8 @@ jobs:
         run: cargo hakari disable
       - name: Install cargo-about
         run: cargo install --locked cargo-about
+      - name: Install Binutils
+        run: apt-get install binutils
       - name: Build Release
         env:
           RUSTFLAGS: "-Csymbol-mangling-version=v0"

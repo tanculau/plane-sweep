@@ -1,12 +1,16 @@
+use core::time::Duration;
+
 use common::{
     MyWidget, WidgetName,
+    math::{cartesian::CartesianCoord, float_cmp::approx_eq},
     segment::{Segment, SegmentIdx, Segments},
 };
 use eframe::egui;
 use egui_extras::{Column, Size, StripBuilder, TableBuilder};
-use tracing::{info, instrument};
+use egui_notify::Toasts;
+use tracing::{info, instrument, warn};
 
-#[derive(Debug, Clone, Default)]
+#[derive(Default)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct SegmentTable {
     to_delete: Vec<SegmentIdx>,
@@ -17,6 +21,40 @@ pub struct SegmentTable {
     new_p1_x: f64,
     new_p2_y: f64,
     new_p2_x: f64,
+    #[cfg_attr(feature = "serde", serde(skip))]
+    toasts: Toasts,
+}
+
+impl Clone for SegmentTable {
+    fn clone(&self) -> Self {
+        Self {
+            to_delete: self.to_delete.clone(),
+            scroll_to_row_slider: self.scroll_to_row_slider,
+            scroll_to_row: self.scroll_to_row,
+            reversed: self.reversed,
+            new_p1_y: self.new_p1_y,
+            new_p1_x: self.new_p1_x,
+            new_p2_y: self.new_p2_y,
+            new_p2_x: self.new_p2_x,
+            toasts: Toasts::new(),
+        }
+    }
+}
+
+#[expect(clippy::missing_fields_in_debug, reason = "That is the whole reason")]
+impl core::fmt::Debug for SegmentTable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SegmentTable")
+            .field("to_delete", &self.to_delete)
+            .field("scroll_to_row_slider", &self.scroll_to_row_slider)
+            .field("scroll_to_row", &self.scroll_to_row)
+            .field("reversed", &self.reversed)
+            .field("new_p1_y", &self.new_p1_y)
+            .field("new_p1_x", &self.new_p1_x)
+            .field("new_p2_y", &self.new_p2_y)
+            .field("new_p2_x", &self.new_p2_x)
+            .finish()
+    }
 }
 
 impl SegmentTable {
@@ -205,6 +243,8 @@ impl<'reset, 'segment> MyWidget<SegmentTableState<'reset, 'segment>> for Segment
             info!("Disabling all segments");
         }
 
+        self.toasts.show(ui.ctx());
+
         let slider_response = ui.add(
             egui::Slider::new(&mut self.scroll_to_row_slider, 0..=segments.len())
                 .logarithmic(true)
@@ -221,16 +261,28 @@ impl<'reset, 'segment> MyWidget<SegmentTableState<'reset, 'segment>> for Segment
                     (self.new_p1_x, self.new_p1_y),
                     (self.new_p2_x, self.new_p2_y),
                 );
-                info!(
-                    "Creating new segment {} with points ({}, {}) and ({}, {})",
-                    segment.id, self.new_p1_x, self.new_p1_y, self.new_p2_x, self.new_p2_y
-                );
-                segments.push(segment);
 
-                self.new_p1_x = 0.into();
-                self.new_p1_y = 0.into();
-                self.new_p2_x = 0.into();
-                self.new_p2_y = 0.into();
+                if approx_eq!(CartesianCoord, segment.upper, segment.lower) {
+                    warn!(
+                        "Tried creating a illegal with points ({}, {}) and ({}, {})",
+                        self.new_p1_x, self.new_p1_y, self.new_p2_x, self.new_p2_y
+                    );
+                    self.toasts
+                        .error("Segment needs to have two different points")
+                        .duration(Some(Duration::from_secs(5)))
+                        .closable(true);
+                } else {
+                    info!(
+                        "Creating new segment {} with points ({}, {}) and ({}, {})",
+                        segment.id, self.new_p1_x, self.new_p1_y, self.new_p2_x, self.new_p2_y
+                    );
+                    segments.push(segment);
+
+                    self.new_p1_x = 0.into();
+                    self.new_p1_y = 0.into();
+                    self.new_p2_x = 0.into();
+                    self.new_p2_y = 0.into();
+                }
             }
             ui.horizontal(|ui| {
                 ui.label("Point 1:");
