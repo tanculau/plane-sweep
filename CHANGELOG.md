@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
-### ⚙️ Miscellaneous Tasks
+### 🐛 Bug Fixes
 
-- Fix typo
+- *(segment_table)* User is no longer allowed to create illegal Segments
+
+### 💼 Other
+
+- *(sweep)* Make calculate_steps more readable and ability to disable reporitng
 
 ## [1.0.0] - 2025-06-30
 
@@ -78,6 +82,7 @@ All notable changes to this project will be documented in this file.
 - Debug release
 - Fixed Windows Release
 - Added split debug to linux releases
+- Fix typo
 - Fix typo
 
 ## [0.0.0] - 2025-06-20
