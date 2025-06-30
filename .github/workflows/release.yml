@@ -67,8 +67,6 @@ jobs:
         run: cargo hakari disable
       - name: Install cargo-about
         run: cargo install --locked cargo-about
-      - name: Mkdir dist
-        run: mdkir dist
       - name: Build Release
         run: cargo b  --profile=release-native --target-dir dist
       - name: Upload binary to release
@@ -186,8 +184,6 @@ jobs:
         run: cargo hakari disable
       - name: Install cargo-about
         run: cargo install --locked cargo-about
-      - name: Mkdir dist
-        run: mdkir dist
       - name: Build Release
         env:
           RUSTFLAGS: "-Csymbol-mangling-version=v0"
