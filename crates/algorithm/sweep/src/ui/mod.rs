@@ -121,7 +121,7 @@ impl MyWidget<()> for PlaneSweep {
         );
         self.intersection_table.show(
             ctx,
-            &mut self.is_segment_plotter_open,
+            &mut self.is_intersection_table_open,
             IntersectionTableState {
                 segments: &self.segments,
                 intersections: &self.intersections,
