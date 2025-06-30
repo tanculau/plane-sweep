@@ -75,6 +75,10 @@ jobs:
         run: cargo install --locked cargo-about
       - name: Build Release
         run: cargo b  --profile=release-native
+      - name: List
+        run: ls -l
+      - name: List Target Dir
+        run: ls -l target
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
