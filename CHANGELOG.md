@@ -4,12 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🐛 Bug Fixes
+
+- [**breaking**] Better-panic is now optional, removed test from default feature for common
+
 ### ⚙️ Miscellaneous Tasks
 
-- Fix release
-- Debug release
+- Fixed Windows Release
+- Added split debug to linux releases
 
-## [1.0.0] - 2025-06-29
+## [1.0.0] - 2025-06-30
 
 ### 💼 Other
 
@@ -71,6 +75,8 @@ All notable changes to this project will be documented in this file.
 - Fix release
 - Fix release
 - Remove apple targets
+- Fix release
+- Debug release
 
 ## [0.0.0] - 2025-06-20
 
