@@ -1,9 +1,7 @@
-use common::test::approx_eq;
 use common::{
     AlgoSteps,
-    intersection::{Intersection, IntersectionType, Intersections},
-    math::cartesian::CartesianCoord,
-    segment::{Segment, SegmentIdx, Segments},
+    intersection::Intersections,
+    segment::{Segment, Segments},
 };
 use googletest::prelude::*;
 use sweep::{
@@ -16,7 +14,7 @@ fn empty() {
     let mut intersections = Intersections::new();
     let mut steps = AlgoSteps::new();
 
-    calculate_steps(&segments, &mut intersections, &mut steps);
+    calculate_steps::<true>(&segments, &mut intersections, &mut steps);
 
     expect_that!(
         steps,
@@ -49,7 +47,7 @@ fn one() {
     let mut intersections = Intersections::new();
     let mut steps = AlgoSteps::new();
 
-    calculate_steps(&segments, &mut intersections, &mut steps);
+    calculate_steps::<true>(&segments, &mut intersections, &mut steps);
 
     expect_that!(
         steps,
@@ -137,29 +135,4 @@ fn one() {
         ]
     );
     expect_that!(intersections, elements_are![]);
-}
-
-#[gtest]
-#[ignore = "reason"]
-fn two() {
-    let mut segments = Segments::new();
-    segments.push(Segment::new((2, 2), (-2, -2)));
-    segments.push(Segment::new((-2, 2), (2, -2)));
-
-    let mut intersections = Intersections::new();
-    let mut steps = AlgoSteps::new();
-
-    calculate_steps(&segments, &mut intersections, &mut steps);
-
-    expect_that!(steps, elements_are![]);
-    expect_that!(
-        intersections,
-        elements_are![pat!(Intersection {
-            typ: pat!(IntersectionType::Point {
-                coord: approx_eq(&CartesianCoord::new(0, 0))
-            }),
-            segments: container_eq([SegmentIdx::from(0), SegmentIdx::from(1)]),
-            ..
-        })]
-    );
 }

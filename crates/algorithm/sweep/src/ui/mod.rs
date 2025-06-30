@@ -107,7 +107,7 @@ impl MyWidget<()> for PlaneSweep {
         );
         if should_reset {
             self.step = 0.into();
-            calculate_steps(&self.segments, &mut self.intersections, &mut self.steps);
+            calculate_steps::<true>(&self.segments, &mut self.intersections, &mut self.steps);
         }
         self.segment_plotter.show(
             ctx,
@@ -204,7 +204,7 @@ impl Default for PlaneSweep {
             status_view: StatusView,
             is_status_view_open: true,
         };
-        calculate_steps(&out.segments, &mut out.intersections, &mut out.steps);
+        calculate_steps::<true>(&out.segments, &mut out.intersections, &mut out.steps);
         out
     }
 }

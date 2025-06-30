@@ -297,7 +297,7 @@ mod tests {
         sq.insert(2.into(), &segments, (-1, 2));
         let iter = sq.iter_contains(&segments, (-1, 1)).collect::<Vec<_>>();
         expect_that!(iter, elements_are![eq(&1.into()), eq(&2.into())]);
-        expect_eq!(sq.iter().collect::<Vec<_>>(), vec![2.into(), 0.into()]);
+        expect_eq!(sq.iter().collect::<Vec<_>>(), vec![1.into(), 2.into(), 0.into()]);
     }
 
     #[gtest]
