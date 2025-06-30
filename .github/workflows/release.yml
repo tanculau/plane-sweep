@@ -38,7 +38,7 @@ jobs:
       with:
           body: ${{ needs.changelog.outputs.release_body }}
 
-  build:
+  build-windows:
     name: Build for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     needs: publish
@@ -47,18 +47,12 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            artifact_name: plane-sweep
-            asset_name: plane_sweep-linux-amd64
-          - os: ubuntu-24.04-arm
-            artifact_name: plane-sweep
-            asset_name: plane_sweep-linux-arm64
           - os: windows-latest
-            artifact_name: plane-sweep.exe
             asset_name: plane_sweep-windows-amd64.exe
+            binary-kind: exe
           - os: 	windows-11-arm
-            artifact_name: plane-sweep.exe
             asset_name: plane_sweep-windows-arm64.exe
+            binary-kind: exe
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
@@ -73,16 +67,14 @@ jobs:
         run: cargo hakari disable
       - name: Install cargo-about
         run: cargo install --locked cargo-about
+      - name: Mkdir dist
+        run: mdkir dist
       - name: Build Release
-        run: cargo b  --profile=release-native
-      - name: List
-        run: ls -l
-      - name: List Target Dir
-        run: ls -l target
-      - name: Upload binaries to release
+        run: cargo b  --profile=release-native --target-dir dist
+      - name: Upload binary to release
         uses: svenstaro/upload-release-action@v2
         with:
-          file: target/release-native/${{ matrix.artifact_name }}
+          file: dist/release-native/plane-sweep.exe
           asset_name: ${{ matrix.asset_name }}
           tag: ${{ github.ref }}
 
@@ -162,3 +154,68 @@ jobs:
           # this option will not maintain any history of your previous pages deployment
           # set to false if you want all page build to be committed to your gh-pages branch history
           single-commit: true
+
+
+  build-linux:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    needs: publish
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset_name: plane_sweep-linux-amd64
+            target : --target x86_64-unknown-linux-gnuR
+          - os: ubuntu-24.04-arm
+            asset_name: plane_sweep-linux-arm64
+            target: aarch64-unknown-linux-gnu
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2025-06-29
+          components: rust-src
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-hakari
+        uses: taiki-e/install-action@v2 # v2
+        with:
+          tool: cargo-hakari
+      - name: disable hakari
+        run: cargo hakari disable
+      - name: Install cargo-about
+        run: cargo install --locked cargo-about
+      - name: Mkdir dist
+        run: mdkir dist
+      - name: Build Release
+        env:
+          RUSTFLAGS: "-Csymbol-mangling-version=v0"
+        run: cargo b  --profile=release-native-split --target-dir dist -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --target ${{ matrix.target }}
+      - name: Move binary
+        run: mv dist/${{ matrix.target }}/release-native-split/plane-sweep plane-sweep
+      - name: Split Debug
+        run: objcopy --only-keep-debug     plane-sweep plane-sweep.debug
+      - name: Remove Debug
+        run: objcopy objcopy --strip-debug --strip-unneeded --remove-section=".gnu_debuglink" --add-gnu-debuglink="plane-sweep.debug" plane-sweep
+      - name: Compress debug
+        uses: a7ul/tar-action@v1.1.0
+        id: compress
+        with:
+          command: c
+          files: |
+            plane-sweep.debug
+          outPath: debug.tar.gz
+      - name: Upload binary to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: plane-sweep
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.ref }}
+      - name: Upload debug to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: debug.tar.gz
+          asset_name: ${{ matrix.asset_name }}.debug
+          tag: ${{ github.ref }}
+

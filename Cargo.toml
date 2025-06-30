@@ -69,6 +69,12 @@ codegen-units = 1
 panic = "abort"
 opt-level = 's'
 
+[profile.release-native-split]
+inherits = "release"
+opt-level = 3
+debug = "full"
+
 [profile.release-native]
 inherits = "release"
 opt-level = 3
+debug = "full"
