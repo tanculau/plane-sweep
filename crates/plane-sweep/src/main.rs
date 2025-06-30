@@ -6,11 +6,15 @@ pub static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> eframe::Result {
     use eframe::egui;
-    better_panic::Settings::auto()
-        .most_recent_first(false)
-        .lineno_suffix(true)
-        .verbosity(better_panic::Verbosity::Full)
-        .install();
+
+    #[cfg(feature = "better-panic")]
+    {
+        better_panic::Settings::auto()
+            .most_recent_first(false)
+            .lineno_suffix(true)
+            .verbosity(better_panic::Verbosity::Full)
+            .install();
+    }
 
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()

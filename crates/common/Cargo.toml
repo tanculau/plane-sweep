@@ -10,7 +10,6 @@ description.workspace = true
 license.workspace = true
 
 [features]
-default = ["test"]
 serde = ["dep:serde", "typed-index-collections/serde"]
 test = ["dep:googletest"]
 
