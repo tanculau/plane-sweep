@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### 🐛 Bug Fixes
 
 - *(segment_table)* User is no longer allowed to create illegal Segments
+- *(sweep)* Ui, intersection did not close
 
 ### 💼 Other
 
