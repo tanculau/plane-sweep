@@ -32,7 +32,7 @@ impl<'segments, 'intersections> MyWidget<IntersectionTableState<'segments, 'inte
         let intersections = state
             .intersections
             .iter()
-            .filter(|i: &&Intersection| i.step().is_some_and(move |s| AlgoStepIdx::from(s) <= step))
+            .filter(|i: &&Intersection| AlgoStepIdx::from(i.step()) <= step)
             .collect::<Vec<_>>();
         let len = intersections.len();
         let available_height = ui.available_height();
@@ -99,7 +99,6 @@ impl<'segments, 'intersections> MyWidget<IntersectionTableState<'segments, 'inte
                         row.index()
                     };
 
-                    row.set_selected(intersections[row_index].mark());
                     let intersection = &intersections[row_index];
                     let point1 = intersection.point1();
                     let point2 = intersection.point2();
@@ -157,9 +156,7 @@ impl<'segments, 'intersections> MyWidget<IntersectionTableState<'segments, 'inte
                     });
                     // Step
                     row.col(|ui| {
-                        if let Some(step) = intersection.step() {
-                            ui.label(step.to_string());
-                        }
+                        ui.label(intersection.step().to_string());
                     });
                     row.col(|_| {});
                 });

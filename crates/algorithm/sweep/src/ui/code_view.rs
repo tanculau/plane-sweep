@@ -107,7 +107,7 @@ impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
             ui.label("2. Calculate the set U(p) and C(p) and L(p)");
         }
         if s.typ == StepType::ReportIntersections {
-            let intersection = intersections[s.intersection.unwrap()].step.unwrap();
+            let intersection = intersections[s.intersection.unwrap()].step();
             ui.label(RichText::new(format!("4. If U(p) and C(p) and L(p) >= 2, report an intersection. Adding intersection {intersection}")).underline());
         } else {
             ui.label("4. If U(p) and C(p) and L(p) >= 2, report an intersection.");

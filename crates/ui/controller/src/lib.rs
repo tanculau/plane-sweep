@@ -83,18 +83,6 @@ impl<'a, 'b, 'c, T> MyWidget<ControllerState<'a, 'b, 'c, T>> for Controller {
                 }
             });
         });
-
-        // Set intersection
-
-        for inter in state.intersections.iter_mut() {
-            if let Some(step) = inter.step()
-                && *state.step == step.into()
-            {
-                *inter.mark_mut() = true;
-            } else {
-                *inter.mark_mut() = false;
-            }
-        }
     }
     fn show(
         &mut self,

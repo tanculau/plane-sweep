@@ -17,26 +17,20 @@ impl_idx!(IntersectionIdx);
 pub struct Intersection {
     pub typ: IntersectionType,
     pub segments: Vec<SegmentIdx>,
-    pub mark: bool,
-    pub step: Option<usize>,
+    pub step: usize,
 }
 
 impl_approx_eq!(Intersection, |l, r, margin| l.typ.approx_eq(r.typ, margin)
     && l.segments == r.segments
-    && l.mark == r.mark
     && l.step == r.step);
 
 impl Intersection {
-    pub fn new(
-        typ: IntersectionType,
-        segments: Vec<SegmentIdx>,
-        step: impl Into<Option<usize>>,
-    ) -> Self {
+    #[must_use]
+    pub const fn new(typ: IntersectionType, segments: Vec<SegmentIdx>, step: usize) -> Self {
         Self {
             typ,
             segments,
-            mark: false,
-            step: step.into(),
+            step,
         }
     }
 
@@ -50,16 +44,8 @@ impl Intersection {
         &self.segments
     }
     #[must_use]
-    pub const fn mark_mut(&mut self) -> &mut bool {
-        &mut self.mark
-    }
-    #[must_use]
-    pub const fn step(&self) -> Option<usize> {
+    pub const fn step(&self) -> usize {
         self.step
-    }
-    #[must_use]
-    pub const fn mark(&self) -> bool {
-        self.mark
     }
     #[must_use]
     pub const fn point1(&self) -> CartesianCoord {

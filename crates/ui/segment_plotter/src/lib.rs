@@ -150,13 +150,9 @@ impl<'segments, 'intersections, 'steps, T: AlgrorithmStep>
             }
             for intersection in intersections
                 .iter()
-                .filter(|i| i.step().is_some_and(|s| AlgoStepIdx::from(s) <= step))
+                .filter(|i| AlgoStepIdx::from(i.step()) <= step)
             {
-                let name = format!(
-                    "Intersection {} {}",
-                    intersection.step().unwrap_or(0),
-                    if intersection.mark() { "(Active)" } else { "" }
-                );
+                let name = format!("Intersection {}", intersection.step());
                 match intersection.typ() {
                     IntersectionType::Point { coord } => {
                         //plot_ui.points(Points::new(name, vec![[coord.x, coord.y]]));
@@ -164,13 +160,10 @@ impl<'segments, 'intersections, 'steps, T: AlgrorithmStep>
                         plot_ui.line(line);
                     }
                     IntersectionType::Parallel { line } => {
-                        let mut line = Line::new(
+                        let line = Line::new(
                             name,
                             PlotPoints::new(vec![line.upper.array(), line.lower.array()]),
                         );
-                        if intersection.mark() {
-                            line = line.highlight(true);
-                        }
                         plot_ui.line(line);
                     }
                 }
