@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use brute_force::ui::BruteForce;
 use common::ToggleAbleWidget;
 use eframe::egui;
@@ -33,7 +35,6 @@ impl App {
                 return app;
             }
         }
-        let _ = cc;
 
         Self::default()
     }

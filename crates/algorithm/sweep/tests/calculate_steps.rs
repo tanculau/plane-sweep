@@ -73,10 +73,6 @@ fn one() {
                 ..
             }),
             pat!(Step {
-                typ: eq(&StepType::HEPUpdateT),
-                ..
-            }),
-            pat!(Step {
                 typ: eq(&StepType::CalculateSets),
                 ..
             }),
@@ -87,11 +83,11 @@ fn one() {
                 ..
             }),
             pat!(Step {
-                typ: eq(&StepType::DeleteLp),
+                typ: eq(&StepType::DeleteLpCp),
                 ..
             }),
             pat!(Step {
-                typ: eq(&StepType::InsertUp),
+                typ: eq(&StepType::InsertUpCp),
                 ..
             }),
             pat!(Step {
@@ -103,10 +99,6 @@ fn one() {
                 ..
             }),
             pat!(Step {
-                typ: eq(&StepType::HEPUpdateT),
-                ..
-            }),
-            pat!(Step {
                 typ: eq(&StepType::CalculateSets),
                 ..
             }),
@@ -117,11 +109,11 @@ fn one() {
                 ..
             }),
             pat!(Step {
-                typ: eq(&StepType::DeleteLp),
+                typ: eq(&StepType::DeleteLpCp),
                 ..
             }),
             pat!(Step {
-                typ: eq(&StepType::InsertUp),
+                typ: eq(&StepType::InsertUpCp),
                 ..
             }),
             pat!(Step {

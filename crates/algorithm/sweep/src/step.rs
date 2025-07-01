@@ -46,14 +46,13 @@ pub enum StepType {
     },
     InitT,
     PopQ,
-    HEPUpdateT,
     CalculateSets,
     CalculateUpCpLp {
         up_cp_lp: Vec<SegmentIdx>,
     },
     ReportIntersections,
-    DeleteLp,
-    InsertUp,
+    DeleteLpCp,
+    InsertUpCp,
     UpCpEmpty {
         s_l: Option<SegmentIdx>,
         s_r: Option<SegmentIdx>,
@@ -90,13 +89,11 @@ impl StepType {
     #[must_use]
     pub const fn is_handle_event_point(&self) -> bool {
         matches!(
-            self,
-            Self::HEPUpdateT
-                | Self::CalculateSets
+            self, Self::CalculateSets
                 | Self::CalculateUpCpLp { .. }
                 | Self::ReportIntersections
-                | Self::DeleteLp
-                | Self::InsertUp
+                | Self::DeleteLpCp
+                | Self::InsertUpCp
                 | Self::UpCpEmpty { .. }
                 | Self::UpCpNotEmpty { .. }
         )

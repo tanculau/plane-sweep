@@ -93,6 +93,8 @@ const fn step_count(step: &mut usize) -> usize {
     out
 }
 
+
+
 pub fn calculate_steps<const REPORT : bool>(
     segments: &Segments,
     intersections: &mut Intersections,
@@ -103,6 +105,8 @@ pub fn calculate_steps<const REPORT : bool>(
     steps.clear();
     intersections.clear();
     report!(REPORT,steps, StepType::Init, s);
+
+    
 
     // Initialize an empty event queue Q.
     report!(REPORT,steps, StepType::StartInitQ, s);
@@ -159,14 +163,6 @@ fn handle_event_point<const REPORT : bool>(
     steps: &mut AlgoSteps<Step>,
 ) {
     let p: CartesianCoord = (event.x, event.y).into();
-    report!(REPORT,
-        steps,
-        StepType::HEPUpdateT,
-        s,
-        event_queue,
-        status_queue,
-        event
-    );
 
     // "Let U(p) be the set of segments whose upper endpoint is p; these segments
     // are stored with the event point p. (For horizontal segments, the upper
@@ -239,7 +235,7 @@ fn handle_event_point<const REPORT : bool>(
     }
     report!(REPORT,
         steps,
-        StepType::DeleteLp,
+        StepType::DeleteLpCp,
         s,
         event_queue,
         status_queue,
@@ -255,7 +251,7 @@ fn handle_event_point<const REPORT : bool>(
 
     report!(REPORT,
         steps,
-        StepType::InsertUp,
+        StepType::InsertUpCp,
         s,
         event_queue,
         status_queue,
