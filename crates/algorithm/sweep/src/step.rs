@@ -89,7 +89,8 @@ impl StepType {
     #[must_use]
     pub const fn is_handle_event_point(&self) -> bool {
         matches!(
-            self, Self::CalculateSets
+            self,
+            Self::CalculateSets
                 | Self::CalculateUpCpLp { .. }
                 | Self::ReportIntersections
                 | Self::DeleteLpCp

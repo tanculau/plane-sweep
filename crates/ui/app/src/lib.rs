@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use brute_force::ui::BruteForce;
 use common::ToggleAbleWidget;
 use eframe::egui;

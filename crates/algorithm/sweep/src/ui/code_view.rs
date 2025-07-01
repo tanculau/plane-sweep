@@ -97,8 +97,11 @@ impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
         });
         if let StepType::CalculateUpCpLp { up_cp_lp } = &s.typ {
             let seg = format_segment(up_cp_lp.iter(), segments);
-            let text = RichText::new(format!("2. Calculate the set U(p) and C(p) and L(p): {seg}")).family(eframe::egui::FontFamily::Name("phosphor".into()))
-                .underline();
+            let text = RichText::new(format!(
+                "2. Calculate the set U(p) and C(p) and L(p): {seg}"
+            ))
+            .family(eframe::egui::FontFamily::Name("phosphor".into()))
+            .underline();
             ui.label(text);
         } else {
             ui.label("2. Calculate the set U(p) and C(p) and L(p)");

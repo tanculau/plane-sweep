@@ -93,9 +93,7 @@ const fn step_count(step: &mut usize) -> usize {
     out
 }
 
-
-
-pub fn calculate_steps<const REPORT : bool>(
+pub fn calculate_steps<const REPORT: bool>(
     segments: &Segments,
     intersections: &mut Intersections,
     steps: &mut AlgoSteps<Step>,
@@ -104,12 +102,10 @@ pub fn calculate_steps<const REPORT : bool>(
     let s = &mut sc;
     steps.clear();
     intersections.clear();
-    report!(REPORT,steps, StepType::Init, s);
-
-    
+    report!(REPORT, steps, StepType::Init, s);
 
     // Initialize an empty event queue Q.
-    report!(REPORT,steps, StepType::StartInitQ, s);
+    report!(REPORT, steps, StepType::StartInitQ, s);
     let mut event_queue = EventQueue::new();
     // Next, insert the segment endpoints into Q; when an upper endpoint is inserted, the corresponding segment should be stored with it.
     for (id, segment) in segments.iter_enumerated() {
@@ -119,17 +115,31 @@ pub fn calculate_steps<const REPORT : bool>(
         // We do not store the segment id for the lower one
         let event = Event::new(segment.lower.y, segment.lower.x, std::iter::empty());
         event_queue.insert(event);
-        report!(REPORT,steps, StepType::InitQ { segment: id }, s, event_queue);
+        report!(
+            REPORT,
+            steps,
+            StepType::InitQ { segment: id },
+            s,
+            event_queue
+        );
     }
 
     // Initialize an empty status structure T.
     let mut status_queue = StatusQueue::new();
-    report!(REPORT,steps, StepType::InitT, s, event_queue);
+    report!(REPORT, steps, StepType::InitT, s, event_queue);
 
     let mut last_event = None;
     // while Q is not empty. do Determine the next event point p in Q and delete it.
     while let Some(event) = event_queue.pop() {
-        report!(REPORT,steps, StepType::PopQ, s, event_queue, status_queue, event);
+        report!(
+            REPORT,
+            steps,
+            StepType::PopQ,
+            s,
+            event_queue,
+            status_queue,
+            event
+        );
         handle_event_point::<REPORT>(
             &event,
             last_event.as_ref(),
@@ -152,7 +162,7 @@ pub fn calculate_steps<const REPORT : bool>(
     clippy::too_many_arguments,
     reason = "because capturing status cost a lot"
 )]
-fn handle_event_point<const REPORT : bool>(
+fn handle_event_point<const REPORT: bool>(
     event: &Event,
     last_event: Option<&Event>,
     event_queue: &mut EventQueue,
@@ -173,7 +183,8 @@ fn handle_event_point<const REPORT : bool>(
         .iter_contains(segments, event.coord())
         .partition(|v| approx_eq!(CartesianCoord, segments[*v].lower, p));
 
-    report!(REPORT,
+    report!(
+        REPORT,
         steps,
         StepType::CalculateSets,
         s,
@@ -193,7 +204,8 @@ fn handle_event_point<const REPORT : bool>(
         .copied()
         .collect();
 
-    report!(REPORT,
+    report!(
+        REPORT,
         steps,
         StepType::CalculateUpCpLp {
             up_cp_lp: l_p_and_u_p_and_c_p.clone(),
@@ -233,7 +245,8 @@ fn handle_event_point<const REPORT : bool>(
     for s in chain!(&l_p, &c_p) {
         status_queue.delete(*s, segments, last_event.map_or(event.coord(), Event::coord));
     }
-    report!(REPORT,
+    report!(
+        REPORT,
         steps,
         StepType::DeleteLpCp,
         s,
@@ -249,7 +262,8 @@ fn handle_event_point<const REPORT : bool>(
         status_queue.insert(*s, segments, event.coord());
     }
 
-    report!(REPORT,
+    report!(
+        REPORT,
         steps,
         StepType::InsertUpCp,
         s,
@@ -265,7 +279,8 @@ fn handle_event_point<const REPORT : bool>(
         // "then Let sl and sr be the left and right neighbors of p in T." [1, p. 26]
         let l_r = status_queue.left_of_event(segments, event.coord());
         let u_r = status_queue.right_of_event(segments, event.coord());
-        report!(REPORT,
+        report!(
+            REPORT,
             steps,
             StepType::UpCpEmpty { s_l: l_r, s_r: u_r },
             s,
@@ -295,7 +310,8 @@ fn handle_event_point<const REPORT : bool>(
         let s_l = status_queue.left_of_event(segments, event.coord());
         let s_dash_dash = status_queue.right_most(segments, event.coord()).unwrap();
         let s_r = status_queue.right_of_event(segments, event.coord());
-        report!(REPORT,
+        report!(
+            REPORT,
             steps,
             StepType::UpCpNotEmpty {
                 s_dash,
@@ -345,7 +361,7 @@ fn handle_event_point<const REPORT : bool>(
     clippy::too_many_arguments,
     reason = "because capturing status cost a lot"
 )]
-fn find_new_event<const REPORT : bool>(
+fn find_new_event<const REPORT: bool>(
     s_l: SegmentIdx,
     s_r: SegmentIdx,
     event: &Event,
@@ -357,7 +373,8 @@ fn find_new_event<const REPORT : bool>(
     c_p: &[SegmentIdx],
     l_p: &[SegmentIdx],
 ) {
-    report!(REPORT,
+    report!(
+        REPORT,
         steps,
         StepType::FindNewEvent { s_l, s_r },
         s,
@@ -373,7 +390,8 @@ fn find_new_event<const REPORT : bool>(
         && (intersection.point1().y < *event.y
             || f_eq!(intersection.point1().y, *event.y) && intersection.point1().x > *event.x)
     {
-        report!(REPORT,
+        report!(
+            REPORT,
             steps,
             StepType::InsertIntersectionEvent {
                 s_l,
