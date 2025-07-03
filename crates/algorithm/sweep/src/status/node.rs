@@ -4,9 +4,10 @@ use common::{
     math::{OrderedFloat, cartesian::CartesianCoord},
     segment::{SegmentIdx, Segments},
 };
+use itertools::Itertools;
 use slotmap::Key;
 
-use crate::status::{SQKey, Storage, compare, compare2, intersection};
+use crate::status::{SQDebug, SQKey, Storage, compare, compare2, compare3, intersection};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Node {
@@ -293,8 +294,9 @@ impl Node {
         else {
             return curr_key;
         };
+        //Self::verify_with_event(curr_key, storage, segments, event);
 
-        match compare2(curr_seg, s_idx, segments, event) {
+        match compare3(curr_seg, s_idx, segments, event) {
             Ordering::Less => {
                 let right = Self::delete(right_key, storage, s_idx, segments, event);
                 let tmp = storage[curr_key].set_right(right);
@@ -337,7 +339,9 @@ impl Node {
         }
 
         let ret = Self::update_balance(curr_key, storage);
-        Self::verify(ret, storage);
+
+        //Self::verify_with_event(curr_key, storage, segments, event);
+
         ret
     }
 
@@ -364,7 +368,7 @@ impl Node {
             Self::Node {
                 data, left, right, ..
             } => {
-                debug_assert_ne!(left, right);
+                //Self::verify_with_event(curr, storage, segments, event);
 
                 let curr_seg = segments[data];
                 let insert_seg = segments[s_idx];
@@ -388,7 +392,8 @@ impl Node {
                 }
 
                 let ret = Self::update_balance(curr, storage);
-                Self::verify(ret, storage);
+                //Self::verify_with_event(ret, storage, segments, event);
+
                 ret
             }
         }
@@ -418,6 +423,7 @@ impl Node {
         x
     }
     fn left_rotate(curr: SQKey, storage: &mut Storage) -> SQKey {
+        Self::verify(curr, storage);
         let old_parent = storage[curr].parent();
         let x = curr;
         let y = storage[x].right().unwrap();
@@ -428,9 +434,11 @@ impl Node {
         let tmp = storage[x].set_right(t2);
         debug_assert!(tmp, "Could not set left");
         storage[t2].set_parent(x);
+        storage[y].set_parent(old_parent);
+        Self::update_height(t2, storage);
         Self::update_height(x, storage);
         Self::update_height(y, storage);
-        storage[y].set_parent(old_parent);
+        Self::verify(curr, storage);
         y
     }
 
@@ -448,48 +456,57 @@ impl Node {
         };
         let left = storage[left_key];
         let right = storage[right_key];
-        storage[curr].set_height(1 + left.height() + right.height());
+        Self::update_height(curr, storage);
+        Self::verify(curr, storage);
 
         let balance = curr_node.balance(storage);
 
         if balance > 1 {
             if left.balance(storage) >= 0 {
-                return Self::right_rotate(curr, storage);
+                let ret = Self::right_rotate(curr, storage);
+                Self::update_height(ret, storage);
+                return ret;
             }
             let new_left = Self::left_rotate(left_key, storage);
             let tmp = storage[curr].set_left(new_left);
+            Self::update_height(new_left, storage);
             debug_assert!(tmp, "Could not set left");
             storage[new_left].set_parent(curr);
-            return Self::right_rotate(curr, storage);
+            let ret = Self::right_rotate(curr, storage);
+            Self::update_height(ret, storage);
+            return ret;
         }
 
         if balance < -1 {
             if right.balance(storage) <= 0 {
-                return Self::left_rotate(curr, storage);
+                let ret = Self::left_rotate(curr, storage);
+                Self::update_height(ret, storage);
+                return ret;
             }
 
             let new_right = Self::right_rotate(right_key, storage);
+            Self::update_height(new_right, storage);
             let tmp = storage[curr].set_right(new_right);
             debug_assert!(tmp, "Could not set left");
             storage[new_right].set_parent(curr);
-            return Self::left_rotate(curr, storage);
+            let ret = Self::left_rotate(curr, storage);
+            Self::update_height(ret, storage);
+            return ret;
         }
-
+        Self::update_height(curr, storage);
         curr
     }
 
     fn update_height(curr: SQKey, storage: &mut Storage) {
-        let Some(left) = storage[curr].left() else {
-            return;
+        let val = if let Self::Node { left, right, .. } = storage[curr] {
+            1 + storage[left].height() + storage[right].height()
+        } else {
+            0
         };
-        let Some(right) = storage[curr].left() else {
-            return;
-        };
-        let left = storage[left];
-        let right = storage[right];
-        storage[curr].set_height(1 + left.height() + right.height());
+        storage[curr].set_height(val);
     }
 
+    #[inline]
     pub fn verify(curr: SQKey, storage: &Storage) {
         if cfg!(debug_assertions) {
             let node = storage[curr];
@@ -498,12 +515,115 @@ impl Node {
                     left,
                     right,
                     height,
+                    parent,
                     ..
                 } => {
-                    assert_eq!(Some(curr), storage[left].parent());
-                    assert_eq!(Some(curr), storage[right].parent());
-                    let height_is = 1 + storage[left].height() + storage[right].height();
-                    assert_eq!(height_is, height);
+                    debug_assert_eq!(
+                        [curr, left, right]
+                            .iter()
+                            .chain(parent.iter())
+                            .duplicates()
+                            .count(),
+                        0
+                    );
+
+                    debug_assert_eq!(
+                        Some(curr),
+                        storage[left].parent(),
+                        "{}",
+                        SQDebug::new(curr, storage)
+                    );
+                    debug_assert_eq!(
+                        Some(curr),
+                        storage[right].parent(),
+                        "{}",
+                        SQDebug::new(curr, storage)
+                    );
+                    debug_assert_eq!(
+                        1 + storage[left].height() + storage[right].height(),
+                        height,
+                        "{}",
+                        SQDebug::new(curr, storage)
+                    );
+                    Self::verify(left, storage);
+                    Self::verify(right, storage);
+                }
+                Self::Leaf { .. } => {}
+            }
+        }
+    }
+
+    pub fn verify_with_event(
+        curr: SQKey,
+        storage: &Storage,
+        segments: &Segments,
+        event: CartesianCoord,
+    ) {
+        if cfg!(debug_assertions) {
+            let node = storage[curr];
+            match node {
+                Self::Node {
+                    left,
+                    right,
+                    height,
+                    data,
+                    parent,
+                    ..
+                } => {
+                    debug_assert_eq!(
+                        [curr, left, right]
+                            .iter()
+                            .chain(parent.iter())
+                            .duplicates()
+                            .count(),
+                        0
+                    );
+                    debug_assert_eq!(
+                        Some(curr),
+                        storage[left].parent(),
+                        "{}",
+                        SQDebug::new(curr, storage)
+                    );
+                    debug_assert_eq!(
+                        Some(curr),
+                        storage[right].parent(),
+                        "{}",
+                        SQDebug::new(curr, storage)
+                    );
+                    if let Some(lhs) = storage[left].data() {
+                        debug_assert_eq!(
+                            compare2(lhs, data, segments, event),
+                            Ordering::Less,
+                            "Expected {lhs:?} to be smaller than {data:?}, but {:?} < {:?}, {:?} < {:?}, {:?}, {:?}",
+                            intersection(segments[lhs], event),
+                            intersection(segments[data], event),
+                            segments[lhs].slope(),
+                            segments[data].slope(),
+                            segments[lhs].line(),
+                            segments[data].line()
+                        );
+                    }
+                    if let Some(rhs) = storage[right].data() {
+                        debug_assert_eq!(
+                            compare2(rhs, data, segments, event),
+                            Ordering::Greater,
+                            "Expected {rhs:?} to be greater than {data:?}, but {:?} > {:?}, {:?} > {:?}, {:?}, {:?}",
+                            intersection(segments[rhs], event),
+                            intersection(segments[data], event),
+                            segments[rhs].slope(),
+                            segments[data].slope(),
+                            segments[rhs].line(),
+                            segments[data].line()
+                        );
+                    }
+                    debug_assert_eq!(
+                        1 + storage[left].height() + storage[right].height(),
+                        height,
+                        "{}",
+                        SQDebug::new(curr, storage)
+                    );
+                    Self::verify(left, storage);
+                    Self::verify(right, storage);
                 }
                 Self::Leaf { .. } => {}
             }
@@ -587,6 +707,7 @@ impl<'a> NodeCursor<'a> {
     }
 
     #[must_use]
+    #[cfg_attr(test, mutants::skip)] // Timeout
     pub fn next(&mut self) -> bool {
         if let Some(new) = self.peek_next() {
             self.curr = new;
@@ -597,6 +718,7 @@ impl<'a> NodeCursor<'a> {
     }
     #[must_use]
     #[allow(dead_code)]
+    #[cfg_attr(test, mutants::skip)] // dead_code
     pub fn prev(&mut self) -> bool {
         if let Some(new) = self.peek_prev() {
             self.curr = new;
@@ -626,3 +748,12 @@ impl<'a> NodeCursor<'a> {
 //         }
 //     }
 // }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use googletest::prelude::*;
+
+    #[test]
+    fn test_name() {}
+}

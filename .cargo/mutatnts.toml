@@ -1,0 +1,2 @@
+exclude_globs = ["**/ui/**/*.rs", "**/sweep/src/step.rs", "crates/algorithm/sweep/src/ui/*.rs",  "crates/algorithm/brute-force/src/ui.rs", "crates/algorithm/brute-force/src/ui.rs", "crates/common/src/test.rs"] # like -e
+all_features = true

@@ -8,7 +8,7 @@ mod coord {
             let a = CartesianCoord::new(0, 0);
             let b = CartesianCoord::new(0, 0);
 
-            expect_near!(a.distance(b), 0.0, 1e-6);
+            expect_float_eq!(a.distance(b), 0.0);
         }
 
         #[gtest]

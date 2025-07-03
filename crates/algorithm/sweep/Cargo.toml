@@ -35,7 +35,15 @@ slotmap = "1.0.7"
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
+bolero = "0.13.3"
+bolero-generator = "0.13.4"
 googletest = "0.14.1"
+mutants = "0.0.3"
+rstest = { version = "0.25.0", default-features = false }
 
 [lints]
 workspace = true
+
+[[test]]
+name = "fuzzer"
+harness = false

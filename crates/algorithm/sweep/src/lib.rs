@@ -12,11 +12,11 @@ use common::{
     math::{cartesian::CartesianCoord, float_cmp::approx_eq},
     segment::{Segment, SegmentIdx, Segments},
 };
-use itertools::chain;
+use itertools::{Itertools, chain};
 
 use crate::{
     event::{Event, EventQueue},
-    status::StatusQueue,
+    status::{StatusQueue, intersection},
     step::{Step, StepType},
 };
 
@@ -71,7 +71,7 @@ macro_rules! report {
             );
         }
     };
-    ($report : expr,$steps: expr, $step_type : expr, DONT_CHANGE $step : expr, $event_queue : expr, $status_queue : expr, $event : expr, $c_p : expr, $l_p : expr) => {
+    ($report : expr,$steps: expr, $step_type : expr, $step : expr, $event_queue : expr, $status_queue : expr, $event : expr, $c_p : expr, $l_p : expr, $inter : expr) => {
         if $report {
             $steps.push(
                 Step::builder($step_type, ($step))
@@ -81,6 +81,7 @@ macro_rules! report {
                     .c_p($c_p.clone())
                     .u_p($event.segments.clone())
                     .l_p($l_p.clone())
+                    .intersection($inter.clone())
                     .build(),
             );
         }
@@ -123,12 +124,13 @@ pub fn calculate_steps<const REPORT: bool>(
             event_queue
         );
     }
+    //println!("{event_queue:?}");
 
     // Initialize an empty status structure T.
     let mut status_queue = StatusQueue::new();
     report!(REPORT, steps, StepType::InitT, s, event_queue);
 
-    let mut last_event = None;
+    let mut last_event: Option<Event> = None;
     // while Q is not empty. do Determine the next event point p in Q and delete it.
     while let Some(event) = event_queue.pop() {
         report!(
@@ -180,9 +182,10 @@ fn handle_event_point<const REPORT: bool>(
     let u_p = &event.segments;
 
     let (l_p, c_p): (Vec<_>, Vec<_>) = status_queue
-        .iter_contains(segments, event.coord())
+        .iter_contains(segments, p)
         .partition(|v| approx_eq!(CartesianCoord, segments[*v].lower, p));
-
+    //println!("Event {:?}: L_P: {l_p:?}", event.coord());
+    println!("{status_queue:?}");
     report!(
         REPORT,
         steps,
@@ -195,6 +198,7 @@ fn handle_event_point<const REPORT: bool>(
         l_p
     );
 
+    println!("{s}. LP: {l_p:?} , CP: {c_p:?} , UP: {u_p:?} at {p:?}");
     // "if L(p) ∪ U(p) ∪ C(p) contains more than one segment [...]" [1, p. 26]
     let l_p_and_u_p_and_c_p: Vec<_> = event
         .segments
@@ -225,26 +229,41 @@ fn handle_event_point<const REPORT: bool>(
             l_p_and_u_p_and_c_p,
             step,
         );
-        report!(REPORT,
+        let intersect = intersections.push_and_get_key(intersect);
+        report!(
+            REPORT,
             steps,
             StepType::ReportIntersections,
-            DONT_CHANGE step,
+            step,
             event_queue,
             status_queue,
             event,
             c_p,
-            l_p
+            l_p,
+            intersect
         );
         // "[...] then Report p as an intersection, together with L(p), U(p), and C(p)." [1, p. 26]
-        intersections.push(intersect);
     }
 
     // "Delete the segments in L(p) ∪ C(p) from T." [1, p. 26]
     // We only retain elements which are *not* in l_p
     // We do not do u_p, because how the status is defined and calculated, it is not needed
     for s in chain!(&l_p, &c_p) {
-        status_queue.delete(*s, segments, last_event.map_or(event.coord(), Event::coord));
+        status_queue.delete(*s, segments, p);
+        debug_assert!(
+            !status_queue.iter().contains(s),
+            "Tried to remove {s:?} from {status_queue:?} with last event {last_event:?} and even {event:?}"
+        );
     }
+    //println!(
+    //    "{}",
+    //    status_queue.iter().fold(String::new(), |mut acc, v| {
+    //        use std::fmt::Write;
+    //        write!(&mut acc, ", {:?}:  {:?}", v, intersection(segments[v], last_event.map_or(event.coord(), Event::coord))).unwrap();
+    //        acc
+    //    })
+    //);
+
     report!(
         REPORT,
         steps,
@@ -259,8 +278,26 @@ fn handle_event_point<const REPORT: bool>(
     // "Insert the segments in U(p) ∪ C(p) into T." [1, p. 26]
     // C(p) is already in the status_queue, so we do not need this. Only U(p) gets inserted.
     for s in chain!(u_p, &c_p) {
-        status_queue.insert(*s, segments, event.coord());
+        status_queue.insert(*s, segments, p);
     }
+
+    println!(
+        "{}",
+        status_queue
+            .iter()
+            .fold(String::from("Order: "), |mut acc, v| {
+                use std::fmt::Write;
+                write!(
+                    &mut acc,
+                    ", {:?}:  {:?}, {:?}",
+                    v,
+                    intersection(segments[v], event.coord()),
+                    segments[v].slope()
+                )
+                .unwrap();
+                acc
+            })
+    );
 
     report!(
         REPORT,
@@ -306,10 +343,11 @@ fn handle_event_point<const REPORT: bool>(
             );
         }
     } else {
-        let s_dash = status_queue.left_most(segments, event.coord()).unwrap();
+        let s_dash = status_queue.left_most(segments, event.coord());
         let s_l = status_queue.left_of_event(segments, event.coord());
-        let s_dash_dash = status_queue.right_most(segments, event.coord()).unwrap();
+        let s_dash_dash = status_queue.right_most(segments, event.coord());
         let s_r = status_queue.right_of_event(segments, event.coord());
+        //println!("s_dash {s_dash:?}, s_l {s_l:?}, s_dash_dash {s_dash_dash:?}, s_r {s_r:?}");
         report!(
             REPORT,
             steps,
@@ -326,7 +364,7 @@ fn handle_event_point<const REPORT: bool>(
             c_p,
             l_p
         );
-        if let (Some(left), right) = (s_l, s_dash) {
+        if let (Some(left), Some(right)) = (s_l, s_dash) {
             find_new_event::<REPORT>(
                 left,
                 right,
@@ -340,7 +378,7 @@ fn handle_event_point<const REPORT: bool>(
                 &l_p.clone(),
             );
         }
-        if let (left, Some(right)) = (s_dash_dash, s_r) {
+        if let (Some(left), Some(right)) = (s_dash_dash, s_r) {
             find_new_event::<REPORT>(
                 left,
                 right,
@@ -385,7 +423,7 @@ fn find_new_event<const REPORT: bool>(
         l_p.to_vec()
     );
 
-    if let Some(intersection) = Segment::intersect([s_l, s_r], segments, 0)
+    if let Some(intersection) = Segment::intersect(s_l, s_r, segments, 0)
         && intersection.typ().is_point()
         && (intersection.point1().y < *event.y
             || f_eq!(intersection.point1().y, *event.y) && intersection.point1().x > *event.x)
@@ -413,6 +451,10 @@ fn find_new_event<const REPORT: bool>(
             intersection.point1().x,
             std::iter::empty(),
         ));
+        println!(
+            "Found intersection between {s_l:?} and {s_r:?}:{:?}",
+            intersection.point1()
+        );
     }
 }
 

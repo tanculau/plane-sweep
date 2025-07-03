@@ -1,21 +1,48 @@
+use core::{cmp::Ordering, ops::Neg};
+
 use tracing::{debug, instrument};
 
 use crate::{
     f_eq,
-    math::{CrossProduct, DotProduct, Float, OrderedFloat, homogeneous::HomogeneousCoord},
+    math::{
+        CrossProduct, DotProduct, Float, OrderedFloat, calculate_multiple,
+        homogeneous::HomogeneousCoord,
+    },
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialOrd)]
 pub struct Line {
-    a: Float,
-    b: Float,
-    c: Float,
+    pub a: Float,
+    pub b: Float,
+    pub c: Float,
+}
+
+impl Neg for Line {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            a: -self.a,
+            b: -self.b,
+            c: -self.c,
+        }
+    }
+}
+
+impl PartialEq for Line {
+    fn eq(&self, other: &Self) -> bool {
+        let a = calculate_multiple(self.a, other.a);
+        let b = calculate_multiple(self.b, other.b);
+        let c = calculate_multiple(self.c, other.c);
+        a == b && b == c
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Slope {
-    Vertiical,
-    Value(OrderedFloat),
+    ThirdQuadrant(OrderedFloat),
+    Vertical,
+    FourthQuadrant(OrderedFloat),
     Horizontal,
     Infinity,
 }
@@ -82,14 +109,23 @@ impl Line {
         match (f_eq!(self.a, 0.0), (f_eq!(self.b, 0.0))) {
             (true, true) => Slope::Infinity,
             (true, false) => Slope::Horizontal,
-            (false, true) => Slope::Vertiical,
-            (false, false) => Slope::Value(OrderedFloat((self.b / self.a).abs().into())),
+            (false, true) => Slope::Vertical,
+            (false, false) => {
+                let slope = -self.a / self.b;
+
+                if slope.is_sign_positive() {
+                    Slope::ThirdQuadrant((slope).into())
+                } else {
+                    Slope::FourthQuadrant(slope.into())
+                }
+            }
         }
     }
 
     #[must_use]
     pub fn angle(self) -> Float {
-        self.b.atan2(self.a)
+        let Self { a: a1, b: b1, .. } = self;
+        -a1 / b1
     }
 }
 

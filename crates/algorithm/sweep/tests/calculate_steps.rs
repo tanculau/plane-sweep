@@ -1,9 +1,10 @@
 use common::{
     AlgoSteps,
-    intersection::Intersections,
+    intersection::{Intersection, IntersectionType, Intersections},
     segment::{Segment, Segments},
 };
 use googletest::prelude::*;
+use rstest::rstest;
 use sweep::{
     calculate_steps,
     step::{Step, StepType},
@@ -127,4 +128,144 @@ fn one() {
         ]
     );
     expect_that!(intersections, elements_are![]);
+}
+
+#[gtest]
+fn many() {
+    let segments = Segments::from_iter([
+        Segment::new((2, 2), (-2, -2)),           // 0
+        Segment::new((2, 2), (2, -2)),            // 1
+        Segment::new((-4, -1.5), (4, -1.5)),      // 2
+        Segment::new((-0.5, 5), (-0.5, -4.5)),    // 3
+        Segment::new((-1.5, 3.5), (-1.5, -4.5)),  // 4
+        Segment::new((-1.5, -4.5), (-0.5, -4.5)), // 5
+        Segment::new((-0.5, -4.5), (3, -4.5)),    // 6
+    ]);
+    let mut intersections = Intersections::new();
+    let mut steps = AlgoSteps::new();
+    calculate_steps::<true>(&segments, &mut intersections, &mut steps);
+
+    for i in &mut intersections {
+        // The order is not relevant
+        i.segments.sort_unstable();
+    }
+
+    expect_that!(
+        intersections,
+        elements_are![
+            pat!(Intersection {
+                typ: pat!(IntersectionType::Point {
+                    coord: eq(&(2, 2).into())
+                }),
+                segments: container_eq(vec![0.into(), 1.into()]),
+                ..
+            }),
+            pat!(Intersection {
+                typ: pat!(IntersectionType::Point {
+                    coord: eq(&(-0.5, -0.5).into())
+                }),
+                segments: container_eq(vec![0.into(), 3.into()]),
+                ..
+            }),
+            pat!(Intersection {
+                typ: pat!(IntersectionType::Point {
+                    coord: eq(&(-1.5, -1.5).into())
+                }),
+                segments: container_eq(vec![0.into(), 2.into(), 4.into()]),
+                ..
+            }),
+            pat!(Intersection {
+                typ: pat!(IntersectionType::Point {
+                    coord: eq(&(-0.5, -1.5).into())
+                }),
+                segments: container_eq(vec![2.into(), 3.into()]),
+                ..
+            }),
+            pat!(Intersection {
+                typ: pat!(IntersectionType::Point {
+                    coord: eq(&(2, -1.5).into())
+                }),
+                segments: container_eq(vec![1.into(), 2.into()]),
+                ..
+            }),
+            pat!(Intersection {
+                typ: pat!(IntersectionType::Point {
+                    coord: eq(&(-1.5, -4.5).into())
+                }),
+                segments: container_eq(vec![4.into(), 5.into()]),
+                ..
+            }),
+            pat!(Intersection {
+                typ: pat!(IntersectionType::Point {
+                    coord: eq(&(-0.5, -4.5).into())
+                }),
+                segments: container_eq(vec![3.into(), 5.into(), 6.into()]),
+                ..
+            }),
+        ]
+    );
+}
+
+#[test]
+fn test_failure() {
+    let segments = Segments::from_iter([
+        Segment::new((-254, 9992), (-1, -258)),
+        Segment::new((-258, 8), (113, 0)),
+        Segment::new((188, 0), (0, 0)),
+    ]);
+    let mut intersections = Intersections::new();
+    let mut steps = AlgoSteps::new();
+    calculate_steps::<true>(&segments, &mut intersections, &mut steps);
+}
+
+/// Input that caused crashes while fuzzing
+#[gtest]
+#[rstest]
+#[case([
+    Segment::new((0, 113), (113, 0)),
+    Segment::new((-1, 0), (-1, 113)),
+    Segment::new((0, 79), (59, 70)),
+    Segment::new((1, 117), (0, 43)),
+    Segment::new((69, 10), (-1, 3)),
+    Segment::new((23, 93), (0, 0)),
+])]
+#[case([
+        Segment::new((0, 1), (-10, -105)),
+        Segment::new((0, 0), (-105, -105)),
+        Segment::new((-10, -105), (0, 0)),
+    ])]
+#[case([
+    Segment::new((1, -1), (-128, -1)),
+    Segment::new((0, 0), (-1, -1)),
+    Segment::new((-30, -1), (-1, -30)),
+    Segment::new((-30, -30), (-30, 33)),
+    Segment::new((0, -1), (-30, 0)),
+    ])]
+#[case([
+    Segment::new((1, 0), (0, -128)),
+    Segment::new((2, 0), (0, 0)),
+])]
+#[case([
+    Segment::new((-128, 0), (0, -39)),
+    Segment::new((-30, -30), (35, 35)),
+    Segment::new((35, 0), (0, 0)),
+])]
+#[case([
+    Segment::new((0, 0), (0, 1)),
+    Segment::new((1, 0), (0, 0)),
+    Segment::new((1, 0), (0, 0)),
+])]
+#[case([
+    Segment::new((0, -128), (1, 1)),
+    Segment::new((1, 0), (0, 0)),
+])]
+#[case([
+    Segment::new((0, 0), (1, -128)),
+    Segment::new((2, -128), (-128, 0)),
+])]
+fn crashes<const T: usize>(#[case] segments: [Segment; T]) {
+    let segments = Segments::from_iter(segments);
+    let mut steps = AlgoSteps::new();
+    let mut intersections = Intersections::new();
+    calculate_steps::<false>(&segments, &mut intersections, &mut steps);
 }

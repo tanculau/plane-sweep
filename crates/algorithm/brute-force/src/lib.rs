@@ -7,7 +7,6 @@ use common::{
     segment::{Segment, SegmentIdx, Segments},
 };
 use tracing::{info, instrument};
-
 pub mod ui;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -84,7 +83,7 @@ pub fn calculate_steps<T: PushStep<AlgorithmStep>>(
             let segment_i = i.into();
             let segment_j = j.into();
 
-            let found_intersections = Segment::intersect([segment_i, segment_j], segments, step);
+            let found_intersections = Segment::intersect(segment_i, segment_j, segments, step);
             let mut key = None;
             if let Some(intersection) = found_intersections {
                 key = Some(intersections.push_and_get_key(intersection));

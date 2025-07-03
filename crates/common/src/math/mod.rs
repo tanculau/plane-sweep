@@ -9,11 +9,20 @@ use core::{
 pub type Float = f64;
 
 pub use float_cmp;
+use float_cmp::F64Margin;
 
 #[macro_export]
 macro_rules! f_eq {
     ($lhs:expr, $rhs:expr) => {
-        $crate::math::float_cmp::approx_eq!($crate::math::Float, $lhs, $rhs)
+        $crate::math::float_cmp::approx_eq!(
+            $crate::math::Float,
+            $lhs,
+            $rhs,
+            $crate::math::float_cmp::F64Margin::from((
+                $crate::math::float_cmp::F64Margin::default().epsilon * 150.0,
+                $crate::math::float_cmp::F64Margin::default().ulps * 150
+            ))
+        )
     };
 }
 
@@ -195,5 +204,30 @@ impl Ord for OrderedFloat {
         } else {
             self.0.cmp(&other.0)
         }
+    }
+}
+
+#[derive(Debug)]
+enum Multiple {
+    Mult(f64),
+    Zero,
+    None,
+}
+
+impl PartialEq for Multiple {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Mult(v1), Self::Mult(v2)) => f_eq!(*v1, *v2),
+            (_, Self::None) | (Self::None, _) => false,
+            (Self::Zero, _) | (_, Self::Zero) => true,
+        }
+    }
+}
+
+fn calculate_multiple(lhs: f64, rhs: f64) -> Multiple {
+    match (f_eq!(lhs, 0.0), f_eq!(rhs, 0.0)) {
+        (true, true) => Multiple::Zero,
+        (true, false) | (false, true) => Multiple::None,
+        (false, false) => Multiple::Mult(lhs / rhs),
     }
 }

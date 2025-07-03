@@ -34,8 +34,15 @@ web-time = "1.1.0"
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
+bolero = "0.13.3"
 common = { path = "../../common", features = ["test"] }
 googletest = "0.14.1"
+mutants = "0.0.3"
+rtest = "0.2.2"
 
 [lints]
 workspace = true
+
+[[test]]
+name = "fuzzer"
+harness = false

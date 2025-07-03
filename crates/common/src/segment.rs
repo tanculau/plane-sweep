@@ -11,7 +11,7 @@ use crate::{
     math::{
         CrossProduct,
         cartesian::CartesianCoord,
-        homogeneous::{HomogeneousCoord, HomogeneousLine},
+        homogeneous::{HomogeneousCoord, HomogeneousLine, Slope},
     },
 };
 
@@ -151,33 +151,19 @@ impl Segment {
             shown: true,
         }
     }
-    /// Constructs a new [`Segment`].
-    ///
-    /// For more details see [`Segment::new`]
-    ///
-    /// # Parameters
-    ///
-    /// Accepts any type that implements [`TryInto<CartesianCoord, Error = E>`].
-    #[allow(clippy::missing_errors_doc)]
-    pub fn try_new<E>(
-        p1: impl TryInto<CartesianCoord, Error = E>,
-        p2: impl TryInto<CartesianCoord, Error = E>,
-    ) -> Result<Self, E> {
-        let p1 = p1.try_into()?;
-        let p2 = p2.try_into()?;
-
-        Ok(Self::new(p1, p2))
-    }
 
     /// Calculates the intersection of two [`Segments`](Segment).
     ///
     #[must_use]
-    #[instrument(name = "Segment::intersect")]
+    #[instrument(name = "Segment::intersect", skip_all)]
     pub fn intersect(
-        [key1, key2]: [SegmentIdx; 2],
+        key1: impl Into<SegmentIdx>,
+        key2: impl Into<SegmentIdx>,
         segments: &Segments,
         step: usize,
     ) -> Option<Intersection> {
+        let key1 = key1.into();
+        let key2 = key2.into();
         let segment_left @ Self {
             upper: upper1,
             lower: lower1,
@@ -232,11 +218,10 @@ impl Segment {
                     step,
                 ));
             }
-
-            let p1 = line1.contains_coord(upper2).then_some(upper2);
-            let p2 = line1.contains_coord(lower2).then_some(lower2);
-            let p3 = line2.contains_coord(upper1).then_some(upper1);
-            let p4 = line2.contains_coord(lower1).then_some(lower1);
+            let p1 = segment_left.contains(*upper2).then_some(upper2);
+            let p2 = segment_left.contains(*lower2).then_some(lower2);
+            let p3 = segment_right.contains(*upper1).then_some(upper1);
+            let p4 = segment_right.contains(*lower1).then_some(lower1);
             let mut iter = p1.iter().chain(p2.iter()).chain(p3.iter()).chain(p4.iter());
             if let (Some(&&p1), Some(&&p2)) = (iter.next(), iter.next()) {
                 if approx_eq!(CartesianCoord, p1, p2) {
@@ -315,6 +300,11 @@ impl Segment {
     #[must_use]
     pub fn angle(&self) -> f64 {
         self.line().angle()
+    }
+
+    #[must_use]
+    pub fn slope(&self) -> Slope {
+        self.line().slope()
     }
 }
 

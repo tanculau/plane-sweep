@@ -287,16 +287,16 @@ impl<'reset, 'segment> MyWidget<SegmentTableState<'reset, 'segment>> for Segment
             ui.horizontal(|ui| {
                 ui.label("Point 1:");
                 ui.label(" X:");
-                ui.add(egui::Slider::new(&mut self.new_p1_x, -100.0..=100.0));
+                ui.add(egui::Slider::new(&mut self.new_p1_x, -255.0..=255.0));
                 ui.label(" Y:");
-                ui.add(egui::Slider::new(&mut self.new_p1_y, -100.0..=100.0));
+                ui.add(egui::Slider::new(&mut self.new_p1_y, -255.0..=255.0));
             });
             ui.horizontal(|ui| {
                 ui.label("Point 2:");
                 ui.label(" X:");
-                ui.add(egui::Slider::new(&mut self.new_p2_x, -100.0..=100.0));
+                ui.add(egui::Slider::new(&mut self.new_p2_x, -255.0..=255.0));
                 ui.label(" Y:");
-                ui.add(egui::Slider::new(&mut self.new_p2_y, -100.0..=100.0));
+                ui.add(egui::Slider::new(&mut self.new_p2_y, -255.0..=255.0));
             });
         });
         ui.separator();

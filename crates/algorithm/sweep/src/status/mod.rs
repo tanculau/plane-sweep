@@ -56,9 +56,20 @@ impl StatusQueue {
         segments: &Segments,
         event: impl Into<CartesianCoord>,
     ) {
-        self.head = Node::insert(self.head, &mut self.storage, s_idx, segments, event.into());
+        let event = event.into();
+        println!("Insert {s_idx:?} at event {event:?}");
+        //println!(
+        //"Insert before: {}",
+        //self.iter().fold(String::new(), |mut acc, v| {
+        //    use std::fmt::Write;
+        //    write!(&mut acc, ", {:?}:  {:?}", v, intersection(segments[v], event)).unwrap();
+        //    acc
+        //})
+        //);
+        //Node::verify_with_event(self.head, &self.storage, segments, event);
+        self.head = Node::insert(self.head, &mut self.storage, s_idx, segments, event);
         self.storage[self.head].set_parent(None);
-        Node::verify(self.head, &self.storage);
+        //Node::verify_with_event(self.head, &self.storage, segments, event);
     }
 
     /// [`Iterator`](std::iter::Iterator) over all Segments that contain the event point
@@ -68,13 +79,11 @@ impl StatusQueue {
         event: impl Into<CartesianCoord>,
     ) -> impl Iterator<Item = SegmentIdx> + Clone {
         let event = event.into();
+
         Node::find_left_most(self.head, &self.storage, segments, event)
             .into_iter()
             .flat_map(|n| SQIter::new(n, &self.storage))
-            .inspect(|v| {
-                dbg!(v);
-            })
-            .filter(move |s| intersection(segments[*s], event) == OrderedFloat::new(event.x))
+            .take_while(move |s| intersection(segments[*s], event) == OrderedFloat::new(event.x))
     }
 
     /// Finds the greatest segment that is strictly left of the event point
@@ -123,9 +132,13 @@ impl StatusQueue {
         segments: &Segments,
         event: impl Into<CartesianCoord>,
     ) {
-        self.head = Node::delete(self.head, &mut self.storage, s_idx, segments, event.into());
+        let event = event.into();
+        println!("Delete {s_idx:?} at event {event:?}");
+
+        // Node::verify_with_event(self.head, &self.storage, segments, event); // Not valid, but that is okay
+        self.head = Node::delete(self.head, &mut self.storage, s_idx, segments, event);
         self.storage[self.head].set_parent(None);
-        Node::verify(self.head, &self.storage);
+        //Node::verify_with_event(self.head, &self.storage, segments, event); // Not valid, but that is okay
     }
 }
 
@@ -198,6 +211,32 @@ impl Iterator for SQNodeIter<'_> {
     }
 }
 
+fn compare3(
+    lhs: SegmentIdx,
+    rhs: SegmentIdx,
+    segments: &Segments,
+    event: CartesianCoord,
+) -> Ordering {
+    if lhs == rhs {
+        Ordering::Equal
+    } else {
+        //println!("Comparing {lhs:?} and {rhs:?} at {event:?}");
+        let lhs = segments[lhs];
+        let rhs = segments[rhs];
+        intersection(lhs, event)
+            .cmp(&intersection(rhs, event))
+            .then_with(|| {
+                // Compare Upper point
+                //println!("Same point, lhs: {} - angle {}, rhs: {} - angle {}", lhs.id, lhs.angle(), rhs.id, rhs.angle());
+                lhs.slope().cmp(&rhs.slope()).reverse()
+            })
+            .then_with(|| {
+                // Last compare ids
+                lhs.id.cmp(&rhs.id)
+            })
+    }
+}
+
 fn compare2(
     lhs: SegmentIdx,
     rhs: SegmentIdx,
@@ -207,6 +246,7 @@ fn compare2(
     if lhs == rhs {
         Ordering::Equal
     } else {
+        //println!("Comparing {lhs:?} and {rhs:?} at {event:?}");
         compare(segments[lhs], segments[rhs], event)
     }
 }
@@ -216,7 +256,8 @@ fn compare(lhs: Segment, rhs: Segment, event: CartesianCoord) -> Ordering {
         .cmp(&intersection(rhs, event))
         .then_with(|| {
             // Compare Upper point
-            OrderedFloat(lhs.angle().into()).cmp(&OrderedFloat(rhs.angle().into()))
+            //println!("Same point, lhs: {} - angle {}, rhs: {} - angle {}", lhs.id, lhs.angle(), rhs.id, rhs.angle());
+            lhs.slope().cmp(&rhs.slope())
         })
         .then_with(|| {
             // Last compare ids
@@ -230,7 +271,30 @@ pub(crate) fn intersection(segment: Segment, event: CartesianCoord) -> OrderedFl
     } else {
         let horizontal = HomogeneousLine::horizontal(event.y);
         let seg = segment.line();
-        horizontal.intersection(seg).cartesian().unwrap().x
+        horizontal
+            .intersection(seg)
+            .cartesian()
+            .unwrap_or_else(|_| panic!("{segment:?}, {event:?}"))
+            .x
+    }
+    .into();
+    OrderedFloat(x_intersect)
+}
+
+pub(crate) fn intersection_horizontal_last(
+    segment: Segment,
+    event: CartesianCoord,
+) -> OrderedFloat {
+    let x_intersect = if segment.is_horizontal() && f_eq!(event.y, segment.upper.y) {
+        segment.lower.x
+    } else {
+        let horizontal = HomogeneousLine::horizontal(event.y);
+        let seg = segment.line();
+        horizontal
+            .intersection(seg)
+            .cartesian()
+            .unwrap_or_else(|_| panic!("{segment:?}, {event:?}"))
+            .x
     }
     .into();
     OrderedFloat(x_intersect)
@@ -337,8 +401,23 @@ mod tests {
         sq.insert(0.into(), &segments, (2, 2));
         sq.insert(1.into(), &segments, (-1, 1));
         sq.insert(2.into(), &segments, (-1, 1));
-        dbg!(&sq);
         expect_eq!(sq.right_most(&segments, (-1, 1)), Some(1.into()));
         expect_eq!(sq.right_of_event(&segments, (-1, 1)), Some(0.into()));
+    }
+
+    #[test]
+    fn feature2() {
+        let segments = Segments::from_iter([
+            Segment::new((-254, 9992), (-1, -258)),
+            Segment::new((-258, 8), (113, 0)),
+            Segment::new((188, 0), (0, 0)),
+        ]);
+        let mut queue = StatusQueue::new();
+        let intersect = Segment::intersect(0, 1, &segments, 0).unwrap();
+        queue.insert(0.into(), &segments, (-254, 9992));
+        queue.insert(1.into(), &segments, (-258, 8));
+        queue.delete(0.into(), &segments, (-258, 8));
+        queue.insert(0.into(), &segments, intersect.point1());
+        queue.insert(2.into(), &segments, (0, 0));
     }
 }

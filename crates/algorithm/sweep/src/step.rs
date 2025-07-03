@@ -58,8 +58,8 @@ pub enum StepType {
         s_r: Option<SegmentIdx>,
     },
     UpCpNotEmpty {
-        s_dash: SegmentIdx,
-        s_dash_dash: SegmentIdx,
+        s_dash: Option<SegmentIdx>,
+        s_dash_dash: Option<SegmentIdx>,
         s_l: Option<SegmentIdx>,
         s_r: Option<SegmentIdx>,
     },
