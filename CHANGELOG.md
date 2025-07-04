@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Bugs and crashes
 - Lints
 - Cloning too much
+- *(check)* Unused var
 
 ### 💼 Other
 
