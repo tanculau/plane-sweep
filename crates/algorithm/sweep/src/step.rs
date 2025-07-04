@@ -2,7 +2,10 @@ use core::iter;
 
 use bon::Builder;
 use common::{
-    intersection::{InterVec, IntersectionIdx}, math::{cartesian::CartesianCoord, Float}, segment::SegmentIdx, AlgrorithmStep
+    AlgrorithmStep,
+    intersection::{InterVec, IntersectionIdx},
+    math::{Float, cartesian::CartesianCoord},
+    segment::SegmentIdx,
 };
 
 use crate::event::{Event, EventQueue};

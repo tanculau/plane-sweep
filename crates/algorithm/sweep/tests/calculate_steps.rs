@@ -1,5 +1,7 @@
 use common::{
-    intersection::{InterVec, Intersection, IntersectionType, Intersections}, segment::{Segment, Segments}, AlgoSteps
+    AlgoSteps,
+    intersection::{InterVec, Intersection, IntersectionType, Intersections},
+    segment::{Segment, Segments},
 };
 use googletest::prelude::*;
 use rstest::rstest;

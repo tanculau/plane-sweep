@@ -8,7 +8,10 @@ pub mod step;
 pub mod ui;
 
 use common::{
-    intersection::{InterVec, Intersection, Intersections}, math::cartesian::CartesianCoord, segment::{Segment, SegmentIdx, Segments}, AlgoSteps
+    AlgoSteps,
+    intersection::{InterVec, Intersection, Intersections},
+    math::cartesian::CartesianCoord,
+    segment::{Segment, SegmentIdx, Segments},
 };
 use itertools::{Itertools, chain};
 use smallvec::SmallVec;
@@ -199,7 +202,7 @@ fn handle_event_point<const REPORT: bool>(
 
     //println!("{s}. LP: {l_p:?} , CP: {c_p:?} , UP: {u_p:?} at {p:?}");
     // "if L(p) ∪ U(p) ∪ C(p) contains more than one segment [...]" [1, p. 26]
-    let l_p_and_u_p_and_c_p : InterVec = event
+    let l_p_and_u_p_and_c_p: InterVec = event
         .segments
         .iter()
         .chain(l_p.iter())
@@ -504,11 +507,9 @@ fn handle_event_point_fast(
     // endpoint is by definition the left endpoint.)" [1, p. 26]
     let u_p = &event.segments;
 
-
-    let (l_p, c_p): (SmallVec<_, 10>, SmallVec<_,10>) = status_queue
+    let (l_p, c_p): (SmallVec<_, 10>, SmallVec<_, 10>) = status_queue
         .iter_contains(segments, &p)
         .partition(|v| segments[*v].clone().lower == p);
-
 
     if u_p.len() + c_p.len() + l_p.len() > 1 {
         let intersect = Intersection::new(
