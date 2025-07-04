@@ -1,4 +1,4 @@
-use common::{ ui::MyWidget,  ui::WidgetName, segment::Segments};
+use common::{segment::Segments, ui::MyWidget, ui::WidgetName};
 use eframe::egui::{self, Layout};
 use egui_extras::{Column, Size, StripBuilder, TableBuilder};
 

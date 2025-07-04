@@ -1,9 +1,11 @@
 use core::f64::consts::TAU;
 
 use common::{
-    AlgoStepIdx, AlgoSteps, AlgrorithmStep, ui::MyWidget, ui::WidgetName,
+    AlgoStepIdx, AlgoSteps, AlgrorithmStep,
     intersection::{IntersectionType, Intersections},
     segment::Segments,
+    ui::MyWidget,
+    ui::WidgetName,
 };
 use eframe::egui::{self, Color32, ComboBox, DragValue, ScrollArea, TextWrapMode, remap};
 use egui_plot::{CoordinatesFormatter, Corner, HLine, Legend, Line, LineStyle, Plot, PlotPoints};
@@ -77,7 +79,10 @@ fn circle(
         .map(|i| {
             let t: f64 = remap(f64::from(i), 0.0..=f64::from(n), 0.0..=TAU);
             let r: f64 = radius;
-            [r.mul_add(t.cos(), coord.x.try_into().unwrap()), r.mul_add(t.sin(), coord.y.try_into().unwrap())]
+            [
+                r.mul_add(t.cos(), coord.x.try_into().unwrap()),
+                r.mul_add(t.sin(), coord.y.try_into().unwrap()),
+            ]
         })
         .collect();
     Line::new(name, circle_points)
@@ -140,7 +145,10 @@ impl<'segments, 'intersections, 'steps, T: AlgrorithmStep>
                             segment.id,
                             if segment.mark { "(Active)" } else { "" }
                         ),
-                        PlotPoints::new(vec![segment.upper.array_float(), segment.lower.array_float()]),
+                        PlotPoints::new(vec![
+                            segment.upper.array_float(),
+                            segment.lower.array_float(),
+                        ]),
                     );
                     if segment.mark {
                         line = line.highlight(true);
@@ -162,7 +170,10 @@ impl<'segments, 'intersections, 'steps, T: AlgrorithmStep>
                     IntersectionType::Parallel { line } => {
                         let line = Line::new(
                             name,
-                            PlotPoints::new(vec![line.upper.array_float(), line.lower.array_float()]),
+                            PlotPoints::new(vec![
+                                line.upper.array_float(),
+                                line.lower.array_float(),
+                            ]),
                         );
                         plot_ui.line(line);
                     }
@@ -170,9 +181,11 @@ impl<'segments, 'intersections, 'steps, T: AlgrorithmStep>
             }
 
             if let Some(sweep) = steps[step].sweep_line() {
-                plot_ui.hline(HLine::new("Sweep Line", f64::try_from(sweep.y).unwrap()).color(Color32::RED));
-                let line =
-                    circle(self.radius * 2.0, "Event Point".to_string(), &sweep).color(Color32::RED);
+                plot_ui.hline(
+                    HLine::new("Sweep Line", f64::try_from(sweep.y).unwrap()).color(Color32::RED),
+                );
+                let line = circle(self.radius * 2.0, "Event Point".to_string(), &sweep)
+                    .color(Color32::RED);
                 plot_ui.line(line);
             }
         });

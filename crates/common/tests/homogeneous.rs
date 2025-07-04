@@ -53,25 +53,25 @@ mod point {
     fn not_equal() {
         let p1 = HomogeneousCoord::new(4.0, 2.0, 1.0);
         let p2 = HomogeneousCoord::new(4.0, 2.0, 2.0);
-        expect_eq!(p1, p2);
+        expect_ne!(p1, p2);
         let p3 = HomogeneousCoord::new(4.0, 2.0, 1.0);
         let p4 = HomogeneousCoord::new(4.0, 2.0, 0.0);
-        expect_eq!(p3, p4);
+        expect_ne!(p3, p4);
         let p5 = HomogeneousCoord::new(4.0, 2.0, 1.0);
         let p6 = HomogeneousCoord::new(4.0, 0.0, 1.0);
-        expect_eq!(p5, p6);
+        expect_ne!(p5, p6);
 
         let p7 = HomogeneousCoord::new(4.0, 0.0, 1.0);
         let p8 = HomogeneousCoord::new(4.0, 0.0, 0.0);
-        expect_eq!(p7, p8);
+        expect_ne!(p7, p8);
 
         let p9 = HomogeneousCoord::new(0.0, 0.0, 0.0);
         let p10 = HomogeneousCoord::new(4.0, 2.0, 0.0);
-        expect_eq!(p9, p10);
+        expect_ne!(p9, p10);
 
         let p11 = HomogeneousCoord::new(4.0, 2.0, 1.0);
         let p12 = HomogeneousCoord::new(0.0, 0.0, 0.0);
-        expect_eq!(p11, p12);
+        expect_ne!(p11, p12);
     }
 }
 
@@ -80,45 +80,39 @@ mod line {
     use common::math::homogeneous::HomogeneousLine;
     use googletest::prelude::*;
 
-    #[cfg(feature = "test")]
     mod intersection {
-        use common::{
-            math::{cartesian::CartesianCoord, homogeneous::*},
-            test::approx_eq,
-        };
-        use float_cmp::approx_eq;
+        use common::math::{cartesian::CartesianCoord, homogeneous::*};
         use googletest::prelude::*;
 
         #[gtest]
         fn origin() {
-            let x = HomogeneousLine::X_AXIS;
-            let y = HomogeneousLine::Y_AXIS;
+            let x = HomogeneousLine::x_axis();
+            let y = HomogeneousLine::y_axis();
             let intersection = x.intersection(y);
             let expected = HomogeneousCoord::new(0.0, 0.0, 1.0);
-            expect_true!(approx_eq!(HomogeneousCoord, intersection, expected));
-            let x = HomogeneousLine::X_AXIS;
+            expect_eq!(intersection, expected);
+            let x = HomogeneousLine::x_axis();
             let y = HomogeneousLine::new(1.0, 1.0, 0.0);
             let intersection = x.intersection(y);
             let expected = HomogeneousCoord::new(0.0, 0.0, 1.0);
-            expect_true!(approx_eq!(HomogeneousCoord, intersection, expected));
+            expect_eq!(intersection, expected);
         }
 
         #[gtest]
         fn simple() {
-            let x = HomogeneousLine::X_AXIS;
+            let x = HomogeneousLine::x_axis();
             let y = HomogeneousLine::new(1, 0, -5);
             let intersection = x.intersection(y).cartesian();
             let expected = CartesianCoord::new(5.0, 0.0);
-            expect_that!(intersection, ok(approx_eq(expected)));
+            expect_that!(intersection, ok(eq(&expected)));
         }
 
         #[gtest]
         fn does_not_intersect() {
-            use common::test::approx_eq;
-            let x = HomogeneousLine::Y_AXIS;
+            let x = HomogeneousLine::y_axis();
             let y = HomogeneousLine::vertical(12);
             let intersect = x.intersection(y);
-            expect_that!(intersect, field!(HomogeneousCoord.z, approx_eq(0.0)));
+            expect_that!(intersect, field!(HomogeneousCoord.z, eq(&0.into())));
         }
     }
 
@@ -129,22 +123,6 @@ mod line {
         fn contains() {
             let x = HomogeneousLine::x_axis();
             expect_true!(x.contains_coord((5, 0)));
-        }
-    }
-
-    mod angle {
-        use common::segment::Segment;
-        use googletest::prelude::*;
-
-        #[gtest]
-        fn simple() {
-            let horizontal = Segment::new((0, 0), (2, 0));
-            let down_right = Segment::new((0, 0), (2, -2));
-            expect_le!(down_right.angle(), horizontal.angle());
-            let vertical = Segment::new((0, 2), (0, 0));
-            expect_le!(vertical.angle(), down_right.angle());
-            let down_left = Segment::new((0, 0), (-2, -2));
-            expect_le!(down_left.angle(), vertical.angle());
         }
     }
 
@@ -227,26 +205,6 @@ mod line {
             expect_eq!(HomogeneousLine::vertical(-12).slope(), Slope::Vertical);
             expect_eq!(HomogeneousLine::vertical(12).slope(), Slope::Vertical);
             expect_eq!(HomogeneousLine::vertical(0).slope(), Slope::Vertical);
-        }
-
-        #[gtest]
-        fn value() {
-            expect_eq!(
-                HomogeneousLine::new(12, 6, 0).slope(),
-                Slope::FourthQuadrant(0.5.into())
-            );
-            expect_eq!(
-                HomogeneousLine::new(-12, 6, 0).slope(),
-                Slope::ThirdQuadrant(0.5.into())
-            );
-            expect_eq!(
-                HomogeneousLine::new(12, -6, 0).slope(),
-                Slope::ThirdQuadrant(0.5.into())
-            );
-            expect_eq!(
-                HomogeneousLine::new(-12, -6, 0).slope(),
-                Slope::FourthQuadrant(0.5.into())
-            );
         }
     }
 

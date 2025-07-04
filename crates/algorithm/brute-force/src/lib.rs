@@ -110,3 +110,18 @@ pub fn calculate_steps<T: PushStep<AlgorithmStep>>(
         intersections.len()
     );
 }
+
+pub fn calculate(segments: &Segments, intersections: &mut Intersections) {
+    intersections.clear();
+
+    let len = segments.len();
+
+    for i in 0..len {
+        for j in i + 1..len {
+            let found_intersections = Segment::intersect(i, j, segments, 0);
+            if let Some(intersection) = found_intersections {
+                intersections.push(intersection);
+            }
+        }
+    }
+}

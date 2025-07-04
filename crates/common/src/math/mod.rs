@@ -1,15 +1,11 @@
 pub mod cartesian;
 pub mod homogeneous;
 
-use core::{
-    cmp::Ordering,
-    ops::{Add, Mul, Sub},
-};
+use core::ops::{Add, Mul, Sub};
 
 pub type Float = Fraction;
 
-use fraction::{DynaFraction, DynaInt, Fraction, GenericFraction};
-use num_rational::BigRational;
+use fraction::Fraction;
 
 pub trait CrossProduct<Rhs = Self> {
     type Output;
@@ -98,5 +94,3 @@ fn calculate_multiple(lhs: &Float, rhs: &Float) -> Multiple {
         (false, false) => Multiple::Mult(lhs / rhs),
     }
 }
-
-

@@ -1,4 +1,4 @@
-use core::{fmt::Display, usize};
+use core::fmt::Display;
 use std::collections::HashMap;
 
 use typed_index_collections::TiVec;
@@ -13,7 +13,7 @@ pub type Intersections = TiVec<IntersectionIdx, Intersection>;
 
 impl_idx!(IntersectionIdx);
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Intersection {
     pub typ: IntersectionType,
@@ -149,10 +149,11 @@ impl Helper {
 }
 
 #[must_use]
+#[allow(clippy::missing_panics_doc)]
 pub fn to_lines(intersections: &Intersections) -> Vec<IntersectionShort> {
     let mut helper = Helper::new();
     for intersection in intersections {
-        let mut segments = intersection.segments().to_vec();
+        let segments = intersection.segments().to_vec();
         for i in 0..segments.len() {
             for j in i + 1..segments.len() {
                 helper.insert([segments[i], segments[j]], intersection.point1().clone());
@@ -174,7 +175,10 @@ pub fn to_lines(intersections: &Intersections) -> Vec<IntersectionShort> {
             }),
             2.. => out.push(IntersectionShort {
                 typ: IntersectionType::Parallel {
-                    line: Segment::new(val.iter().min().unwrap().clone(), val.iter().max().unwrap().clone()),
+                    line: Segment::new(
+                        val.iter().min().unwrap().clone(),
+                        val.iter().max().unwrap().clone(),
+                    ),
                 },
                 segments: key,
             }),

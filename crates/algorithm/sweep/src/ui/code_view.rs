@@ -1,7 +1,9 @@
 use common::{
-    AlgoStepIdx, AlgoSteps, ui::MyWidget, ui::WidgetName,
+    AlgoStepIdx, AlgoSteps,
     intersection::Intersections,
     segment::{SegmentIdx, Segments},
+    ui::MyWidget,
+    ui::WidgetName,
 };
 use eframe::egui::RichText;
 
@@ -196,8 +198,6 @@ impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
             intersection: (x, y),
         } = &s.typ
         {
-            let x = x;
-            let y = y;
             let s_l = segments[*s_l].id;
             let s_r = segments[*s_r].id;
             let text = RichText::new(format!("2. then insert the intersection point as an event into StatusQueue. Inserting ({y:.2}, {x:.2}, () as insection from s{s_l} and s{s_r}.")).underline();

@@ -1,4 +1,4 @@
-use common::{ ui::MyWidget,  ui::WidgetName, segment::Segments};
+use common::{segment::Segments, ui::MyWidget, ui::WidgetName};
 use eframe::egui::{self, Layout};
 use egui_extras::{Column, Size, StripBuilder, TableBuilder};
 
@@ -60,14 +60,14 @@ impl<'a> MyWidget<StatusViewState<'a>> for StatusView {
                                     row.col(|ui| {
                                         if let Some(event) = &step.event {
                                             let x_intersect =
-                                                intersection(seg.clone(), (event.x, event.y).into());
+                                                intersection(&seg, &(event.x, event.y).into());
                                             ui.label(format!("{x_intersect:.2}"));
                                         } else {
                                             ui.label("");
                                         }
                                     });
                                     row.col(|ui| {
-                                        ui.label(format!("{:.2}", seg.angle()));
+                                        ui.label(format!("{:.2}", seg.slope()));
                                     });
                                     row.col(|ui| {
                                         ui.label(format!("{}", seg.id));

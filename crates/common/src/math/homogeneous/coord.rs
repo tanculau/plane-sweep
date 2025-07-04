@@ -65,11 +65,11 @@ impl Coord {
         if self.z == 0.into() {
             return PointAtInfinitySnafu.fail();
         }
-        Ok(CartesianCoord::new(&self.x / &self.z, &self.y / &self.z))
+        Ok(CartesianCoord::new(self.x / self.z, self.y / self.z))
     }
 
     #[must_use]
-    pub fn line(self, other: Self) -> HomogeneousLine {
+    pub fn line(&self, other: &Self) -> HomogeneousLine {
         self.tuple().cross_product(other.tuple()).into()
     }
 }

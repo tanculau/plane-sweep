@@ -207,17 +207,7 @@ mod contains {
 }
 
 #[gtest]
-fn angle() {
-    let s1 = Segment::new((-30, -30), (-30, 33));
-    let s2 = Segment::new((0, -1), (-30, 0));
-    expect_lt!(s1.angle(), s2.angle());
-    let s1 = Segment::new((0, 10000), (-10, -105));
-    let s2 = Segment::new((-10, -105), (0, 0));
-    expect_lt!(s1.angle(), s2.angle());
-}
-
-#[gtest]
-fn angle2() {
+fn slope() {
     let s1 = Segment::new((-1, 0), (1, 0));
     dbg!(s1.line());
     let s2 = Segment::new((-1000, 1), (0, 0));

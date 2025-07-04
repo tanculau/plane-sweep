@@ -7,7 +7,7 @@ use crate::{
     impl_idx,
     intersection::{Intersection, IntersectionType},
     math::{
-        CrossProduct, Float,
+        CrossProduct,
         cartesian::CartesianCoord,
         homogeneous::{HomogeneousCoord, HomogeneousLine, Slope},
     },
@@ -135,7 +135,7 @@ impl Segment {
         let p2: CartesianCoord = p2.into();
 
         let mut coords = [(p1), p2];
-        coords.sort_unstable_by(|l, r| (&l.y).cmp(&(&r.y)).reverse().then((&l.x).cmp(&(&r.x))));
+        coords.sort_unstable_by(|l, r| l.y.cmp(&r.y).reverse().then(l.x.cmp(&r.x)));
 
         Self {
             upper: coords[0].clone(),
@@ -169,8 +169,6 @@ impl Segment {
             lower: lower2,
             ..
         } = &segments[key2];
-        dbg!(upper2);
-        dbg!(lower2);
 
         let line1 = HomogeneousLine::from(segment_left.clone());
         let line2 = HomogeneousLine::from(segment_right.clone());
@@ -180,7 +178,6 @@ impl Segment {
                 "Calculating intersection between segments {segment_left:?} and {segment_right:?} in step {step}: {v:?}"
             );
         });
-        dbg!(&intersect);
         if let Ok(coord) = intersect
             && (((&upper1.x).min(&lower1.x)..=(&upper1.x).max(&lower1.x)).contains(&&coord.x))
             && (((&upper1.y).min(&lower1.y)..=(&upper1.y).max(&lower1.y)).contains(&&coord.y))
@@ -260,6 +257,7 @@ impl Segment {
     }
 
     /// Returns true if the `coord` is on the [`Segment`].
+    #[must_use]
     pub fn contains(&self, coord: &CartesianCoord) -> bool {
         let y = &coord.y;
         let x = &coord.x;
@@ -276,7 +274,7 @@ impl Segment {
         let p2 = core::mem::take(&mut self.lower);
 
         let mut coords = [(p1), p2];
-        coords.sort_unstable_by(|l, r| (&l.y).cmp(&(&r.y)).reverse().then((&l.x).cmp(&(&r.x))));
+        coords.sort_unstable_by(|l, r| l.y.cmp(&r.y).reverse().then(l.x.cmp(&r.x)));
         self.upper = coords[0].clone();
         self.lower = coords[1].clone();
     }
@@ -287,7 +285,7 @@ impl Segment {
         self.upper
             .clone()
             .homogeneous()
-            .line(self.lower.clone().homogeneous())
+            .line(&self.lower.clone().homogeneous())
     }
 
     #[must_use]
@@ -297,11 +295,6 @@ impl Segment {
     #[must_use]
     pub fn is_vertical(&self) -> bool {
         self.upper.x == self.lower.x
-    }
-
-    #[must_use]
-    pub fn angle(&self) -> Float {
-        self.line().angle()
     }
 
     #[must_use]

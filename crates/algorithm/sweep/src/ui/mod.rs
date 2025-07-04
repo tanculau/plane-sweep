@@ -4,9 +4,11 @@ mod set_view;
 mod status_view;
 
 use common::{
-    AlgoStepIdx, AlgoSteps,  ui::MyWidget,  ui::WidgetName,
+    AlgoStepIdx, AlgoSteps,
     intersection::Intersections,
     segment::{Segment, Segments},
+    ui::MyWidget,
+    ui::WidgetName,
 };
 use controller::{Controller, ControllerState};
 use eframe::egui::{self, Align, Layout, ScrollArea};

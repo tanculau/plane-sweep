@@ -1,13 +1,13 @@
 use core::cmp::Ordering;
 
 use common::{
-    math::{ cartesian::CartesianCoord},
+    math::cartesian::CartesianCoord,
     segment::{SegmentIdx, Segments},
 };
 use itertools::Itertools;
 use slotmap::Key;
 
-use crate::status::{SQDebug, SQKey, Storage, compare, compare2, compare3, intersection};
+use crate::status::{SQDebug, SQKey, Storage, compare, compare3, intersection};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Node {
@@ -175,12 +175,12 @@ impl Node {
         curr_key: SQKey,
         storage: &Storage,
         segments: &Segments,
-        event: CartesianCoord,
+        event: &CartesianCoord,
     ) -> Option<SQKey> {
         let curr = storage[curr_key];
 
         if let Some(seg) = curr.data() {
-            match intersection(segments[seg].clone(), event.clone()).cmp(&(event.x.into())) {
+            match intersection(&segments[seg], event).cmp(&event.x) {
                 Ordering::Less => {
                     if let Some(right) = curr.right()
                         && let Some(v) = Self::find_left_of_event(right, storage, segments, event)
@@ -201,12 +201,12 @@ impl Node {
         curr_key: SQKey,
         storage: &Storage,
         segments: &Segments,
-        event: CartesianCoord,
+        event: &CartesianCoord,
     ) -> Option<SQKey> {
         let curr = storage[curr_key];
 
         if let Some(seg) = curr.data() {
-            match intersection(segments[seg].clone(), event.clone()).cmp(&(event.x.into())) {
+            match intersection(&segments[seg], event).cmp(&event.x) {
                 Ordering::Equal | Ordering::Less => {
                     return Self::find_right_of_event(curr.right()?, storage, segments, event);
                 }
@@ -227,11 +227,11 @@ impl Node {
         curr_key: SQKey,
         storage: &Storage,
         segments: &Segments,
-        event: CartesianCoord,
+        event: &CartesianCoord,
     ) -> Option<SQKey> {
         let curr = storage[curr_key];
         if let Some(seg) = curr.data() {
-            match intersection(segments[seg].clone(), event.clone()).cmp(&(event.x.into())) {
+            match intersection(&segments[seg], event).cmp(&event.x) {
                 Ordering::Less => {
                     return Self::find_left_most(curr.right()?, storage, segments, event);
                 }
@@ -256,11 +256,11 @@ impl Node {
         curr_key: SQKey,
         storage: &Storage,
         segments: &Segments,
-        event: CartesianCoord,
+        event: &CartesianCoord,
     ) -> Option<SQKey> {
         let curr = storage[curr_key];
         if let Some(seg) = curr.data() {
-            match intersection(segments[seg].clone(), event.clone()).cmp(&(event.x.into())) {
+            match intersection(&segments[seg], event).cmp(&event.x) {
                 Ordering::Less => {
                     return Self::find_right_most(curr.right()?, storage, segments, event);
                 }
@@ -286,7 +286,7 @@ impl Node {
         storage: &mut Storage,
         s_idx: SegmentIdx,
         segments: &Segments,
-        event: CartesianCoord,
+        event: &CartesianCoord,
     ) -> SQKey {
         let curr = storage[curr_key];
         let (Some(curr_seg), Some(left_key), Some(right_key)) =
@@ -296,7 +296,7 @@ impl Node {
         };
         //Self::verify_with_event(curr_key, storage, segments, event);
 
-        match compare3(curr_seg, s_idx, segments, event.clone()) {
+        match compare3(curr_seg, s_idx, segments, event) {
             Ordering::Less => {
                 let right = Self::delete(right_key, storage, s_idx, segments, event);
                 let tmp = storage[curr_key].set_right(right);
@@ -338,11 +338,9 @@ impl Node {
             },
         }
 
-        let ret = Self::update_balance(curr_key, storage);
-
         //Self::verify_with_event(curr_key, storage, segments, event);
 
-        ret
+        Self::update_balance(curr_key, storage)
     }
 
     pub fn insert(
@@ -350,7 +348,7 @@ impl Node {
         storage: &mut Storage,
         s_idx: SegmentIdx,
         segments: &Segments,
-        event: CartesianCoord,
+        event: &CartesianCoord,
     ) -> SQKey {
         // Already in
         if let Some(data) = storage[curr].data()
@@ -370,10 +368,10 @@ impl Node {
             } => {
                 //Self::verify_with_event(curr, storage, segments, event);
 
-                let curr_seg = segments[data].clone();
-                let insert_seg = segments[s_idx].clone();
+                let curr_seg = &segments[data];
+                let insert_seg = &segments[s_idx];
 
-                match compare(insert_seg, curr_seg, event.clone()) {
+                match compare(insert_seg, curr_seg, event) {
                     Ordering::Less => {
                         let new_left = Self::insert(left, storage, s_idx, segments, event);
                         let tmp = storage[curr].set_left(new_left);
@@ -391,10 +389,9 @@ impl Node {
                     }
                 }
 
-                let ret = Self::update_balance(curr, storage);
                 //Self::verify_with_event(ret, storage, segments, event);
 
-                ret
+                Self::update_balance(curr, storage)
             }
         }
     }
@@ -552,83 +549,6 @@ impl Node {
             }
         }
     }
-
-    pub fn verify_with_event(
-        curr: SQKey,
-        storage: &Storage,
-        segments: &Segments,
-        event: CartesianCoord,
-    ) {
-        if cfg!(debug_assertions) {
-            let node = storage[curr];
-            match node {
-                Self::Node {
-                    left,
-                    right,
-                    height,
-                    data,
-                    parent,
-                    ..
-                } => {
-                    debug_assert_eq!(
-                        [curr, left, right]
-                            .iter()
-                            .chain(parent.iter())
-                            .duplicates()
-                            .count(),
-                        0
-                    );
-                    debug_assert_eq!(
-                        Some(curr),
-                        storage[left].parent(),
-                        "{}",
-                        SQDebug::new(curr, storage)
-                    );
-                    debug_assert_eq!(
-                        Some(curr),
-                        storage[right].parent(),
-                        "{}",
-                        SQDebug::new(curr, storage)
-                    );
-                    if let Some(lhs) = storage[left].data() {
-                        debug_assert_eq!(
-                            compare2(lhs, data, segments, event.clone()),
-                            Ordering::Less,
-                            "Expected {lhs:?} to be smaller than {data:?}, but {:?} < {:?}, {:?} < {:?}, {:?}, {:?}",
-                            intersection(segments[lhs].clone(), event.clone()),
-                            intersection(segments[data].clone(), event),
-                            segments[lhs].slope(),
-                            segments[data].slope(),
-                            segments[lhs].line(),
-                            segments[data].line()
-                        );
-                    }
-                    if let Some(rhs) = storage[right].data() {
-                        debug_assert_eq!(
-                            compare2(rhs, data, segments, event.clone()),
-                            Ordering::Greater,
-                            "Expected {rhs:?} to be greater than {data:?}, but {:?} > {:?}, {:?} > {:?}, {:?}, {:?}",
-                            intersection(segments[rhs].clone(), event.clone()),
-                            intersection(segments[data].clone(), event),
-                            segments[rhs].slope(),
-                            segments[data].slope(),
-                            segments[rhs].line(),
-                            segments[data].line()
-                        );
-                    }
-                    debug_assert_eq!(
-                        1 + storage[left].height() + storage[right].height(),
-                        height,
-                        "{}",
-                        SQDebug::new(curr, storage)
-                    );
-                    Self::verify(left, storage);
-                    Self::verify(right, storage);
-                }
-                Self::Leaf { .. } => {}
-            }
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -748,12 +668,3 @@ impl<'a> NodeCursor<'a> {
 //         }
 //     }
 // }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use googletest::prelude::*;
-
-    #[test]
-    fn test_name() {}
-}

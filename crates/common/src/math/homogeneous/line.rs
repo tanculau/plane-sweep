@@ -42,6 +42,21 @@ pub enum Slope {
     Horizontal,
     Infinity,
 }
+impl core::fmt::Display for Slope {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::ThirdQuadrant(generic_fraction) => {
+                write!(f, "3. Quadrant({generic_fraction:.2})")
+            }
+            Self::Vertical => write!(f, "Vertical"),
+            Self::FourthQuadrant(generic_fraction) => {
+                write!(f, "4. Quadrant({generic_fraction:.2})")
+            }
+            Self::Horizontal => write!(f, "Horizontal"),
+            Self::Infinity => write!(f, "Infinity"),
+        }
+    }
+}
 
 impl Line {
     #[must_use]
@@ -115,9 +130,9 @@ impl Line {
                 let slope = -self.a / self.b;
 
                 if slope.is_sign_positive() {
-                    Slope::ThirdQuadrant((slope).into())
+                    Slope::ThirdQuadrant(slope)
                 } else {
-                    Slope::FourthQuadrant(slope.into())
+                    Slope::FourthQuadrant(slope)
                 }
             }
         }

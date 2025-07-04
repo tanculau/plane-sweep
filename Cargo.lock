@@ -262,7 +262,6 @@ dependencies = [
  "sweep",
  "third_party_licenses",
  "tracing-gui",
- "workspace-hack",
 ]
 
 [[package]]
@@ -676,7 +675,6 @@ dependencies = [
  "serde",
  "tracing",
  "web-time",
- "workspace-hack",
 ]
 
 [[package]]
@@ -904,7 +902,6 @@ dependencies = [
  "static_assertions",
  "tracing",
  "typed-index-collections",
- "workspace-hack",
 ]
 
 [[package]]
@@ -936,7 +933,6 @@ dependencies = [
  "eframe",
  "serde",
  "tracing",
- "workspace-hack",
 ]
 
 [[package]]
@@ -2099,7 +2095,6 @@ dependencies = [
  "egui_extras",
  "serde",
  "tracing",
- "workspace-hack",
 ]
 
 [[package]]
@@ -2901,17 +2896,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ordered-float"
-version = "5.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2c1f9f56e534ac6a9b8a4600bdf0f530fb393b5f393e7b4d03489c3cf0c3f01"
-dependencies = [
- "num-traits",
- "rand",
- "serde",
-]
-
-[[package]]
 name = "ordered-stream"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3080,7 +3064,6 @@ dependencies = [
  "mimalloc",
  "wasm-bindgen-futures",
  "web-sys",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3217,7 +3200,6 @@ dependencies = [
  "libc",
  "rand_chacha",
  "rand_core",
- "serde",
 ]
 
 [[package]]
@@ -3237,7 +3219,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom 0.2.16",
- "serde",
 ]
 
 [[package]]
@@ -3484,7 +3465,6 @@ dependencies = [
  "eframe",
  "egui_plot",
  "serde",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3497,7 +3477,6 @@ dependencies = [
  "egui_extras",
  "serde",
  "tracing",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3750,7 +3729,6 @@ dependencies = [
  "segment_table",
  "serde",
  "slotmap",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3804,7 +3782,6 @@ dependencies = [
  "common",
  "eframe",
  "egui_commonmark",
- "workspace-hack",
 ]
 
 [[package]]
@@ -3950,7 +3927,6 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tracing-wasm",
- "workspace-hack",
 ]
 
 [[package]]
@@ -4430,7 +4406,7 @@ dependencies = [
  "ndk-sys 0.5.0+25.2.9519653",
  "objc",
  "once_cell",
- "ordered-float 4.6.0",
+ "ordered-float",
  "parking_lot",
  "profiling",
  "raw-window-handle",
@@ -4960,46 +4936,6 @@ dependencies = [
 [[package]]
 name = "workspace-hack"
 version = "0.1.0"
-dependencies = [
- "ahash",
- "aho-corasick",
- "bitflags 2.9.1",
- "bytemuck",
- "ecolor",
- "eframe",
- "egui",
- "egui-winit",
- "egui_extras",
- "egui_glow",
- "egui_plot",
- "emath",
- "epaint",
- "glutin",
- "glutin-winit",
- "hashbrown",
- "image",
- "libc",
- "linux-raw-sys 0.9.4",
- "log",
- "memchr",
- "num-traits",
- "once_cell",
- "ordered-float 5.0.0",
- "regex-automata 0.4.9",
- "regex-syntax 0.8.5",
- "ron",
- "rustix 1.0.7",
- "serde",
- "smallvec",
- "syn",
- "tracing-core",
- "typed-index-collections",
- "wayland-sys",
- "winit",
- "x11rb",
- "x11rb-protocol",
- "xkbcommon-dl",
-]
 
 [[package]]
 name = "writeable"

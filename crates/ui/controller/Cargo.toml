@@ -17,6 +17,5 @@ common = { path = "../../common" , features = ["ui"]}
 eframe = { version = "0.31.1", default-features = false }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
 tracing = "0.1.41"
-workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 [lints]
 workspace = true

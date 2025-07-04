@@ -40,6 +40,7 @@ impl Coord {
         [&self.x, &self.y]
     }
     #[must_use]
+    #[allow(clippy::missing_panics_doc)]
     pub fn array_float(&self) -> [f64; 2] {
         [self.x.try_into().unwrap(), self.y.try_into().unwrap()]
     }

@@ -1,7 +1,9 @@
 use common::{
-    AlgoStepIdx, ui::MyWidget, ui::WidgetName,
+    AlgoStepIdx,
     intersection::{Intersection, Intersections},
     segment::Segments,
+    ui::MyWidget,
+    ui::WidgetName,
 };
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};

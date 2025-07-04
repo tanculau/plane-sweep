@@ -1,6 +1,5 @@
 use eframe::egui::Window;
 
-
 pub trait WidgetName {
     /// Name of the Widget.
     const NAME: &'static str;

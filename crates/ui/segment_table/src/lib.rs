@@ -1,8 +1,9 @@
 use core::time::Duration;
 
 use common::{
-    ui::MyWidget, ui::WidgetName,
     segment::{Segment, SegmentIdx, Segments},
+    ui::MyWidget,
+    ui::WidgetName,
 };
 use eframe::egui;
 use egui_extras::{Column, Size, StripBuilder, TableBuilder};
@@ -163,8 +164,8 @@ impl SegmentTable {
 
                     // Upper X
                     row.col(|ui| {
-                        let x = &mut segment.upper.x;
-
+                        let x = &segment.upper.x;
+                        ui.label(format!("{x:.2}"));
                         //if ui.add(egui::DragValue::new(x)).changed() {
                         //    *should_reset |= true;
                         //    info!("Updating upper Y of segment {} to {}", segment.id, x);
@@ -173,7 +174,9 @@ impl SegmentTable {
                     });
                     // Upper Y
                     row.col(|ui| {
-                        //let y = &mut segment.upper.y;
+                        let y = &segment.upper.y;
+                        ui.label(format!("{y:.2}"));
+
                         //if ui.add(egui::DragValue::new(y)).changed() {
                         //    *should_reset |= true;
                         //    info!("Updating upper X of segment {} to {}", segment.id, y);
@@ -182,6 +185,8 @@ impl SegmentTable {
                     });
                     // Lower X
                     row.col(|ui| {
+                        let x = &segment.lower.x;
+                        ui.label(format!("{x:.2}"));
                         //let x = &mut segment.lower.x;
                         //if ui.add(egui::DragValue::new(x)).changed() {
                         //    *should_reset |= true;
@@ -191,6 +196,8 @@ impl SegmentTable {
                     });
                     // Lower Y
                     row.col(|ui| {
+                        let y = &segment.lower.y;
+                        ui.label(format!("{y:.2}"));
                         //let y = &mut segment.lower.y;
                         //if ui.add(egui::DragValue::new(y)).changed() {
                         //    *should_reset |= true;
@@ -262,7 +269,7 @@ impl<'reset, 'segment> MyWidget<SegmentTableState<'reset, 'segment>> for Segment
                     (self.new_p2_x, self.new_p2_y),
                 );
 
-                if segment.upper ==  segment.lower  {
+                if segment.upper == segment.lower {
                     warn!(
                         "Tried creating a illegal with points ({}, {}) and ({}, {})",
                         self.new_p1_x, self.new_p1_y, self.new_p2_x, self.new_p2_y
