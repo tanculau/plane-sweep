@@ -8,10 +8,38 @@ All notable changes to this project will be documented in this file.
 
 - *(segment_table)* User is no longer allowed to create illegal Segments
 - *(sweep)* Ui, intersection did not close
+- *(sweep)* Code View
+- [**breaking**] BIG CHANGE!!!
+- Bugs and crashes
+- Lints
+- Cloning too much
 
 ### 💼 Other
 
+- Fmt
+
+### 🚜 Refactor
+
 - *(sweep)* Make calculate_steps more readable and ability to disable reporitng
+- Refactor(insection)
+- [**breaking**] Now uses Fraction
+- Ui is now a feature
+
+### ⚡ Performance
+
+- Use smallvec in intersection
+- Use Smallvec in sweep
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cliff)* Fix cliff
+- Added Benchmark
+- Added fuzzing
+- Add benchmarks
+- Remove hakari
+- Benchmark
+- *(cliff)* Remove bench from showing
+- Activate Hakari again
 
 ## [1.0.0] - 2025-06-30
 
