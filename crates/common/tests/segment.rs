@@ -54,7 +54,7 @@ fn vertical_horizontal() {
 
 mod intersection {
     use common::{
-        intersection::{Intersection, IntersectionType},
+        intersection::{InterVec, Intersection, IntersectionType},
         segment::{Segment, Segments},
     };
     use googletest::prelude::*;
@@ -83,7 +83,7 @@ mod intersection {
                 IntersectionType::Point {
                     coord: (0, 0).into()
                 },
-                vec![0.into(), 1.into()],
+                smallvec::smallvec![0.into(), 1.into()],
                 0
             ))
         );
@@ -142,7 +142,7 @@ mod intersection {
                         ..
                     })
                 }),
-                segments: eq(&vec![0.into(), 1.into()]),
+                segments: eq(&InterVec::from_iter([0.into(), 1.into()])),
                 step: eq(&0)
             }))
         );
@@ -162,7 +162,7 @@ mod intersection {
                 IntersectionType::Point {
                     coord: (12, 0).into()
                 },
-                vec![0.into(), 1.into()],
+                smallvec::smallvec![0.into(), 1.into()],
                 0
             ))
         );

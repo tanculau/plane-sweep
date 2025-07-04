@@ -31,6 +31,7 @@ segment_plotter = { path = "../../ui/segment_plotter", optional = true }
 segment_table = { path = "../../ui/segment_table", optional = true }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
 slotmap = "1.0.7"
+smallvec = { version = "2.0.0-alpha.11", features = ["std", "serde"] }
 
 [dev-dependencies]
 googletest = "0.14.1"

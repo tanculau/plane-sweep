@@ -8,10 +8,7 @@ pub mod step;
 pub mod ui;
 
 use common::{
-    AlgoSteps,
-    intersection::{Intersection, Intersections},
-    math::cartesian::CartesianCoord,
-    segment::{Segment, SegmentIdx, Segments},
+    intersection::{InterVec, Intersection, Intersections}, math::cartesian::CartesianCoord, segment::{Segment, SegmentIdx, Segments}, AlgoSteps
 };
 use itertools::{Itertools, chain};
 
@@ -201,7 +198,7 @@ fn handle_event_point<const REPORT: bool>(
 
     //println!("{s}. LP: {l_p:?} , CP: {c_p:?} , UP: {u_p:?} at {p:?}");
     // "if L(p) ∪ U(p) ∪ C(p) contains more than one segment [...]" [1, p. 26]
-    let l_p_and_u_p_and_c_p: Vec<_> = event
+    let l_p_and_u_p_and_c_p : InterVec = event
         .segments
         .iter()
         .chain(l_p.iter())
@@ -512,7 +509,7 @@ fn handle_event_point_fast(
 
     //println!("{s}. LP: {l_p:?} , CP: {c_p:?} , UP: {u_p:?} at {p:?}");
     // "if L(p) ∪ U(p) ∪ C(p) contains more than one segment [...]" [1, p. 26]
-    let l_p_and_u_p_and_c_p: Vec<_> = event
+    let l_p_and_u_p_and_c_p: InterVec = event
         .segments
         .iter()
         .chain(l_p.iter())

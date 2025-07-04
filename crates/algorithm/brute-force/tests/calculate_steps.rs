@@ -1,4 +1,5 @@
 use brute_force::{AlgorithmStep, calculate_steps};
+use smallvec::smallvec;
 use common::intersection::{Intersection, IntersectionIdx, IntersectionType};
 use common::{
     AlgoSteps,
@@ -57,7 +58,7 @@ fn two_intersection() {
             common::intersection::IntersectionType::Point {
                 coord: (0.0, 0.0).into()
             },
-            vec![0.into(), 1.into()],
+            smallvec![0.into(), 1.into()],
             1,
         ))]
     );
@@ -129,42 +130,42 @@ fn five_segments() {
                 common::intersection::IntersectionType::Point {
                     coord: (0.0, 0.0).into()
                 },
-                vec![0.into(), 1.into()],
+                smallvec![0.into(), 1.into()],
                 1,
             )),
             eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
                     coord: (0.0, 0.0).into()
                 },
-                vec![0.into(), 2.into()],
+                smallvec![0.into(), 2.into()],
                 2,
             )),
             eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
                     coord: (0.0, 0.0).into()
                 },
-                vec![0.into(), 3.into()],
+                smallvec![0.into(), 3.into()],
                 3,
             )),
             eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
                     coord: (0.0, 0.0).into()
                 },
-                vec![1.into(), 2.into()],
+                smallvec![1.into(), 2.into()],
                 5,
             )),
             eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
                     coord: (0.0, 0.0).into()
                 },
-                vec![1.into(), 3.into()],
+                smallvec![1.into(), 3.into()],
                 6,
             )),
             eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
                     coord: (0.0, 0.0).into()
                 },
-                vec![2.into(), 3.into()],
+                smallvec![2.into(), 3.into()],
                 8,
             )),
         ]

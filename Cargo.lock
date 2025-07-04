@@ -673,6 +673,7 @@ dependencies = [
  "segment_plotter",
  "segment_table",
  "serde",
+ "smallvec 2.0.0-alpha.11",
  "tracing",
  "web-time",
 ]
@@ -898,6 +899,7 @@ dependencies = [
  "num-rational",
  "rstest",
  "serde",
+ "smallvec 2.0.0-alpha.11",
  "snafu",
  "static_assertions",
  "tracing",
@@ -1978,7 +1980,7 @@ dependencies = [
  "icu_normalizer_data",
  "icu_properties",
  "icu_provider",
- "smallvec",
+ "smallvec 1.15.1",
  "zerovec",
 ]
 
@@ -2040,7 +2042,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "686f825264d630750a544639377bae737628043f20d38bbc029e8f29ea968a7e"
 dependencies = [
  "idna_adapter",
- "smallvec",
+ "smallvec 1.15.1",
  "utf8_iter",
 ]
 
@@ -2945,7 +2947,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "redox_syscall 0.5.13",
- "smallvec",
+ "smallvec 1.15.1",
  "windows-targets 0.52.6",
 ]
 
@@ -3597,6 +3599,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
+name = "smallvec"
+version = "2.0.0-alpha.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87b96efa4bd6bdd2ff0c6615cc36fc4970cbae63cfd46ddff5cee35a1b4df570"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "smithay-client-toolkit"
 version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3729,6 +3740,7 @@ dependencies = [
  "segment_table",
  "serde",
  "slotmap",
+ "smallvec 2.0.0-alpha.11",
 ]
 
 [[package]]
@@ -3951,7 +3963,7 @@ dependencies = [
  "once_cell",
  "regex",
  "sharded-slab",
- "smallvec",
+ "smallvec 1.15.1",
  "thread_local",
  "tracing",
  "tracing-core",
@@ -4188,7 +4200,7 @@ dependencies = [
  "downcast-rs",
  "rustix 0.38.44",
  "scoped-tls",
- "smallvec",
+ "smallvec 1.15.1",
  "wayland-sys",
 ]
 
@@ -4344,7 +4356,7 @@ dependencies = [
  "parking_lot",
  "profiling",
  "raw-window-handle",
- "smallvec",
+ "smallvec 1.15.1",
  "static_assertions",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -4373,7 +4385,7 @@ dependencies = [
  "profiling",
  "raw-window-handle",
  "rustc-hash 1.1.0",
- "smallvec",
+ "smallvec 1.15.1",
  "thiserror 2.0.12",
  "wgpu-hal",
  "wgpu-types",
@@ -4412,7 +4424,7 @@ dependencies = [
  "raw-window-handle",
  "renderdoc-sys",
  "rustc-hash 1.1.0",
- "smallvec",
+ "smallvec 1.15.1",
  "thiserror 2.0.12",
  "wasm-bindgen",
  "web-sys",

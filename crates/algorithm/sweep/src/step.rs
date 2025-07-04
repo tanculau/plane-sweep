@@ -2,10 +2,7 @@ use core::iter;
 
 use bon::Builder;
 use common::{
-    AlgrorithmStep,
-    intersection::IntersectionIdx,
-    math::{Float, cartesian::CartesianCoord},
-    segment::SegmentIdx,
+    intersection::{InterVec, IntersectionIdx}, math::{cartesian::CartesianCoord, Float}, segment::SegmentIdx, AlgrorithmStep
 };
 
 use crate::event::{Event, EventQueue};
@@ -48,7 +45,7 @@ pub enum StepType {
     PopQ,
     CalculateSets,
     CalculateUpCpLp {
-        up_cp_lp: Vec<SegmentIdx>,
+        up_cp_lp: InterVec,
     },
     ReportIntersections,
     DeleteLpCp,

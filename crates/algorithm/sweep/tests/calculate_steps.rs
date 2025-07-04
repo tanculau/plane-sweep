@@ -1,7 +1,5 @@
 use common::{
-    AlgoSteps,
-    intersection::{Intersection, IntersectionType, Intersections},
-    segment::{Segment, Segments},
+    intersection::{InterVec, Intersection, IntersectionType, Intersections}, segment::{Segment, Segments}, AlgoSteps
 };
 use googletest::prelude::*;
 use rstest::rstest;
@@ -151,55 +149,55 @@ fn many() {
     }
 
     expect_that!(
-        intersections,
+        &intersections,
         elements_are![
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
                     coord: eq(&(2, 2).into())
                 }),
-                segments: container_eq(vec![0.into(), 1.into()]),
+                segments: eq(&InterVec::from_iter([0.into(), 1.into()])),
                 ..
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
                     coord: eq(&(-0.5, -0.5).into())
                 }),
-                segments: container_eq(vec![0.into(), 3.into()]),
+                segments: eq(&InterVec::from_iter([0.into(), 3.into()])),
                 ..
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
                     coord: eq(&(-1.5, -1.5).into())
                 }),
-                segments: container_eq(vec![0.into(), 2.into(), 4.into()]),
+                segments: eq(&InterVec::from_iter([0.into(), 2.into(), 4.into()])),
                 ..
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
                     coord: eq(&(-0.5, -1.5).into())
                 }),
-                segments: container_eq(vec![2.into(), 3.into()]),
+                segments: eq(&InterVec::from_iter([2.into(), 3.into()])),
                 ..
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
                     coord: eq(&(2, -1.5).into())
                 }),
-                segments: container_eq(vec![1.into(), 2.into()]),
+                segments: eq(&InterVec::from_iter([1.into(), 2.into()])),
                 ..
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
                     coord: eq(&(-1.5, -4.5).into())
                 }),
-                segments: container_eq(vec![4.into(), 5.into()]),
+                segments: eq(&InterVec::from_iter([4.into(), 5.into()])),
                 ..
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
                     coord: eq(&(-0.5, -4.5).into())
                 }),
-                segments: container_eq(vec![3.into(), 5.into(), 6.into()]),
+                segments: eq(&InterVec::from_iter([3.into(), 5.into(), 6.into()])),
                 ..
             }),
         ]

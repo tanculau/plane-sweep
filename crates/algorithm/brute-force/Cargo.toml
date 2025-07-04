@@ -38,6 +38,7 @@ intersection_table = { path = "../../ui/intersection_table", optional = true }
 segment_plotter = { path = "../../ui/segment_plotter", optional = true }
 segment_table = { path = "../../ui/segment_table", optional = true }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
+smallvec = { version = "2.0.0-alpha.11", features = ["std", "serde"] }
 tracing = "0.1.41"
 web-time = "1.1.0"
 

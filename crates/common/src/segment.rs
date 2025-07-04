@@ -1,5 +1,6 @@
 use core::{hash::Hash, sync::atomic::AtomicUsize};
 
+use smallvec::smallvec;
 use tracing::{debug, instrument};
 use typed_index_collections::TiVec;
 
@@ -189,7 +190,7 @@ impl Segment {
             );
             Some(Intersection::new(
                 IntersectionType::Point { coord },
-                vec![key1, key2],
+                smallvec![key1, key2],
                 step,
             ))
         } else {
@@ -207,7 +208,7 @@ impl Segment {
                             shown: false,
                         },
                     },
-                    vec![key1, key2],
+                    smallvec![key1, key2],
                     step,
                 ));
             }
@@ -228,7 +229,7 @@ impl Segment {
                     } else {
                         return Some(Intersection::new(
                             IntersectionType::Point { coord: p1.clone() },
-                            vec![key1, key2],
+                            smallvec![key1, key2],
                             step,
                         ));
                     }
@@ -244,7 +245,7 @@ impl Segment {
                 segment.update();
                 return Some(Intersection::new(
                     IntersectionType::Parallel { line: segment },
-                    vec![key1, key2],
+                    smallvec![key1, key2],
                     step,
                 ));
             }

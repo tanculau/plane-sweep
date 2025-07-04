@@ -84,6 +84,7 @@ version = "1.0.0"
 dependencies = [
  "auto_enums",
  "common",
+ "smallvec",
  "tracing",
  "web-time",
 ]
@@ -132,6 +133,7 @@ version = "1.0.0"
 dependencies = [
  "fraction",
  "num-rational",
+ "smallvec",
  "snafu",
  "tracing",
  "typed-index-collections",
@@ -475,6 +477,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "smallvec"
+version = "2.0.0-alpha.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87b96efa4bd6bdd2ff0c6615cc36fc4970cbae63cfd46ddff5cee35a1b4df570"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "snafu"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -509,6 +520,7 @@ dependencies = [
  "common",
  "itertools",
  "slotmap",
+ "smallvec",
 ]
 
 [[package]]

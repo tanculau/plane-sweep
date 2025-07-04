@@ -1,6 +1,7 @@
 use core::fmt::Display;
 use std::collections::HashMap;
 
+use smallvec::SmallVec;
 use typed_index_collections::TiVec;
 
 use crate::{
@@ -11,13 +12,15 @@ use crate::{
 
 pub type Intersections = TiVec<IntersectionIdx, Intersection>;
 
+pub type InterVec = SmallVec<SegmentIdx, 4>;
+
 impl_idx!(IntersectionIdx);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Intersection {
     pub typ: IntersectionType,
-    pub segments: Vec<SegmentIdx>,
+    pub segments: InterVec,
     pub step: usize,
 }
 
@@ -29,7 +32,7 @@ pub struct IntersectionShort {
 
 impl Intersection {
     #[must_use]
-    pub const fn new(typ: IntersectionType, segments: Vec<SegmentIdx>, step: usize) -> Self {
+    pub const fn new(typ: IntersectionType, segments: InterVec, step: usize) -> Self {
         Self {
             typ,
             segments,
