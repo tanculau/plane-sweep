@@ -11,6 +11,7 @@ use common::{
     intersection::{InterVec, Intersection, Intersections}, math::cartesian::CartesianCoord, segment::{Segment, SegmentIdx, Segments}, AlgoSteps
 };
 use itertools::{Itertools, chain};
+use smallvec::SmallVec;
 
 use crate::{
     event::{Event, EventQueue},
@@ -503,24 +504,16 @@ fn handle_event_point_fast(
     // endpoint is by definition the left endpoint.)" [1, p. 26]
     let u_p = &event.segments;
 
-    let (l_p, c_p): (Vec<_>, Vec<_>) = status_queue
+
+    let (l_p, c_p): (SmallVec<_, 10>, SmallVec<_,10>) = status_queue
         .iter_contains(segments, &p)
         .partition(|v| segments[*v].clone().lower == p);
 
-    //println!("{s}. LP: {l_p:?} , CP: {c_p:?} , UP: {u_p:?} at {p:?}");
-    // "if L(p) ∪ U(p) ∪ C(p) contains more than one segment [...]" [1, p. 26]
-    let l_p_and_u_p_and_c_p: InterVec = event
-        .segments
-        .iter()
-        .chain(l_p.iter())
-        .chain(c_p.iter())
-        .copied()
-        .collect();
 
-    if l_p_and_u_p_and_c_p.len() > 1 {
+    if u_p.len() + c_p.len() + l_p.len() > 1 {
         let intersect = Intersection::new(
             common::intersection::IntersectionType::Point { coord: p.clone() },
-            l_p_and_u_p_and_c_p,
+            c_p.iter().chain(l_p.iter()).chain(u_p).copied().collect(),
             0,
         );
         intersections.push(intersect);
