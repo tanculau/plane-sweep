@@ -22,6 +22,7 @@ smallvec = { version = "2.0.0-alpha.11", features = ["std"] }
 snafu = { version = "0.8.6", features = ["rust_1_81"] }
 tracing = "0.1.41"
 typed-index-collections = "3.3.0"
+workspace-hack = { version = "0.1", path = "../workspace-hack" }
 
 [dev-dependencies]
 googletest = "0.14.1"

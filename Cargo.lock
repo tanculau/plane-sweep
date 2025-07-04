@@ -262,6 +262,7 @@ dependencies = [
  "sweep",
  "third_party_licenses",
  "tracing-gui",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -319,9 +320,9 @@ dependencies = [
 
 [[package]]
 name = "async-channel"
-version = "2.3.1"
+version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89b47800b0be77592da0afd425cc03468052844aff33b84e33cc696f64e77b6a"
+checksum = "16c74e56284d2188cabb6ad99603d1ace887a5d7e7b695d01b728155ed9ed427"
 dependencies = [
  "concurrent-queue",
  "event-listener-strategy",
@@ -676,6 +677,7 @@ dependencies = [
  "smallvec 2.0.0-alpha.11",
  "tracing",
  "web-time",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -754,9 +756,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.27"
+version = "1.2.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d487aa071b5f64da6f19a3e848e3578944b726ee5a4854b82172f02aa876bfdc"
+checksum = "4ad45f4f74e4e20eaa392913b7b33a7091c87e59628f4dd27888205ad888843c"
 dependencies = [
  "jobserver",
  "libc",
@@ -904,6 +906,7 @@ dependencies = [
  "static_assertions",
  "tracing",
  "typed-index-collections",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -935,6 +938,7 @@ dependencies = [
  "eframe",
  "serde",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -2097,6 +2101,7 @@ dependencies = [
  "egui_extras",
  "serde",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3066,6 +3071,7 @@ dependencies = [
  "mimalloc",
  "wasm-bindgen-futures",
  "web-sys",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3467,6 +3473,7 @@ dependencies = [
  "eframe",
  "egui_plot",
  "serde",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3479,6 +3486,7 @@ dependencies = [
  "egui_extras",
  "serde",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3741,6 +3749,7 @@ dependencies = [
  "serde",
  "slotmap",
  "smallvec 2.0.0-alpha.11",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3794,6 +3803,7 @@ dependencies = [
  "common",
  "eframe",
  "egui_commonmark",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3939,6 +3949,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tracing-wasm",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -4948,6 +4959,55 @@ dependencies = [
 [[package]]
 name = "workspace-hack"
 version = "0.1.0"
+dependencies = [
+ "ahash",
+ "aho-corasick",
+ "bitflags 2.9.1",
+ "bytemuck",
+ "ecolor",
+ "eframe",
+ "egui",
+ "egui-winit",
+ "egui_extras",
+ "egui_glow",
+ "egui_plot",
+ "emath",
+ "epaint",
+ "fraction",
+ "futures-core",
+ "futures-util",
+ "glutin",
+ "glutin-winit",
+ "hashbrown",
+ "image",
+ "libc",
+ "linux-raw-sys 0.9.4",
+ "log",
+ "memchr",
+ "miniz_oxide",
+ "num",
+ "num-bigint",
+ "num-complex",
+ "num-rational",
+ "num-traits",
+ "once_cell",
+ "regex",
+ "regex-automata 0.4.9",
+ "regex-syntax 0.8.5",
+ "ron",
+ "rustix 1.0.7",
+ "serde",
+ "smallvec 1.15.1",
+ "smallvec 2.0.0-alpha.11",
+ "syn",
+ "tracing-core",
+ "typed-index-collections",
+ "wayland-sys",
+ "winit",
+ "x11rb",
+ "x11rb-protocol",
+ "xkbcommon-dl",
+]
 
 [[package]]
 name = "writeable"
