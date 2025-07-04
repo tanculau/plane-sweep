@@ -1,5 +1,5 @@
 use common::{
-    AlgoStepIdx, MyWidget, WidgetName,
+    AlgoStepIdx, ui::MyWidget, ui::WidgetName,
     intersection::{Intersection, Intersections},
     segment::Segments,
 };

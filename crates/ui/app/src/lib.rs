@@ -1,5 +1,5 @@
 use brute_force::ui::BruteForce;
-use common::ToggleAbleWidget;
+use common::ui::ToggleAbleWidget;
 use eframe::egui;
 use sweep::ui::PlaneSweep;
 
@@ -89,11 +89,11 @@ impl eframe::App for App {
             match self.selected {
                 AlgorithmChoice::None => {}
                 AlgorithmChoice::PlaneSweepBruteForce => {
-                    use common::MyWidget;
+                    use common::ui::MyWidget;
                     self.brute_force.ui(ui, ());
                 }
                 AlgorithmChoice::PlaneSweep => {
-                    use common::MyWidget;
+                    use common::ui::MyWidget;
                     self.plane_sweep.ui(ui, ());
                 }
             }

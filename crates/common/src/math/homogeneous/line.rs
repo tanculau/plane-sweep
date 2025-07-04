@@ -1,16 +1,12 @@
-use core::{cmp::Ordering, ops::Neg};
+use core::ops::Neg;
 
 use tracing::{debug, instrument};
 
-use crate::{
-    f_eq,
-    math::{
-        CrossProduct, DotProduct, Float, OrderedFloat, calculate_multiple,
-        homogeneous::HomogeneousCoord,
-    },
+use crate::math::{
+    CrossProduct, DotProduct, Float, calculate_multiple, homogeneous::HomogeneousCoord,
 };
 
-#[derive(Debug, Clone, Copy, PartialOrd)]
+#[derive(Debug, Clone, PartialOrd)]
 pub struct Line {
     pub a: Float,
     pub b: Float,
@@ -31,34 +27,39 @@ impl Neg for Line {
 
 impl PartialEq for Line {
     fn eq(&self, other: &Self) -> bool {
-        let a = calculate_multiple(self.a, other.a);
-        let b = calculate_multiple(self.b, other.b);
-        let c = calculate_multiple(self.c, other.c);
+        let a = calculate_multiple(&self.a, &other.a);
+        let b = calculate_multiple(&self.b, &other.b);
+        let c = calculate_multiple(&self.c, &other.c);
         a == b && b == c
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Slope {
-    ThirdQuadrant(OrderedFloat),
+    ThirdQuadrant(Float),
     Vertical,
-    FourthQuadrant(OrderedFloat),
+    FourthQuadrant(Float),
     Horizontal,
     Infinity,
 }
 
 impl Line {
-    pub const X_AXIS: Self = Self {
-        a: 0.0,
-        b: 1.0,
-        c: 0.0,
-    };
-    pub const Y_AXIS: Self = Self {
-        a: 1.0,
-        b: 0.0,
-        c: 0.0,
-    };
-
+    #[must_use]
+    pub fn x_axis() -> Self {
+        Self {
+            a: 0.into(),
+            b: 1.into(),
+            c: 0.into(),
+        }
+    }
+    #[must_use]
+    pub fn y_axis() -> Self {
+        Self {
+            a: 1.into(),
+            b: 0.into(),
+            c: 0.into(),
+        }
+    }
     pub fn new(a: impl Into<Float>, b: impl Into<Float>, c: impl Into<Float>) -> Self {
         Self {
             a: a.into(),
@@ -76,25 +77,25 @@ impl Line {
     }
 
     #[must_use]
-    pub const fn is_finite(self) -> bool {
+    pub const fn is_finite(&self) -> bool {
         self.a.is_finite() && self.b.is_finite() && self.c.is_finite()
     }
 
     #[must_use]
-    pub const fn tuple(self) -> (Float, Float, Float) {
-        (self.a, self.b, self.c)
+    pub const fn tuple(&self) -> (&Float, &Float, &Float) {
+        (&self.a, &self.b, &self.c)
     }
 
     #[must_use]
-    pub const fn array(self) -> [Float; 3] {
-        [self.a, self.b, self.c]
+    pub const fn array(&self) -> [&Float; 3] {
+        [&self.a, &self.b, &self.c]
     }
 
     #[instrument(name = "Line::contains_coord", skip(self, coord))]
     pub fn contains_coord(self, coord: impl Into<HomogeneousCoord>) -> bool {
         let coord = coord.into();
         let res = self.tuple().dot_product(coord.tuple());
-        let res = f_eq!(res, 0.0);
+        let res = res == 0.into();
         debug!("Line contains coord: {coord:?} on line {self:?} -> {res}");
         res
     }
@@ -106,7 +107,7 @@ impl Line {
 
     #[must_use]
     pub fn slope(self) -> Slope {
-        match (f_eq!(self.a, 0.0), (f_eq!(self.b, 0.0))) {
+        match ((self.a == 0.into()), (self.b == 0.into())) {
             (true, true) => Slope::Infinity,
             (true, false) => Slope::Horizontal,
             (false, true) => Slope::Vertical,

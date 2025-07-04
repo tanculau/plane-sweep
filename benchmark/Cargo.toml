@@ -1,0 +1,25 @@
+[package]
+name = "benchmark"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+common = {path = "../crates/common"}
+sweep = {path = "../crates/algorithm/sweep"}
+brute-force = {path = "../crates/algorithm/brute-force"}
+
+
+[lints]
+
+[dev-dependencies]
+divan = "0.1.21"
+
+[[bench]]
+name = "brute_force"
+harness = false
+
+
+[[bench]]
+name = "sweep"
+harness = false

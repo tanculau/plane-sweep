@@ -13,36 +13,39 @@ license.workspace = true
 serde = [
     "dep:serde",
     "common/serde",
-    "controller/serde",
-    "intersection_table/serde",
-    "segment_plotter/serde",
-    "segment_table/serde",
+    "controller?/serde",
+    "intersection_table?/serde",
+    "segment_plotter?/serde",
+    "segment_table?/serde",
+]
+ui = [
+    "dep:controller",
+    "dep:intersection_table",
+    "dep:segment_plotter",
+    "dep:segment_table",
+    "dep:eframe",
+    "dep:egui_extras",
+    "common/ui",
 ]
 
 [dependencies]
 auto_enums = { version = "0.8.7", default-features = false }
 common = { path = "../../common" }
-controller = { path = "../../ui/controller" }
-eframe = { version = "0.31.1", default-features = false }
-egui_extras = { version = "0.31.1", default-features = false }
-intersection_table = { path = "../../ui/intersection_table" }
-segment_plotter = { path = "../../ui/segment_plotter" }
-segment_table = { path = "../../ui/segment_table" }
+controller = { path = "../../ui/controller", optional = true }
+eframe = { version = "0.31.1", default-features = false, optional = true }
+egui_extras = { version = "0.31.1", default-features = false, optional = true }
+intersection_table = { path = "../../ui/intersection_table", optional = true }
+segment_plotter = { path = "../../ui/segment_plotter", optional = true }
+segment_table = { path = "../../ui/segment_table", optional = true }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
 tracing = "0.1.41"
 web-time = "1.1.0"
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
-bolero = "0.13.3"
-common = { path = "../../common", features = ["test"] }
 googletest = "0.14.1"
 mutants = "0.0.3"
 rtest = "0.2.2"
 
 [lints]
 workspace = true
-
-[[test]]
-name = "fuzzer"
-harness = false

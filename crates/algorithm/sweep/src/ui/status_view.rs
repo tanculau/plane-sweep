@@ -1,4 +1,4 @@
-use common::{MyWidget, WidgetName, segment::Segments};
+use common::{ ui::MyWidget,  ui::WidgetName, segment::Segments};
 use eframe::egui::{self, Layout};
 use egui_extras::{Column, Size, StripBuilder, TableBuilder};
 
@@ -56,11 +56,11 @@ impl<'a> MyWidget<StatusViewState<'a>> for StatusView {
 
                                 body.rows(ROW_HEIGHT, total_rows, |mut row| {
                                     let seg_idx = iter.next().unwrap();
-                                    let seg = segments[*seg_idx];
+                                    let seg = segments[*seg_idx].clone();
                                     row.col(|ui| {
                                         if let Some(event) = &step.event {
                                             let x_intersect =
-                                                intersection(seg, (event.x, event.y).into()).0;
+                                                intersection(seg.clone(), (event.x, event.y).into());
                                             ui.label(format!("{x_intersect:.2}"));
                                         } else {
                                             ui.label("");

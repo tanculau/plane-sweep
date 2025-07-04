@@ -7,6 +7,7 @@ use common::{
     segment::{Segment, SegmentIdx, Segments},
 };
 use tracing::{info, instrument};
+#[cfg(feature = "ui")]
 pub mod ui;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

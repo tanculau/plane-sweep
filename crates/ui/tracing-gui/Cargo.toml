@@ -10,7 +10,7 @@ description.workspace = true
 license.workspace = true
 
 [dependencies]
-common = { path = "../../common" }
+common = { path = "../../common", features = ["ui"] }
 eframe = { version = "0.31.1", default-features = false }
 # Using a Fork for up to date dependencies
 egui_tracing = { git = "https://github.com/tanculau/egui_tracing", branch = "dev" }

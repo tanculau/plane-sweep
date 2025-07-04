@@ -8,16 +8,16 @@ use common::{
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Event {
-    pub y: ordered_float::OrderedFloat<Float>,
-    pub x: ordered_float::OrderedFloat<Float>,
+    pub y: Float,
+    pub x: Float,
     pub segments: HashSet<SegmentIdx>,
 }
 
 impl Event {
     #[must_use]
     pub fn new(
-        y: impl Into<ordered_float::OrderedFloat<Float>>,
-        x: impl Into<ordered_float::OrderedFloat<Float>>,
+        y: impl Into<Float>,
+        x: impl Into<Float>,
         segments: impl Iterator<Item = SegmentIdx>,
     ) -> Self {
         Self {

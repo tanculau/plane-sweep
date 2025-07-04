@@ -1,5 +1,5 @@
 use common::{
-    AlgoStepIdx, AlgoSteps, MyWidget, WidgetName,
+    AlgoStepIdx, AlgoSteps,  ui::MyWidget,  ui::WidgetName,
     intersection::Intersections,
     segment::{Segment, Segments},
 };
@@ -232,8 +232,8 @@ impl CodeViewer {
             ..
         } = step
         {
-            let segment1 = state.segments[segment_i];
-            let segment2 = state.segments[segment_j];
+            let segment1 = state.segments[segment_i].clone();
+            let segment2 = state.segments[segment_j].clone();
 
             writeln!(buf, "  for i in 0..len {{ // i = {i}").unwrap();
             writeln!(buf, "    for j in i..len {{ // j = {j}").unwrap();

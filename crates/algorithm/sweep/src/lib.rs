@@ -4,12 +4,13 @@ pub mod event;
 //pub mod status_old;
 pub mod status;
 pub mod step;
+#[cfg(feature = "ui")]
 pub mod ui;
 
 use common::{
-    AlgoSteps, f_eq,
+    AlgoSteps,
     intersection::{Intersection, Intersections},
-    math::{cartesian::CartesianCoord, float_cmp::approx_eq},
+    math::cartesian::CartesianCoord,
     segment::{Segment, SegmentIdx, Segments},
 };
 use itertools::{Itertools, chain};
@@ -182,10 +183,10 @@ fn handle_event_point<const REPORT: bool>(
     let u_p = &event.segments;
 
     let (l_p, c_p): (Vec<_>, Vec<_>) = status_queue
-        .iter_contains(segments, p)
-        .partition(|v| approx_eq!(CartesianCoord, segments[*v].lower, p));
+        .iter_contains(segments, p.clone())
+        .partition(|v| segments[*v].clone().lower == p);
     //println!("Event {:?}: L_P: {l_p:?}", event.coord());
-    println!("{status_queue:?}");
+    //println!("{status_queue:?}");
     report!(
         REPORT,
         steps,
@@ -198,7 +199,7 @@ fn handle_event_point<const REPORT: bool>(
         l_p
     );
 
-    println!("{s}. LP: {l_p:?} , CP: {c_p:?} , UP: {u_p:?} at {p:?}");
+    //println!("{s}. LP: {l_p:?} , CP: {c_p:?} , UP: {u_p:?} at {p:?}");
     // "if L(p) ∪ U(p) ∪ C(p) contains more than one segment [...]" [1, p. 26]
     let l_p_and_u_p_and_c_p: Vec<_> = event
         .segments
@@ -225,7 +226,7 @@ fn handle_event_point<const REPORT: bool>(
     if l_p_and_u_p_and_c_p.len() > 1 {
         let step = step_count(s);
         let intersect = Intersection::new(
-            common::intersection::IntersectionType::Point { coord: p },
+            common::intersection::IntersectionType::Point { coord: p.clone() },
             l_p_and_u_p_and_c_p,
             step,
         );
@@ -249,7 +250,7 @@ fn handle_event_point<const REPORT: bool>(
     // We only retain elements which are *not* in l_p
     // We do not do u_p, because how the status is defined and calculated, it is not needed
     for s in chain!(&l_p, &c_p) {
-        status_queue.delete(*s, segments, p);
+        status_queue.delete(*s, segments, p.clone());
         debug_assert!(
             !status_queue.iter().contains(s),
             "Tried to remove {s:?} from {status_queue:?} with last event {last_event:?} and even {event:?}"
@@ -278,26 +279,26 @@ fn handle_event_point<const REPORT: bool>(
     // "Insert the segments in U(p) ∪ C(p) into T." [1, p. 26]
     // C(p) is already in the status_queue, so we do not need this. Only U(p) gets inserted.
     for s in chain!(u_p, &c_p) {
-        status_queue.insert(*s, segments, p);
+        status_queue.insert(*s, segments, p.clone());
     }
 
-    println!(
-        "{}",
-        status_queue
-            .iter()
-            .fold(String::from("Order: "), |mut acc, v| {
-                use std::fmt::Write;
-                write!(
-                    &mut acc,
-                    ", {:?}:  {:?}, {:?}",
-                    v,
-                    intersection(segments[v], event.coord()),
-                    segments[v].slope()
-                )
-                .unwrap();
-                acc
-            })
-    );
+    //println!(
+    //    "{}",
+    //    status_queue
+    //        .iter()
+    //        .fold(String::from("Order: "), |mut acc, v| {
+    //            use std::fmt::Write;
+    //            write!(
+    //                &mut acc,
+    //                ", {:?}:  {:?}, {:?}",
+    //                v,
+    //                intersection(segments[v].clone(), event.coord()),
+    //                segments[v].slope()
+    //            )
+    //            .unwrap();
+    //            acc
+    //        })
+    //);
 
     report!(
         REPORT,
@@ -425,8 +426,8 @@ fn find_new_event<const REPORT: bool>(
 
     if let Some(intersection) = Segment::intersect(s_l, s_r, segments, 0)
         && intersection.typ().is_point()
-        && (intersection.point1().y < *event.y
-            || f_eq!(intersection.point1().y, *event.y) && intersection.point1().x > *event.x)
+        && (intersection.point1().y < event.y
+            || intersection.point1().y == event.y && intersection.point1().x > event.x)
     {
         report!(
             REPORT,
@@ -451,10 +452,10 @@ fn find_new_event<const REPORT: bool>(
             intersection.point1().x,
             std::iter::empty(),
         ));
-        println!(
-            "Found intersection between {s_l:?} and {s_r:?}:{:?}",
-            intersection.point1()
-        );
+        // println!(
+        //     "Found intersection between {s_l:?} and {s_r:?}:{:?}",
+        //     intersection.point1()
+        // );
     }
 }
 

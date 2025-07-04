@@ -1,7 +1,7 @@
 use core::cmp::Ordering;
 
 use common::{
-    math::{OrderedFloat, cartesian::CartesianCoord},
+    math::{ cartesian::CartesianCoord},
     segment::{SegmentIdx, Segments},
 };
 use itertools::Itertools;
@@ -180,7 +180,7 @@ impl Node {
         let curr = storage[curr_key];
 
         if let Some(seg) = curr.data() {
-            match intersection(segments[seg], event).cmp(&OrderedFloat(event.x.into())) {
+            match intersection(segments[seg].clone(), event.clone()).cmp(&(event.x.into())) {
                 Ordering::Less => {
                     if let Some(right) = curr.right()
                         && let Some(v) = Self::find_left_of_event(right, storage, segments, event)
@@ -206,7 +206,7 @@ impl Node {
         let curr = storage[curr_key];
 
         if let Some(seg) = curr.data() {
-            match intersection(segments[seg], event).cmp(&OrderedFloat(event.x.into())) {
+            match intersection(segments[seg].clone(), event.clone()).cmp(&(event.x.into())) {
                 Ordering::Equal | Ordering::Less => {
                     return Self::find_right_of_event(curr.right()?, storage, segments, event);
                 }
@@ -231,7 +231,7 @@ impl Node {
     ) -> Option<SQKey> {
         let curr = storage[curr_key];
         if let Some(seg) = curr.data() {
-            match intersection(segments[seg], event).cmp(&OrderedFloat(event.x.into())) {
+            match intersection(segments[seg].clone(), event.clone()).cmp(&(event.x.into())) {
                 Ordering::Less => {
                     return Self::find_left_most(curr.right()?, storage, segments, event);
                 }
@@ -260,7 +260,7 @@ impl Node {
     ) -> Option<SQKey> {
         let curr = storage[curr_key];
         if let Some(seg) = curr.data() {
-            match intersection(segments[seg], event).cmp(&OrderedFloat(event.x.into())) {
+            match intersection(segments[seg].clone(), event.clone()).cmp(&(event.x.into())) {
                 Ordering::Less => {
                     return Self::find_right_most(curr.right()?, storage, segments, event);
                 }
@@ -296,7 +296,7 @@ impl Node {
         };
         //Self::verify_with_event(curr_key, storage, segments, event);
 
-        match compare3(curr_seg, s_idx, segments, event) {
+        match compare3(curr_seg, s_idx, segments, event.clone()) {
             Ordering::Less => {
                 let right = Self::delete(right_key, storage, s_idx, segments, event);
                 let tmp = storage[curr_key].set_right(right);
@@ -370,10 +370,10 @@ impl Node {
             } => {
                 //Self::verify_with_event(curr, storage, segments, event);
 
-                let curr_seg = segments[data];
-                let insert_seg = segments[s_idx];
+                let curr_seg = segments[data].clone();
+                let insert_seg = segments[s_idx].clone();
 
-                match compare(insert_seg, curr_seg, event) {
+                match compare(insert_seg, curr_seg, event.clone()) {
                     Ordering::Less => {
                         let new_left = Self::insert(left, storage, s_idx, segments, event);
                         let tmp = storage[curr].set_left(new_left);
@@ -592,11 +592,11 @@ impl Node {
                     );
                     if let Some(lhs) = storage[left].data() {
                         debug_assert_eq!(
-                            compare2(lhs, data, segments, event),
+                            compare2(lhs, data, segments, event.clone()),
                             Ordering::Less,
                             "Expected {lhs:?} to be smaller than {data:?}, but {:?} < {:?}, {:?} < {:?}, {:?}, {:?}",
-                            intersection(segments[lhs], event),
-                            intersection(segments[data], event),
+                            intersection(segments[lhs].clone(), event.clone()),
+                            intersection(segments[data].clone(), event),
                             segments[lhs].slope(),
                             segments[data].slope(),
                             segments[lhs].line(),
@@ -605,11 +605,11 @@ impl Node {
                     }
                     if let Some(rhs) = storage[right].data() {
                         debug_assert_eq!(
-                            compare2(rhs, data, segments, event),
+                            compare2(rhs, data, segments, event.clone()),
                             Ordering::Greater,
                             "Expected {rhs:?} to be greater than {data:?}, but {:?} > {:?}, {:?} > {:?}, {:?}, {:?}",
-                            intersection(segments[rhs], event),
-                            intersection(segments[data], event),
+                            intersection(segments[rhs].clone(), event.clone()),
+                            intersection(segments[data].clone(), event),
                             segments[rhs].slope(),
                             segments[data].slope(),
                             segments[rhs].line(),

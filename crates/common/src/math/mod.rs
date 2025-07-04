@@ -6,68 +6,10 @@ use core::{
     ops::{Add, Mul, Sub},
 };
 
-pub type Float = f64;
+pub type Float = Fraction;
 
-pub use float_cmp;
-use float_cmp::F64Margin;
-
-#[macro_export]
-macro_rules! f_eq {
-    ($lhs:expr, $rhs:expr) => {
-        $crate::math::float_cmp::approx_eq!(
-            $crate::math::Float,
-            $lhs,
-            $rhs,
-            $crate::math::float_cmp::F64Margin::from((
-                $crate::math::float_cmp::F64Margin::default().epsilon * 150.0,
-                $crate::math::float_cmp::F64Margin::default().ulps * 150
-            ))
-        )
-    };
-}
-
-#[macro_export]
-macro_rules! impl_approx_eq {
-    ($t : ty, $m: ty, $i : expr) => {
-        impl float_cmp::ApproxEq for &$t {
-            type Margin = $m;
-
-            fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
-                fn calculate(
-                    fun: impl FnOnce(&$t, &$t, $m) -> bool,
-                    a: &$t,
-                    b: &$t,
-                    margin: $m,
-                ) -> bool {
-                    fun(a, b, margin)
-                }
-
-                let margin = margin.into();
-                calculate($i, self, other, margin)
-            }
-        }
-
-        impl float_cmp::ApproxEq for $t {
-            type Margin = $m;
-
-            fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
-                use float_cmp::ApproxEq;
-                <&$t as ApproxEq>::approx_eq(&self, &other, margin)
-            }
-        }
-        impl float_cmp::ApproxEq for &mut $t {
-            type Margin = $m;
-
-            fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
-                use float_cmp::ApproxEq;
-                <&$t as ApproxEq>::approx_eq(&self, &other, margin)
-            }
-        }
-    };
-    ($t : ty, $i : expr) => {
-        impl_approx_eq!($t, float_cmp::F64Margin, $i);
-    };
-}
+use fraction::{DynaFraction, DynaInt, Fraction, GenericFraction};
+use num_rational::BigRational;
 
 pub trait CrossProduct<Rhs = Self> {
     type Output;
@@ -132,84 +74,9 @@ where
     }
 }
 
-#[derive(Debug, Clone, Copy, Default, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[repr(transparent)]
-pub struct OrderedFloat(pub ordered_float::OrderedFloat<Float>);
-
-impl OrderedFloat {
-    #[must_use]
-    pub fn new(value: impl Into<Self>) -> Self {
-        value.into()
-    }
-
-    #[must_use]
-    pub const fn zero() -> Self {
-        Self(ordered_float::OrderedFloat(0.0))
-    }
-}
-
-impl From<f64> for OrderedFloat {
-    fn from(value: f64) -> Self {
-        Self(ordered_float::OrderedFloat(value))
-    }
-}
-
-impl From<&f64> for OrderedFloat {
-    fn from(value: &f64) -> Self {
-        Self::from(*value)
-    }
-}
-impl From<&mut f64> for OrderedFloat {
-    fn from(value: &mut f64) -> Self {
-        Self::from(*value)
-    }
-}
-
-impl From<ordered_float::OrderedFloat<Float>> for OrderedFloat {
-    fn from(value: ordered_float::OrderedFloat<Float>) -> Self {
-        Self(value)
-    }
-}
-
-impl From<&ordered_float::OrderedFloat<Float>> for OrderedFloat {
-    fn from(value: &ordered_float::OrderedFloat<Float>) -> Self {
-        Self::from(*value)
-    }
-}
-impl From<&mut ordered_float::OrderedFloat<Float>> for OrderedFloat {
-    fn from(value: &mut ordered_float::OrderedFloat<Float>) -> Self {
-        Self::from(*value)
-    }
-}
-
-impl_approx_eq!(OrderedFloat, |l, r, m| (*l.0).approx_eq(*r.0, m));
-
-impl PartialEq for OrderedFloat {
-    fn eq(&self, other: &Self) -> bool {
-        f_eq!(*self.0, *other.0)
-    }
-}
-
-impl PartialOrd for OrderedFloat {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for OrderedFloat {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        if self.eq(other) {
-            Ordering::Equal
-        } else {
-            self.0.cmp(&other.0)
-        }
-    }
-}
-
 #[derive(Debug)]
 enum Multiple {
-    Mult(f64),
+    Mult(Float),
     Zero,
     None,
 }
@@ -217,17 +84,19 @@ enum Multiple {
 impl PartialEq for Multiple {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Mult(v1), Self::Mult(v2)) => f_eq!(*v1, *v2),
+            (Self::Mult(v1), Self::Mult(v2)) => v1 == v2,
             (_, Self::None) | (Self::None, _) => false,
             (Self::Zero, _) | (_, Self::Zero) => true,
         }
     }
 }
 
-fn calculate_multiple(lhs: f64, rhs: f64) -> Multiple {
-    match (f_eq!(lhs, 0.0), f_eq!(rhs, 0.0)) {
+fn calculate_multiple(lhs: &Float, rhs: &Float) -> Multiple {
+    match (lhs == &Float::from(0), rhs == &Float::from(0)) {
         (true, true) => Multiple::Zero,
         (true, false) | (false, true) => Multiple::None,
         (false, false) => Multiple::Mult(lhs / rhs),
     }
 }
+
+

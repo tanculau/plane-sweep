@@ -6,8 +6,7 @@ use core::{
 };
 
 use common::{
-    f_eq,
-    math::{OrderedFloat, cartesian::CartesianCoord, homogeneous::HomogeneousLine},
+    math::{Float, cartesian::CartesianCoord, homogeneous::HomogeneousLine},
     segment::{Segment, SegmentIdx, Segments},
 };
 use slotmap::{SlotMap, new_key_type};
@@ -57,7 +56,7 @@ impl StatusQueue {
         event: impl Into<CartesianCoord>,
     ) {
         let event = event.into();
-        println!("Insert {s_idx:?} at event {event:?}");
+        //println!("Insert {s_idx:?} at event {event:?}");
         //println!(
         //"Insert before: {}",
         //self.iter().fold(String::new(), |mut acc, v| {
@@ -80,10 +79,14 @@ impl StatusQueue {
     ) -> impl Iterator<Item = SegmentIdx> + Clone {
         let event = event.into();
 
-        Node::find_left_most(self.head, &self.storage, segments, event)
+        Node::find_left_most(self.head, &self.storage, segments, event.clone())
             .into_iter()
             .flat_map(|n| SQIter::new(n, &self.storage))
-            .take_while(move |s| intersection(segments[*s], event) == OrderedFloat::new(event.x))
+            .zip(std::iter::repeat(event.clone()))
+            .take_while(move |(s, event)| {
+                intersection(segments[*s].clone(), event.clone()) == (event.x)
+            })
+            .map(|(l, r)| l)
     }
 
     /// Finds the greatest segment that is strictly left of the event point
@@ -133,7 +136,7 @@ impl StatusQueue {
         event: impl Into<CartesianCoord>,
     ) {
         let event = event.into();
-        println!("Delete {s_idx:?} at event {event:?}");
+        //println!("Delete {s_idx:?} at event {event:?}");
 
         // Node::verify_with_event(self.head, &self.storage, segments, event); // Not valid, but that is okay
         self.head = Node::delete(self.head, &mut self.storage, s_idx, segments, event);
@@ -221,10 +224,10 @@ fn compare3(
         Ordering::Equal
     } else {
         //println!("Comparing {lhs:?} and {rhs:?} at {event:?}");
-        let lhs = segments[lhs];
-        let rhs = segments[rhs];
-        intersection(lhs, event)
-            .cmp(&intersection(rhs, event))
+        let lhs = segments[lhs].clone();
+        let rhs = segments[rhs].clone();
+        intersection(lhs.clone(), event.clone())
+            .cmp(&intersection(rhs.clone(), event))
             .then_with(|| {
                 // Compare Upper point
                 //println!("Same point, lhs: {} - angle {}, rhs: {} - angle {}", lhs.id, lhs.angle(), rhs.id, rhs.angle());
@@ -247,13 +250,13 @@ fn compare2(
         Ordering::Equal
     } else {
         //println!("Comparing {lhs:?} and {rhs:?} at {event:?}");
-        compare(segments[lhs], segments[rhs], event)
+        compare(segments[lhs].clone(), segments[rhs].clone(), event)
     }
 }
 
 fn compare(lhs: Segment, rhs: Segment, event: CartesianCoord) -> Ordering {
-    intersection(lhs, event)
-        .cmp(&intersection(rhs, event))
+    intersection(lhs.clone(), event.clone())
+        .cmp(&intersection(rhs.clone(), event))
         .then_with(|| {
             // Compare Upper point
             //println!("Same point, lhs: {} - angle {}, rhs: {} - angle {}", lhs.id, lhs.angle(), rhs.id, rhs.angle());
@@ -265,8 +268,8 @@ fn compare(lhs: Segment, rhs: Segment, event: CartesianCoord) -> Ordering {
         })
 }
 
-pub(crate) fn intersection(segment: Segment, event: CartesianCoord) -> OrderedFloat {
-    let x_intersect = if segment.is_horizontal() && f_eq!(event.y, segment.upper.y) {
+pub(crate) fn intersection(segment: Segment, event: CartesianCoord) -> Float {
+    let x_intersect = if segment.is_horizontal() && event.y == segment.upper.y {
         event.x.clamp(segment.upper.x, segment.lower.x)
     } else {
         let horizontal = HomogeneousLine::horizontal(event.y);
@@ -278,14 +281,11 @@ pub(crate) fn intersection(segment: Segment, event: CartesianCoord) -> OrderedFl
             .x
     }
     .into();
-    OrderedFloat(x_intersect)
+    (x_intersect)
 }
 
-pub(crate) fn intersection_horizontal_last(
-    segment: Segment,
-    event: CartesianCoord,
-) -> OrderedFloat {
-    let x_intersect = if segment.is_horizontal() && f_eq!(event.y, segment.upper.y) {
+pub(crate) fn intersection_horizontal_last(segment: Segment, event: CartesianCoord) -> Float {
+    let x_intersect = if segment.is_horizontal() && event.y == segment.upper.y {
         segment.lower.x
     } else {
         let horizontal = HomogeneousLine::horizontal(event.y);
@@ -297,7 +297,7 @@ pub(crate) fn intersection_horizontal_last(
             .x
     }
     .into();
-    OrderedFloat(x_intersect)
+    (x_intersect)
 }
 
 pub struct SQDebug<'a> {
@@ -417,7 +417,7 @@ mod tests {
         queue.insert(0.into(), &segments, (-254, 9992));
         queue.insert(1.into(), &segments, (-258, 8));
         queue.delete(0.into(), &segments, (-258, 8));
-        queue.insert(0.into(), &segments, intersect.point1());
+        queue.insert(0.into(), &segments, intersect.point1().clone());
         queue.insert(2.into(), &segments, (0, 0));
     }
 }

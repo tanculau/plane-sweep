@@ -1,5 +1,5 @@
 //! [`Tracing`] is a widget for displaying logs and tracing events in the UI. It also initializes the tracing subsystem to log all messages to stdout, if available, the this Widget, and the Web Console, if available.
-use common::{MyWidget, WidgetName};
+use common::ui::{MyWidget, WidgetName};
 use egui_tracing::{EventCollector, tracing::collector::AllowedTargets};
 use tracing::{error, info, instrument};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};

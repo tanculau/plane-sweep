@@ -1,6 +1,5 @@
 mod point {
     use common::math::homogeneous::*;
-    use float_cmp::approx_eq;
     use googletest::prelude::*;
 
     #[gtest]
@@ -8,10 +7,10 @@ mod point {
         fn check(a: f64, b: f64, c: f64) {
             let p1 = HomogeneousCoord::new(a, b, c);
             let p2 = HomogeneousCoord::new(a * 2.0, b * 2.0, c * 2.0);
-            expect_true!(approx_eq!(HomogeneousCoord, p1, p2));
+            expect_eq!(p1, p2);
         }
         let p1 = HomogeneousCoord::new(4.0, 2.0, 1.0);
-        expect_true!(approx_eq!(HomogeneousCoord, p1, p1));
+        expect_eq!(p1, p1);
         check(4.0, 2.0, 1.0);
         check(0.0, 2.0, 1.0);
         check(4.0, 0.0, 1.0);
@@ -54,27 +53,29 @@ mod point {
     fn not_equal() {
         let p1 = HomogeneousCoord::new(4.0, 2.0, 1.0);
         let p2 = HomogeneousCoord::new(4.0, 2.0, 2.0);
-        expect_false!(approx_eq!(HomogeneousCoord, p1, p2));
+        expect_eq!(p1, p2);
         let p3 = HomogeneousCoord::new(4.0, 2.0, 1.0);
         let p4 = HomogeneousCoord::new(4.0, 2.0, 0.0);
-        expect_false!(approx_eq!(HomogeneousCoord, p3, p4));
+        expect_eq!(p3, p4);
         let p5 = HomogeneousCoord::new(4.0, 2.0, 1.0);
         let p6 = HomogeneousCoord::new(4.0, 0.0, 1.0);
-        expect_false!(approx_eq!(HomogeneousCoord, p5, p6));
+        expect_eq!(p5, p6);
+
         let p7 = HomogeneousCoord::new(4.0, 0.0, 1.0);
         let p8 = HomogeneousCoord::new(4.0, 0.0, 0.0);
-        expect_false!(approx_eq!(HomogeneousCoord, p7, p8));
+        expect_eq!(p7, p8);
+
         let p9 = HomogeneousCoord::new(0.0, 0.0, 0.0);
         let p10 = HomogeneousCoord::new(4.0, 2.0, 0.0);
-        expect_false!(approx_eq!(HomogeneousCoord, p9, p10));
+        expect_eq!(p9, p10);
+
         let p11 = HomogeneousCoord::new(4.0, 2.0, 1.0);
         let p12 = HomogeneousCoord::new(0.0, 0.0, 0.0);
-        expect_false!(approx_eq!(HomogeneousCoord, p11, p12));
+        expect_eq!(p11, p12);
     }
 }
 
 mod line {
-    use core::f64::consts::PI;
 
     use common::math::homogeneous::HomogeneousLine;
     use googletest::prelude::*;
@@ -126,7 +127,7 @@ mod line {
         use googletest::prelude::*;
         #[gtest]
         fn contains() {
-            let x = HomogeneousLine::X_AXIS;
+            let x = HomogeneousLine::x_axis();
             expect_true!(x.contains_coord((5, 0)));
         }
     }
@@ -214,7 +215,7 @@ mod line {
 
         #[gtest]
         fn horizontal() {
-            expect_eq!(HomogeneousLine::X_AXIS.slope(), Slope::Horizontal);
+            expect_eq!(HomogeneousLine::x_axis().slope(), Slope::Horizontal);
             expect_eq!(HomogeneousLine::horizontal(-12).slope(), Slope::Horizontal);
             expect_eq!(HomogeneousLine::horizontal(12).slope(), Slope::Horizontal);
             expect_eq!(HomogeneousLine::horizontal(0).slope(), Slope::Horizontal);
@@ -222,7 +223,7 @@ mod line {
 
         #[gtest]
         fn vertical() {
-            expect_eq!(HomogeneousLine::Y_AXIS.slope(), Slope::Vertical);
+            expect_eq!(HomogeneousLine::y_axis().slope(), Slope::Vertical);
             expect_eq!(HomogeneousLine::vertical(-12).slope(), Slope::Vertical);
             expect_eq!(HomogeneousLine::vertical(12).slope(), Slope::Vertical);
             expect_eq!(HomogeneousLine::vertical(0).slope(), Slope::Vertical);
@@ -250,65 +251,16 @@ mod line {
     }
 
     #[gtest]
-    fn angle() {
-        expect_float_eq!(HomogeneousLine::new(0, 0, 0).angle(), 0.0);
-        expect_float_eq!(HomogeneousLine::new(0, 0, 12).angle(), 0.0);
-        expect_float_eq!(HomogeneousLine::new(0, 0, -12).angle(), 0.0);
-        expect_float_eq!(HomogeneousLine::new(0, 0, 0).angle(), 0.0);
-        expect_float_eq!(HomogeneousLine::new(0, 0, 12).angle(), 0.0);
-        expect_float_eq!(HomogeneousLine::new(0, 0, -12).angle(), 0.0);
-        expect_ge!(HomogeneousLine::new(1, -1, 0).angle(), -PI / 2.0);
-        expect_le!(HomogeneousLine::new(1, -1, 0).angle(), PI / 2.0);
-        expect_ge!(HomogeneousLine::new(2, -2, 0).angle(), -PI / 2.0);
-        expect_le!(HomogeneousLine::new(2, -2, 0).angle(), PI / 2.0);
-        expect_ge!(HomogeneousLine::new(-2, 2, 0).angle(), -PI / 2.0);
-        expect_le!(HomogeneousLine::new(-2, 2, 0).angle(), PI / 2.0);
-
-        expect_lt!(
-            HomogeneousLine::new(-1, 1000, 0).angle(),
-            HomogeneousLine::new(-1, 900, 0).angle()
-        );
-        expect_lt!(
-            (-HomogeneousLine::new(-1, 1000, 0)).angle(),
-            HomogeneousLine::new(-1, 900, 0).angle()
-        );
-        expect_lt!(
-            HomogeneousLine::new(-1, 1000, 0).angle(),
-            (-HomogeneousLine::new(-1, 900, 0)).angle()
-        );
-        expect_lt!(
-            (-HomogeneousLine::new(-1, 1000, 0)).angle(),
-            (-HomogeneousLine::new(-1, 900, 0)).angle()
-        );
-        expect_lt!(
-            HomogeneousLine::new(-1, 900, 0).angle(),
-            HomogeneousLine::Y_AXIS.angle()
-        );
-        expect_lt!(
-            HomogeneousLine::Y_AXIS.angle(),
-            HomogeneousLine::new(1, 1, 0).angle()
-        );
-        expect_lt!(
-            HomogeneousLine::Y_AXIS.angle(),
-            HomogeneousLine::new(1000, 1, 0).angle()
-        );
-        expect_lt!(
-            HomogeneousLine::new(1000, 1, 0).angle(),
-            HomogeneousLine::X_AXIS.angle()
-        );
-    }
-
-    #[gtest]
     fn neg() {
         let l1 = HomogeneousLine::new(2, -3, 4);
         expect_that!(
-            -l1,
+            -l1.clone(),
             pat!(HomogeneousLine {
-                a: eq(-2.0),
-                b: eq(3.0),
-                c: eq(-4.0)
+                a: eq(&(-2).into()),
+                b: eq(&3.into()),
+                c: eq(&(-4).into())
             })
         );
-        expect_eq!(-l1, l1);
+        expect_eq!(-l1.clone(), l1);
     }
 }

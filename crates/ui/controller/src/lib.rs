@@ -1,4 +1,4 @@
-use common::{AlgoStepIdx, AlgoSteps, MyWidget, WidgetName, intersection::Intersections};
+use common::{AlgoStepIdx, AlgoSteps, ui::MyWidget, ui::WidgetName, intersection::Intersections};
 use eframe::egui::{self, Window};
 use tracing::{info, instrument};
 

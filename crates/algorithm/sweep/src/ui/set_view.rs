@@ -1,4 +1,4 @@
-use common::{MyWidget, WidgetName, segment::Segments};
+use common::{segment::Segments, ui::MyWidget, ui::WidgetName};
 use eframe::egui::{CentralPanel, SidePanel};
 
 use crate::Step;

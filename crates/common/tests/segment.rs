@@ -1,4 +1,4 @@
-use common::{math::homogeneous::Slope, segment::Segment};
+use common::segment::Segment;
 use googletest::prelude::*;
 
 #[gtest]
@@ -112,11 +112,11 @@ mod intersection {
         let actual = Segment::intersect(0, 1, &segments, 0);
         expect_eq!(
             actual.as_ref().map(Intersection::point1),
-            Some(expected_upper.into())
+            Some(&expected_upper.into())
         );
         expect_eq!(
             actual.as_ref().map(Intersection::point2),
-            Some(Some(expected_lower.into()))
+            Some(Some(&expected_lower.into()))
         );
         expect_eq!(
             actual.as_ref().map(Intersection::segments),
@@ -188,21 +188,21 @@ mod contains {
     fn not() {
         let s1 = Segment::new((12, 0), (-12, 0));
 
-        expect_false!(s1.contains((0, 1)));
+        expect_false!(s1.contains(&(0, 1).into()));
     }
     #[gtest]
     fn endpoint() {
         let s1 = Segment::new((12, 0), (-12, 0));
 
-        expect_true!(s1.contains((12, 0)));
-        expect_true!(s1.contains((-12, 0)));
+        expect_true!(s1.contains(&(12, 0).into()));
+        expect_true!(s1.contains(&(-12, 0).into()));
     }
 
     #[gtest]
     fn middle() {
         let s1 = Segment::new((12, 0), (-12, 0));
 
-        expect_true!(s1.contains((0.0 + f64::MIN_POSITIVE, 0)));
+        expect_true!(s1.contains(&(0.0 + f64::MIN_POSITIVE, 0).into()));
     }
 }
 
@@ -222,23 +222,23 @@ fn angle2() {
     dbg!(s1.line());
     let s2 = Segment::new((-1000, 1), (0, 0));
     dbg!(s2.line());
-    expect_gt!(s1.slope(), s2.slope());
+    expect_gt!(s1.slope(), &s2.slope());
     let s3 = Segment::new((-100, 1), (0, 0));
     dbg!(s3.line());
-    expect_gt!(s2.slope(), s3.slope());
+    expect_gt!(s2.slope(), &s3.slope());
     let s4 = Segment::new((-10, 1), (0, 0));
     dbg!(s4.line());
-    expect_gt!(s3.slope(), s4.slope());
+    expect_gt!(s3.slope(), &s4.slope());
     let s5 = Segment::new((0, 1), (0, 0));
     dbg!(s5.line());
-    expect_gt!(s4.slope(), s5.slope());
+    expect_gt!(s4.slope(), &s5.slope());
     let s6 = Segment::new((10, 1), (0, 0));
     dbg!(s6.line());
-    expect_gt!(s5.slope(), s6.slope());
+    expect_gt!(s5.slope(), &s6.slope());
     let s7 = Segment::new((100, 1), (0, 0));
     dbg!(s7.line());
-    expect_gt!(s6.slope(), s7.slope());
+    expect_gt!(s6.slope(), &s7.slope());
     let s8 = Segment::new((1000, 1), (0, 0));
     dbg!(s8.line());
-    expect_gt!(s7.slope(), s8.slope());
+    expect_gt!(s7.slope(), &s8.slope());
 }

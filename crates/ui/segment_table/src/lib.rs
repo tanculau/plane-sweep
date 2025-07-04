@@ -1,8 +1,7 @@
 use core::time::Duration;
 
 use common::{
-    MyWidget, WidgetName,
-    math::{cartesian::CartesianCoord, float_cmp::approx_eq},
+    ui::MyWidget, ui::WidgetName,
     segment::{Segment, SegmentIdx, Segments},
 };
 use eframe::egui;
@@ -165,38 +164,39 @@ impl SegmentTable {
                     // Upper X
                     row.col(|ui| {
                         let x = &mut segment.upper.x;
-                        if ui.add(egui::DragValue::new(x)).changed() {
-                            *should_reset |= true;
-                            info!("Updating upper Y of segment {} to {}", segment.id, x);
-                            segment.update();
-                        }
+
+                        //if ui.add(egui::DragValue::new(x)).changed() {
+                        //    *should_reset |= true;
+                        //    info!("Updating upper Y of segment {} to {}", segment.id, x);
+                        //    segment.update();
+                        //}
                     });
                     // Upper Y
                     row.col(|ui| {
-                        let y = &mut segment.upper.y;
-                        if ui.add(egui::DragValue::new(y)).changed() {
-                            *should_reset |= true;
-                            info!("Updating upper X of segment {} to {}", segment.id, y);
-                            segment.update();
-                        }
+                        //let y = &mut segment.upper.y;
+                        //if ui.add(egui::DragValue::new(y)).changed() {
+                        //    *should_reset |= true;
+                        //    info!("Updating upper X of segment {} to {}", segment.id, y);
+                        //    segment.update();
+                        //}
                     });
                     // Lower X
                     row.col(|ui| {
-                        let x = &mut segment.lower.x;
-                        if ui.add(egui::DragValue::new(x)).changed() {
-                            *should_reset |= true;
-                            info!("Updating lower Y of segment {} to {}", segment.id, x);
-                            segment.update();
-                        }
+                        //let x = &mut segment.lower.x;
+                        //if ui.add(egui::DragValue::new(x)).changed() {
+                        //    *should_reset |= true;
+                        //    info!("Updating lower Y of segment {} to {}", segment.id, x);
+                        //    segment.update();
+                        //}
                     });
                     // Lower Y
                     row.col(|ui| {
-                        let y = &mut segment.lower.y;
-                        if ui.add(egui::DragValue::new(y)).changed() {
-                            *should_reset |= true;
-                            info!("Updating lower X of segment {} to {}", segment.id, y);
-                            segment.update();
-                        }
+                        //let y = &mut segment.lower.y;
+                        //if ui.add(egui::DragValue::new(y)).changed() {
+                        //    *should_reset |= true;
+                        //    info!("Updating lower X of segment {} to {}", segment.id, y);
+                        //    segment.update();
+                        //}
                     });
                     // Active
                     row.col(|ui| {
@@ -262,7 +262,7 @@ impl<'reset, 'segment> MyWidget<SegmentTableState<'reset, 'segment>> for Segment
                     (self.new_p2_x, self.new_p2_y),
                 );
 
-                if approx_eq!(CartesianCoord, segment.upper, segment.lower) {
+                if segment.upper ==  segment.lower  {
                     warn!(
                         "Tried creating a illegal with points ({}, {}) and ({}, {})",
                         self.new_p1_x, self.new_p1_y, self.new_p2_x, self.new_p2_y

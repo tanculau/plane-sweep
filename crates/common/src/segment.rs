@@ -1,15 +1,13 @@
 use core::{hash::Hash, sync::atomic::AtomicUsize};
 
-use float_cmp::{ApproxEq, F64Margin, approx_eq};
-use ordered_float::OrderedFloat;
 use tracing::{debug, instrument};
 use typed_index_collections::TiVec;
 
 use crate::{
-    f_eq, impl_idx,
+    impl_idx,
     intersection::{Intersection, IntersectionType},
     math::{
-        CrossProduct,
+        CrossProduct, Float,
         cartesian::CartesianCoord,
         homogeneous::{HomogeneousCoord, HomogeneousLine, Slope},
     },
@@ -57,7 +55,7 @@ impl_idx!(SegmentIdx);
 ///
 /// If the `serde` feature is enabled, the struct can be serialized and deserialized,
 /// except for the `mark` field, which is skipped.
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Segment {
     /// The upper endpoint of the segment.
@@ -71,6 +69,16 @@ pub struct Segment {
     pub mark: bool,
     /// Indicates whether the segment is currently active and considered by the algorithms
     pub shown: bool,
+}
+
+impl core::fmt::Debug for Segment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Segment(({},{}), ({},{}))",
+            self.upper.x, self.upper.y, self.lower.x, self.lower.y
+        )
+    }
 }
 impl PartialEq for Segment {
     fn eq(&self, other: &Self) -> bool {
@@ -92,15 +100,6 @@ impl PartialOrd for Segment {
 impl Hash for Segment {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.id.hash(state);
-    }
-}
-
-impl ApproxEq for Segment {
-    type Margin = F64Margin;
-
-    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
-        let margin = margin.into();
-        self.upper.approx_eq(other.upper, margin) && self.lower.approx_eq(other.lower, margin)
     }
 }
 
@@ -136,16 +135,11 @@ impl Segment {
         let p2: CartesianCoord = p2.into();
 
         let mut coords = [(p1), p2];
-        coords.sort_unstable_by(|l, r| {
-            OrderedFloat(l.y)
-                .cmp(&OrderedFloat(r.y))
-                .reverse()
-                .then(OrderedFloat(l.x).cmp(&OrderedFloat(r.x)))
-        });
+        coords.sort_unstable_by(|l, r| (&l.y).cmp(&(&r.y)).reverse().then((&l.x).cmp(&(&r.x))));
 
         Self {
-            upper: coords[0],
-            lower: coords[1],
+            upper: coords[0].clone(),
+            lower: coords[1].clone(),
             id: COUNTER.fetch_add(1, core::sync::atomic::Ordering::SeqCst),
             mark: false,
             shown: true,
@@ -156,6 +150,7 @@ impl Segment {
     ///
     #[must_use]
     #[instrument(name = "Segment::intersect", skip_all)]
+    #[allow(clippy::too_many_lines)]
     pub fn intersect(
         key1: impl Into<SegmentIdx>,
         key2: impl Into<SegmentIdx>,
@@ -174,20 +169,23 @@ impl Segment {
             lower: lower2,
             ..
         } = &segments[key2];
+        dbg!(upper2);
+        dbg!(lower2);
 
-        let line1 = HomogeneousLine::from(*segment_left);
-        let line2 = HomogeneousLine::from(*segment_right);
+        let line1 = HomogeneousLine::from(segment_left.clone());
+        let line2 = HomogeneousLine::from(segment_right.clone());
 
         let intersect = line1.intersection(line2).cartesian().inspect(|v| {
             debug!(
                 "Calculating intersection between segments {segment_left:?} and {segment_right:?} in step {step}: {v:?}"
             );
         });
+        dbg!(&intersect);
         if let Ok(coord) = intersect
-            && ((min(upper1.x, lower1.x)..=max(upper1.x, lower1.x)).contains(&coord.x))
-            && ((min(upper1.y, lower1.y)..=max(upper1.y, lower1.y)).contains(&coord.y))
-            && ((min(upper2.x, lower2.x)..=max(upper2.x, lower2.x)).contains(&coord.x))
-            && ((min(upper2.y, lower2.y)..=max(upper2.y, lower2.y)).contains(&coord.y))
+            && (((&upper1.x).min(&lower1.x)..=(&upper1.x).max(&lower1.x)).contains(&&coord.x))
+            && (((&upper1.y).min(&lower1.y)..=(&upper1.y).max(&lower1.y)).contains(&&coord.y))
+            && (((&upper2.x).min(&lower2.x)..=(&upper2.x).max(&lower2.x)).contains(&&coord.x))
+            && (((&upper2.y).min(&lower2.y)..=(&upper2.y).max(&lower2.y)).contains(&&coord.y))
         {
             debug!(
                 "Intersection found between segments {segment_left:?} and {segment_right:?} at {coord:?} in step {step}"
@@ -201,14 +199,12 @@ impl Segment {
             // Check if lines are parallel.
 
             // Check if Segments lie on each other
-            if approx_eq!(CartesianCoord, *upper1, *upper2)
-                && approx_eq!(CartesianCoord, *lower1, *lower2)
-            {
+            if upper1 == upper2 && lower1 == lower2 {
                 return Some(Intersection::new(
                     IntersectionType::Parallel {
                         line: Self {
-                            upper: *upper1,
-                            lower: *lower1,
+                            upper: upper1.clone(),
+                            lower: lower1.clone(),
                             id: usize::MAX,
                             mark: false,
                             shown: false,
@@ -218,23 +214,32 @@ impl Segment {
                     step,
                 ));
             }
-            let p1 = segment_left.contains(*upper2).then_some(upper2);
-            let p2 = segment_left.contains(*lower2).then_some(lower2);
-            let p3 = segment_right.contains(*upper1).then_some(upper1);
-            let p4 = segment_right.contains(*lower1).then_some(lower1);
-            let mut iter = p1.iter().chain(p2.iter()).chain(p3.iter()).chain(p4.iter());
-            if let (Some(&&p1), Some(&&p2)) = (iter.next(), iter.next()) {
-                if approx_eq!(CartesianCoord, p1, p2) {
-                    return Some(Intersection::new(
-                        IntersectionType::Point { coord: p1 },
-                        vec![key1, key2],
-                        step,
-                    ));
+            let p1 = segment_left.contains(upper2).then_some(upper2);
+            let p2 = segment_left.contains(lower2).then_some(lower2);
+            let p3 = segment_right.contains(upper1).then_some(upper1);
+            let p4 = segment_right.contains(lower1).then_some(lower1);
+            let mut iter = p1
+                .iter()
+                .chain(p2.iter())
+                .chain(p3.iter())
+                .chain(p4.iter())
+                .copied();
+            if let (Some(p1), Some(mut p2)) = (iter.next(), iter.next()) {
+                while p1 == p2 {
+                    if let Some(p3) = iter.next() {
+                        p2 = p3;
+                    } else {
+                        return Some(Intersection::new(
+                            IntersectionType::Point { coord: p1.clone() },
+                            vec![key1, key2],
+                            step,
+                        ));
+                    }
                 }
 
                 let mut segment = Self {
-                    upper: p1,
-                    lower: p2,
+                    upper: p1.clone(),
+                    lower: p2.clone(),
                     id: usize::MAX,
                     mark: false,
                     shown: false,
@@ -255,50 +260,47 @@ impl Segment {
     }
 
     /// Returns true if the `coord` is on the [`Segment`].
-    pub fn contains(&self, coord: impl Into<CartesianCoord>) -> bool {
-        let coord = coord.into();
-        let y = OrderedFloat(coord.y);
-        let x = OrderedFloat(coord.x);
-        let max_y = OrderedFloat(self.upper.y);
-        let min_y = OrderedFloat(self.lower.y);
-        let max_x = OrderedFloat(self.upper.x).max(OrderedFloat(self.lower.x));
-        let min_x = OrderedFloat(self.upper.x).min(OrderedFloat(self.lower.x));
+    pub fn contains(&self, coord: &CartesianCoord) -> bool {
+        let y = &coord.y;
+        let x = &coord.x;
+        let max_y = &self.upper.y;
+        let min_y = &self.lower.y;
+        let max_x = (&self.upper.x).max(&self.lower.x);
+        let min_x = (&self.upper.x).min(&self.lower.x);
 
         self.line().contains_coord(coord) && max_y >= y && min_y <= y && max_x >= x && min_x <= x
     }
 
     pub fn update(&mut self) {
-        let p1 = self.upper;
-        let p2 = self.lower;
+        let p1 = core::mem::take(&mut self.upper);
+        let p2 = core::mem::take(&mut self.lower);
 
         let mut coords = [(p1), p2];
-        coords.sort_unstable_by(|l, r| {
-            OrderedFloat(l.y)
-                .cmp(&OrderedFloat(r.y))
-                .reverse()
-                .then(OrderedFloat(l.x).cmp(&OrderedFloat(r.x)))
-        });
-        self.upper = coords[0];
-        self.lower = coords[1];
+        coords.sort_unstable_by(|l, r| (&l.y).cmp(&(&r.y)).reverse().then((&l.x).cmp(&(&r.x))));
+        self.upper = coords[0].clone();
+        self.lower = coords[1].clone();
     }
 
     /// Returns the [`HomogeneousLine`]  defined by this [`Segment`]
     #[must_use]
     pub fn line(&self) -> HomogeneousLine {
-        self.upper.homogeneous().line(self.lower.homogeneous())
+        self.upper
+            .clone()
+            .homogeneous()
+            .line(self.lower.clone().homogeneous())
     }
 
     #[must_use]
     pub fn is_horizontal(&self) -> bool {
-        f_eq!(self.upper.y, self.lower.y)
+        self.upper.y == self.lower.y
     }
     #[must_use]
     pub fn is_vertical(&self) -> bool {
-        f_eq!(self.upper.x, self.lower.x)
+        self.upper.x == self.lower.x
     }
 
     #[must_use]
-    pub fn angle(&self) -> f64 {
+    pub fn angle(&self) -> Float {
         self.line().angle()
     }
 
@@ -306,11 +308,4 @@ impl Segment {
     pub fn slope(&self) -> Slope {
         self.line().slope()
     }
-}
-
-fn min(a: f64, b: f64) -> f64 {
-    if a < b { a } else { b }
-}
-fn max(a: f64, b: f64) -> f64 {
-    if a > b { a } else { b }
 }

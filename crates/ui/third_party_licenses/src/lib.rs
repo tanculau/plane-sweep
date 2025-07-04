@@ -1,6 +1,6 @@
 //! [`ThirdPartyLicences`] is a widget that displays all third party licenses used in the application.
 
-use common::{MyWidget, WidgetName};
+use common::ui::{MyWidget, WidgetName};
 use eframe::egui;
 
 /// Displays all third party licenses used in the application.

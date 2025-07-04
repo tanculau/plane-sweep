@@ -4,7 +4,7 @@ mod set_view;
 mod status_view;
 
 use common::{
-    AlgoStepIdx, AlgoSteps, MyWidget, WidgetName,
+    AlgoStepIdx, AlgoSteps,  ui::MyWidget,  ui::WidgetName,
     intersection::Intersections,
     segment::{Segment, Segments},
 };

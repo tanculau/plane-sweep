@@ -1,5 +1,5 @@
 use brute_force::{AlgorithmStep, calculate_steps};
-use common::test::approx_eq;
+use common::intersection::{Intersection, IntersectionIdx, IntersectionType};
 use common::{
     AlgoSteps,
     intersection::Intersections,
@@ -125,42 +125,42 @@ fn five_segments() {
     expect_that!(
         intersections,
         elements_are![
-            approx_eq(&common::intersection::Intersection::new(
+            eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
                     coord: (0.0, 0.0).into()
                 },
                 vec![0.into(), 1.into()],
                 1,
             )),
-            approx_eq(&common::intersection::Intersection::new(
+            eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
                     coord: (0.0, 0.0).into()
                 },
                 vec![0.into(), 2.into()],
                 2,
             )),
-            approx_eq(&common::intersection::Intersection::new(
+            eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
                     coord: (0.0, 0.0).into()
                 },
                 vec![0.into(), 3.into()],
                 3,
             )),
-            approx_eq(&common::intersection::Intersection::new(
+            eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
                     coord: (0.0, 0.0).into()
                 },
                 vec![1.into(), 2.into()],
                 5,
             )),
-            approx_eq(&common::intersection::Intersection::new(
+            eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
                     coord: (0.0, 0.0).into()
                 },
                 vec![1.into(), 3.into()],
                 6,
             )),
-            approx_eq(&common::intersection::Intersection::new(
+            eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
                     coord: (0.0, 0.0).into()
                 },
@@ -256,5 +256,28 @@ fn five_segments() {
             }),
             eq(&AlgorithmStep::End)
         ]
+    );
+}
+
+#[gtest]
+fn feature23() {
+    let segments =
+        Segments::from_iter([Segment::new((-1, 0), (0, 0)), Segment::new((1, 0), (-1, 0))]);
+    let mut intersections = Intersections::new();
+    let mut steps = AlgoSteps::new();
+    calculate_steps(&segments, &mut intersections, &mut steps);
+    let inter: &Intersection = &intersections[IntersectionIdx::from(0)];
+    expect_that!(
+        inter,
+        pat!(Intersection {
+            typ: pat!(IntersectionType::Parallel {
+                line: pat!(Segment {
+                    upper: eq(&(-1, 0).into()),
+                    lower: eq(&(0, 0).into()),
+                    ..
+                })
+            }),
+            ..
+        })
     );
 }

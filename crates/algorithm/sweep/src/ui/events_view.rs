@@ -1,4 +1,4 @@
-use common::{MyWidget, WidgetName, segment::Segments};
+use common::{ ui::MyWidget,  ui::WidgetName, segment::Segments};
 use eframe::egui::{self, Layout};
 use egui_extras::{Column, Size, StripBuilder, TableBuilder};
 
@@ -69,7 +69,7 @@ impl<'a, 'b> MyWidget<EventsViewState<'a, 'b>> for EventsView {
         let EventsViewState { step, segments } = state.into();
         if let Some(event) = &step.event {
             ui.heading("Current Event:");
-            ui.label(format!("Coordinate: ({:.2} , {:.2})", *event.x, *event.y));
+            ui.label(format!("Coordinate: ({:.2} , {:.2})", event.x, event.y));
             ui.label(format!("Segments: {}", format_segment(event, segments)));
             ui.separator();
         }

@@ -2,10 +2,7 @@ use core::iter;
 
 use bon::Builder;
 use common::{
-    AlgrorithmStep,
-    intersection::IntersectionIdx,
-    math::{OrderedFloat, cartesian::CartesianCoord},
-    segment::SegmentIdx,
+    intersection::IntersectionIdx, math::{cartesian::CartesianCoord, Float}, segment::SegmentIdx, AlgrorithmStep
 };
 
 use crate::event::{Event, EventQueue};
@@ -70,7 +67,7 @@ pub enum StepType {
     InsertIntersectionEvent {
         s_l: SegmentIdx,
         s_r: SegmentIdx,
-        intersection: (OrderedFloat, OrderedFloat),
+        intersection: (Float, Float),
     },
     End,
 }
@@ -128,6 +125,6 @@ impl AlgrorithmStep for Step {
     }
 
     fn sweep_line(&self) -> Option<CartesianCoord> {
-        self.event.as_ref().map(|v| (v.x.0, v.y.0).into())
+        self.event.as_ref().map(|v| (v.x.clone(), v.y.clone()).into())
     }
 }

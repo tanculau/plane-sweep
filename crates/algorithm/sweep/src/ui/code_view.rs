@@ -1,5 +1,5 @@
 use common::{
-    AlgoStepIdx, AlgoSteps, MyWidget, WidgetName,
+    AlgoStepIdx, AlgoSteps, ui::MyWidget, ui::WidgetName,
     intersection::Intersections,
     segment::{SegmentIdx, Segments},
 };
@@ -196,8 +196,8 @@ impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
             intersection: (x, y),
         } = &s.typ
         {
-            let x = x.0;
-            let y = y.0;
+            let x = x;
+            let y = y;
             let s_l = segments[*s_l].id;
             let s_r = segments[*s_r].id;
             let text = RichText::new(format!("2. then insert the intersection point as an event into StatusQueue. Inserting ({y:.2}, {x:.2}, () as insection from s{s_l} and s{s_r}.")).underline();
