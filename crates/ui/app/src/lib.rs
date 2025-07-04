@@ -33,6 +33,7 @@ impl App {
                 return app;
             }
         }
+        let _ = cc;
 
         Self::default()
     }
