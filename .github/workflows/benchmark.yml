@@ -1,0 +1,38 @@
+name: Benchmark
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+    - 'CHANGELOG.md'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings -A unused-imports
+  RUSTDOCFLAGS: -D warnings
+  RUST_BACKTRACE: full
+
+jobs:
+  examples-bench:
+    name: Examples Bench
+    if: github.event_name == 'push' 
+    runs-on: ubuntu-latest
+    env:
+      # Run each benchmark within 2 seconds.
+      DIVAN_MAX_TIME: 2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-hakari
+        uses: taiki-e/install-action@v2 # v2
+        with:
+          tool: cargo-hakari
+      - name: disable hakari
+        run: cargo hakari disable
+      - name: Benchmark
+        working-directory: ./benchmark
+        run: cargo bench -q --benches 

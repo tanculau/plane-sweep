@@ -9,7 +9,7 @@ use fastrand::Rng;
 #[global_allocator]
 static ALLOC: AllocProfiler = AllocProfiler::system();
 
-const SIZES: &[usize] = &[0, 1, 2, 8, 16, 64, 128, 256, 1024];
+const SIZES: &[usize] = &[0, 1, 2, 4, 8, 16, 32, 64, 128, 256];
 
 fn gen_inputs(len: usize) -> impl FnMut() -> (Segments, Intersections) {
     let mut rng = Rng::with_seed(len as u64);
@@ -18,8 +18,8 @@ fn gen_inputs(len: usize) -> impl FnMut() -> (Segments, Intersections) {
         (
             std::iter::from_fn(|| {
                 Some(Segment::new(
-                    (rng.i16(..), rng.i64(..)),
-                    (rng.i16(..), rng.i64(..)),
+                    (rng.i16(..), rng.i16(..)),
+                    (rng.i16(..), rng.i16(..)),
                 ))
             })
             .take(len)
@@ -34,7 +34,7 @@ fn main() {
     divan::main();
 }
 
-#[divan::bench(args = SIZES, max_time = 10)]
+#[divan::bench(args = SIZES)]
 fn sweep(bencher: Bencher, len: usize) {
     bencher
         .with_inputs(gen_inputs(len))
