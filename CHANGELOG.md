@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Lints
 - Cloning too much
 - *(check)* Unused var
+- Overflow if input was greater than i16
 
 ### 💼 Other
 
@@ -43,6 +44,8 @@ All notable changes to this project will be documented in this file.
 - Activate Hakari again
 - Add benchmark runs
 - *(fuzzer)* Speedup fuzzer
+- *(bench)* Fix
+- Automatic Benchmarks
 
 ## [1.0.0] - 2025-06-30
 
