@@ -41,6 +41,8 @@ All notable changes to this project will be documented in this file.
 - Benchmark
 - *(cliff)* Remove bench from showing
 - Activate Hakari again
+- Add benchmark runs
+- *(fuzzer)* Speedup fuzzer
 
 ## [1.0.0] - 2025-06-30
 
