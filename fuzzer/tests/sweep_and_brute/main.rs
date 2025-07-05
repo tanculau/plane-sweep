@@ -17,12 +17,10 @@ fn main() {
                 .map(|i| Segment::new((i.upper_x, i.upper_y), (i.lower_x, i.lower_y)))
                 .filter(|s| s.upper != s.lower)
                 .collect();
-            let mut steps = AlgoSteps::new();
             let mut sweep_intersections = Intersections::new();
-            sweep::calculate_steps::<false>(&segments, &mut sweep_intersections, &mut steps);
+            sweep::calculate(&segments, &mut sweep_intersections);
             let mut brute_intersections = Intersections::new();
-            let mut steps = AlgoSteps::new();
-            brute_force::calculate_steps(&segments, &mut brute_intersections, &mut steps);
+            brute_force::calculate(&segments, &mut brute_intersections);
             let sweep = HashSet::<IntersectionShort>::from_iter(common::intersection::to_lines(
                 &sweep_intersections,
             ));
