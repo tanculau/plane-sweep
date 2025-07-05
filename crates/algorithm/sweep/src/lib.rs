@@ -113,10 +113,18 @@ pub fn calculate_steps<const REPORT: bool>(
     // Next, insert the segment endpoints into Q; when an upper endpoint is inserted, the corresponding segment should be stored with it.
     for (id, segment) in segments.iter_enumerated() {
         // We store the segment id for the upper one
-        let event = Event::new(segment.upper.y, segment.upper.x, std::iter::once(id));
+        let event = Event::new(
+            segment.upper.y.clone(),
+            segment.upper.x.clone(),
+            std::iter::once(id),
+        );
         event_queue.insert(event);
         // We do not store the segment id for the lower one
-        let event = Event::new(segment.lower.y, segment.lower.x, std::iter::empty());
+        let event = Event::new(
+            segment.lower.y.clone(),
+            segment.lower.x.clone(),
+            std::iter::empty(),
+        );
         event_queue.insert(event);
         report!(
             REPORT,
@@ -176,7 +184,7 @@ fn handle_event_point<const REPORT: bool>(
     s: &mut usize,
     steps: &mut AlgoSteps<Step>,
 ) {
-    let p: CartesianCoord = (event.x, event.y).into();
+    let p: CartesianCoord = (event.x.clone(), event.y.clone()).into();
 
     // "Let U(p) be the set of segments whose upper endpoint is p; these segments
     // are stored with the event point p. (For horizontal segments, the upper
@@ -436,7 +444,10 @@ fn find_new_event<const REPORT: bool>(
             StepType::InsertIntersectionEvent {
                 s_l,
                 s_r,
-                intersection: (intersection.point1().x, intersection.point1().y,),
+                intersection: (
+                    intersection.point1().x.clone(),
+                    intersection.point1().y.clone(),
+                ),
             },
             s,
             event_queue,
@@ -446,8 +457,8 @@ fn find_new_event<const REPORT: bool>(
             l_p.to_vec()
         );
         event_queue.insert(Event::new(
-            intersection.point1().y,
-            intersection.point1().x,
+            intersection.point1().y.clone(),
+            intersection.point1().x.clone(),
             std::iter::empty(),
         ));
         // println!(
@@ -459,16 +470,23 @@ fn find_new_event<const REPORT: bool>(
 
 pub fn calculate(segments: &Segments, intersections: &mut Intersections) {
     intersections.clear();
-
     // Initialize an empty event queue Q.
     let mut event_queue = EventQueue::new();
     // Next, insert the segment endpoints into Q; when an upper endpoint is inserted, the corresponding segment should be stored with it.
     for (id, segment) in segments.iter_enumerated() {
         // We store the segment id for the upper one
-        let event = Event::new(segment.upper.y, segment.upper.x, std::iter::once(id));
+        let event = Event::new(
+            segment.upper.y.clone(),
+            segment.upper.x.clone(),
+            std::iter::once(id),
+        );
         event_queue.insert(event);
         // We do not store the segment id for the lower one
-        let event = Event::new(segment.lower.y, segment.lower.x, std::iter::empty());
+        let event = Event::new(
+            segment.lower.y.clone(),
+            segment.lower.x.clone(),
+            std::iter::empty(),
+        );
         event_queue.insert(event);
     }
 
@@ -500,7 +518,7 @@ fn handle_event_point_fast(
     intersections: &mut Intersections,
     status_queue: &mut StatusQueue,
 ) {
-    let p: CartesianCoord = (event.x, event.y).into();
+    let p: CartesianCoord = (event.x.clone(), event.y.clone()).into();
 
     // "Let U(p) be the set of segments whose upper endpoint is p; these segments
     // are stored with the event point p. (For horizontal segments, the upper
@@ -575,8 +593,8 @@ fn find_new_event_fast(
             || intersection.point1().y == event.y && intersection.point1().x > event.x)
     {
         event_queue.insert(Event::new(
-            intersection.point1().y,
-            intersection.point1().x,
+            intersection.point1().y.clone(),
+            intersection.point1().x.clone(),
             std::iter::empty(),
         ));
     }

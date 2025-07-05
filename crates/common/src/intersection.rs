@@ -24,7 +24,7 @@ pub struct Intersection {
     pub step: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IntersectionShort {
     pub typ: IntersectionType,
     pub segments: [SegmentIdx; 2],
@@ -85,18 +85,6 @@ impl core::fmt::Debug for IntersectionType {
                 "Line(({},{}), ({},{}))",
                 line.upper.x, line.upper.y, line.lower.x, line.lower.y
             ),
-        }
-    }
-}
-
-impl core::hash::Hash for IntersectionType {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        match self {
-            Self::Point { coord } => coord.hash(state),
-            Self::Parallel { line } => {
-                line.upper.hash(state);
-                line.lower.hash(state);
-            }
         }
     }
 }

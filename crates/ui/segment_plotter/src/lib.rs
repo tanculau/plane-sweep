@@ -80,8 +80,8 @@ fn circle(
             let t: f64 = remap(f64::from(i), 0.0..=f64::from(n), 0.0..=TAU);
             let r: f64 = radius;
             [
-                r.mul_add(t.cos(), coord.x.try_into().unwrap()),
-                r.mul_add(t.sin(), coord.y.try_into().unwrap()),
+                r.mul_add(t.cos(), coord.x.clone().try_into().unwrap()),
+                r.mul_add(t.sin(), coord.y.clone().try_into().unwrap()),
             ]
         })
         .collect();
@@ -182,7 +182,8 @@ impl<'segments, 'intersections, 'steps, T: AlgrorithmStep>
 
             if let Some(sweep) = steps[step].sweep_line() {
                 plot_ui.hline(
-                    HLine::new("Sweep Line", f64::try_from(sweep.y).unwrap()).color(Color32::RED),
+                    HLine::new("Sweep Line", f64::try_from(sweep.y.clone()).unwrap())
+                        .color(Color32::RED),
                 );
                 let line = circle(self.radius * 2.0, "Event Point".to_string(), &sweep)
                     .color(Color32::RED);

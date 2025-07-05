@@ -17,7 +17,15 @@ serde = [
     "segment_table?/serde",
     "intersection_table?/serde",
 ]
-ui = ["dep:controller", "dep:eframe", "dep:egui_extras", "dep:intersection_table", "dep:segment_plotter", "dep:segment_table", "common/ui"]
+ui = [
+    "dep:controller",
+    "dep:eframe",
+    "dep:egui_extras",
+    "dep:intersection_table",
+    "dep:segment_plotter",
+    "dep:segment_table",
+    "common/ui",
+]
 
 [dependencies]
 bon = { version = "3.6.4", default-features = false }

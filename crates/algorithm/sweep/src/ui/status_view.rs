@@ -59,8 +59,10 @@ impl<'a> MyWidget<StatusViewState<'a>> for StatusView {
                                     let seg = segments[*seg_idx].clone();
                                     row.col(|ui| {
                                         if let Some(event) = &step.event {
-                                            let x_intersect =
-                                                intersection(&seg, &(event.x, event.y).into());
+                                            let x_intersect = intersection(
+                                                &seg,
+                                                &(event.x.clone(), event.y.clone()).into(),
+                                            );
                                             ui.label(format!("{x_intersect:.2}"));
                                         } else {
                                             ui.label("");

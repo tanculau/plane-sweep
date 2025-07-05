@@ -1,6 +1,7 @@
 use common::{
     AlgoSteps,
     intersection::{InterVec, Intersection, IntersectionType, Intersections},
+    math::Float,
     segment::{Segment, Segments},
 };
 use googletest::prelude::*;
@@ -133,13 +134,28 @@ fn one() {
 #[gtest]
 fn many() {
     let segments = Segments::from_iter([
-        Segment::new((2, 2), (-2, -2)),           // 0
-        Segment::new((2, 2), (2, -2)),            // 1
-        Segment::new((-4, -1.5), (4, -1.5)),      // 2
-        Segment::new((-0.5, 5), (-0.5, -4.5)),    // 3
-        Segment::new((-1.5, 3.5), (-1.5, -4.5)),  // 4
-        Segment::new((-1.5, -4.5), (-0.5, -4.5)), // 5
-        Segment::new((-0.5, -4.5), (3, -4.5)),    // 6
+        Segment::new((2, 2), (-2, -2)), // 0
+        Segment::new((2, 2), (2, -2)),  // 1
+        Segment::new(
+            (-4, Float::new_neg(3_u8, 2_u8)),
+            (4, Float::new_neg(3_u8, 2_u8)),
+        ), // 2
+        Segment::new(
+            (Float::new_neg(1_u8, 2_u8), 5),
+            (Float::new_neg(1_u8, 2_u8), Float::new_neg(9_u8, 2_u8)),
+        ), // 3
+        Segment::new(
+            (Float::new_neg(3_u8, 2_u8), Float::new(7_u8, 2_u8)),
+            (Float::new_neg(3_u8, 2_u8), Float::new_neg(9_u8, 2_u8)),
+        ), // 4
+        Segment::new(
+            (Float::new_neg(3_u8, 2_u8), Float::new_neg(9_u8, 2_u8)),
+            (Float::new_neg(1_u8, 2_u8), Float::new_neg(9_u8, 2_u8)),
+        ), // 5
+        Segment::new(
+            (Float::new_neg(1_u8, 2_u8), Float::new_neg(9_u8, 2_u8)),
+            (3, Float::new_neg(9_u8, 2_u8)),
+        ), // 6
     ]);
     let mut intersections = Intersections::new();
     let mut steps = AlgoSteps::new();
@@ -162,42 +178,42 @@ fn many() {
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
-                    coord: eq(&(-0.5, -0.5).into())
+                    coord: eq(&(Float::new_neg(1_u8, 2_u8), Float::new_neg(1_u8, 2_u8)).into())
                 }),
                 segments: eq(&InterVec::from_iter([0.into(), 3.into()])),
                 ..
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
-                    coord: eq(&(-1.5, -1.5).into())
+                    coord: eq(&(Float::new_neg(3_u8, 2_u8), Float::new_neg(3_u8, 2_u8)).into())
                 }),
                 segments: eq(&InterVec::from_iter([0.into(), 2.into(), 4.into()])),
                 ..
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
-                    coord: eq(&(-0.5, -1.5).into())
+                    coord: eq(&(Float::new(1_u8, 2_u8), Float::new_neg(3_u8, 2_u8)).into())
                 }),
                 segments: eq(&InterVec::from_iter([2.into(), 3.into()])),
                 ..
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
-                    coord: eq(&(2, -1.5).into())
+                    coord: eq(&(Float::new(2_u8, 1_u8), Float::new_neg(3_u8, 2_u8)).into())
                 }),
                 segments: eq(&InterVec::from_iter([1.into(), 2.into()])),
                 ..
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
-                    coord: eq(&(-1.5, -4.5).into())
+                    coord: eq(&(Float::new_neg(1_u8, 2_u8), Float::new_neg(9_u8, 2_u8)).into())
                 }),
                 segments: eq(&InterVec::from_iter([4.into(), 5.into()])),
                 ..
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
-                    coord: eq(&(-0.5, -4.5).into())
+                    coord: eq(&(Float::new_neg(1_u8, 2_u8), Float::new_neg(9_u8, 2_u8)).into())
                 }),
                 segments: eq(&InterVec::from_iter([3.into(), 5.into(), 6.into()])),
                 ..

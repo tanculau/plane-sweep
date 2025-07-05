@@ -56,7 +56,7 @@ fn two_intersection() {
         intersections,
         elements_are![eq(&common::intersection::Intersection::new(
             common::intersection::IntersectionType::Point {
-                coord: (0.0, 0.0).into()
+                coord: (0, 0).into()
             },
             smallvec![0.into(), 1.into()],
             1,
@@ -128,42 +128,42 @@ fn five_segments() {
         elements_are![
             eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
-                    coord: (0.0, 0.0).into()
+                    coord: (0, 0).into()
                 },
                 smallvec![0.into(), 1.into()],
                 1,
             )),
             eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
-                    coord: (0.0, 0.0).into()
+                    coord: (0, 0).into()
                 },
                 smallvec![0.into(), 2.into()],
                 2,
             )),
             eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
-                    coord: (0.0, 0.0).into()
+                    coord: (0, 0).into()
                 },
                 smallvec![0.into(), 3.into()],
                 3,
             )),
             eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
-                    coord: (0.0, 0.0).into()
+                    coord: (0, 0).into()
                 },
                 smallvec![1.into(), 2.into()],
                 5,
             )),
             eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
-                    coord: (0.0, 0.0).into()
+                    coord: (0, 0).into()
                 },
                 smallvec![1.into(), 3.into()],
                 6,
             )),
             eq(&common::intersection::Intersection::new(
                 common::intersection::IntersectionType::Point {
-                    coord: (0.0, 0.0).into()
+                    coord: (0, 0).into()
                 },
                 smallvec![2.into(), 3.into()],
                 8,

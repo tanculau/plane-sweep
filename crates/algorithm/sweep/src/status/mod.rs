@@ -232,9 +232,12 @@ fn compare(lhs: &Segment, rhs: &Segment, event: &CartesianCoord) -> Ordering {
 
 pub(crate) fn intersection(segment: &Segment, event: &CartesianCoord) -> Float {
     if segment.is_horizontal() && event.y == segment.upper.y {
-        event.x.clamp(segment.upper.x, segment.lower.x)
+        event
+            .x
+            .clone()
+            .clamp(segment.upper.x.clone(), segment.lower.x.clone())
     } else {
-        let horizontal = HomogeneousLine::horizontal(event.y);
+        let horizontal = HomogeneousLine::horizontal(event.y.clone());
         let seg = segment.line();
         horizontal
             .intersection(seg)

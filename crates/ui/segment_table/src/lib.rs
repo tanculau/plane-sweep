@@ -17,10 +17,10 @@ pub struct SegmentTable {
     scroll_to_row_slider: usize,
     scroll_to_row: Option<SegmentIdx>,
     reversed: bool,
-    new_p1_y: f64,
-    new_p1_x: f64,
-    new_p2_y: f64,
-    new_p2_x: f64,
+    new_p1_y: isize,
+    new_p1_x: isize,
+    new_p2_y: isize,
+    new_p2_x: isize,
     #[cfg_attr(feature = "serde", serde(skip))]
     toasts: Toasts,
 }
@@ -285,25 +285,25 @@ impl<'reset, 'segment> MyWidget<SegmentTableState<'reset, 'segment>> for Segment
                     );
                     segments.push(segment);
 
-                    self.new_p1_x = 0.into();
-                    self.new_p1_y = 0.into();
-                    self.new_p2_x = 0.into();
-                    self.new_p2_y = 0.into();
+                    self.new_p1_x = 0;
+                    self.new_p1_y = 0;
+                    self.new_p2_x = 0;
+                    self.new_p2_y = 0;
                 }
             }
             ui.horizontal(|ui| {
                 ui.label("Point 1:");
                 ui.label(" X:");
-                ui.add(egui::Slider::new(&mut self.new_p1_x, -255.0..=255.0));
+                ui.add(egui::Slider::new(&mut self.new_p1_x, -255..=255));
                 ui.label(" Y:");
-                ui.add(egui::Slider::new(&mut self.new_p1_y, -255.0..=255.0));
+                ui.add(egui::Slider::new(&mut self.new_p1_y, -255..=255));
             });
             ui.horizontal(|ui| {
                 ui.label("Point 2:");
                 ui.label(" X:");
-                ui.add(egui::Slider::new(&mut self.new_p2_x, -255.0..=255.0));
+                ui.add(egui::Slider::new(&mut self.new_p2_x, -255..=255));
                 ui.label(" Y:");
-                ui.add(egui::Slider::new(&mut self.new_p2_y, -255.0..=255.0));
+                ui.add(egui::Slider::new(&mut self.new_p2_y, -255..=255));
             });
         });
         ui.separator();

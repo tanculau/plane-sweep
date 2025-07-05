@@ -3,7 +3,7 @@ use crate::math::{
     homogeneous::{HomogeneousCoord, PointAtInfinity},
 };
 
-#[derive(Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(kani, derive(kani::Arbitrary))]
 pub struct Coord {
@@ -42,7 +42,10 @@ impl Coord {
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
     pub fn array_float(&self) -> [f64; 2] {
-        [self.x.try_into().unwrap(), self.y.try_into().unwrap()]
+        [
+            self.x.clone().try_into().unwrap(),
+            self.y.clone().try_into().unwrap(),
+        ]
     }
 
     #[must_use]

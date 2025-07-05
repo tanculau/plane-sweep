@@ -3,9 +3,11 @@ pub mod homogeneous;
 
 use core::ops::{Add, Mul, Sub};
 
-pub type Float = Fraction;
+#[cfg(not(feature = "big"))]
+pub type Float = fraction::Fraction;
 
-use fraction::Fraction;
+#[cfg(feature = "big")]
+pub type Float = fraction::DynaFraction<u64>;
 
 pub trait CrossProduct<Rhs = Self> {
     type Output;

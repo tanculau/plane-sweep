@@ -65,7 +65,7 @@ impl Coord {
         if self.z == 0.into() {
             return PointAtInfinitySnafu.fail();
         }
-        Ok(CartesianCoord::new(self.x / self.z, self.y / self.z))
+        Ok(CartesianCoord::new(&self.x / &self.z, &self.y / &self.z))
     }
 
     #[must_use]

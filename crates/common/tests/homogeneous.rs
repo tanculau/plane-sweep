@@ -4,21 +4,21 @@ mod point {
 
     #[gtest]
     fn equal() {
-        fn check(a: f64, b: f64, c: f64) {
+        fn check(a: usize, b: usize, c: usize) {
             let p1 = HomogeneousCoord::new(a, b, c);
-            let p2 = HomogeneousCoord::new(a * 2.0, b * 2.0, c * 2.0);
+            let p2 = HomogeneousCoord::new(a * 2, b * 2, c * 2);
             expect_eq!(p1, p2);
         }
-        let p1 = HomogeneousCoord::new(4.0, 2.0, 1.0);
+        let p1 = HomogeneousCoord::new(4, 2, 1);
         expect_eq!(p1, p1);
-        check(4.0, 2.0, 1.0);
-        check(0.0, 2.0, 1.0);
-        check(4.0, 0.0, 1.0);
-        check(4.0, 2.0, 0.0);
-        check(0.0, 0.0, 1.0);
-        check(0.0, 2.0, 0.0);
-        check(4.0, 0.0, 0.0);
-        check(0.0, 0.0, 0.0);
+        check(4, 2, 1);
+        check(0, 2, 1);
+        check(4, 0, 1);
+        check(4, 2, 0);
+        check(0, 0, 1);
+        check(0, 2, 0);
+        check(4, 0, 0);
+        check(0, 0, 0);
     }
 
     #[gtest]
@@ -51,26 +51,25 @@ mod point {
 
     #[gtest]
     fn not_equal() {
-        let p1 = HomogeneousCoord::new(4.0, 2.0, 1.0);
-        let p2 = HomogeneousCoord::new(4.0, 2.0, 2.0);
+        let p1 = HomogeneousCoord::new(4, 2, 1);
+        let p2 = HomogeneousCoord::new(4, 2, 2);
         expect_ne!(p1, p2);
-        let p3 = HomogeneousCoord::new(4.0, 2.0, 1.0);
-        let p4 = HomogeneousCoord::new(4.0, 2.0, 0.0);
+        let p3 = HomogeneousCoord::new(4, 2, 1);
+        let p4 = HomogeneousCoord::new(4, 2, 0);
         expect_ne!(p3, p4);
-        let p5 = HomogeneousCoord::new(4.0, 2.0, 1.0);
-        let p6 = HomogeneousCoord::new(4.0, 0.0, 1.0);
+        let p5 = HomogeneousCoord::new(4, 2, 1);
+        let p6 = HomogeneousCoord::new(4, 0, 1);
         expect_ne!(p5, p6);
-
-        let p7 = HomogeneousCoord::new(4.0, 0.0, 1.0);
-        let p8 = HomogeneousCoord::new(4.0, 0.0, 0.0);
+        let p7 = HomogeneousCoord::new(4, 0, 1);
+        let p8 = HomogeneousCoord::new(4, 0, 0);
         expect_ne!(p7, p8);
 
-        let p9 = HomogeneousCoord::new(0.0, 0.0, 0.0);
-        let p10 = HomogeneousCoord::new(4.0, 2.0, 0.0);
+        let p9 = HomogeneousCoord::new(0, 0, 0);
+        let p10 = HomogeneousCoord::new(4, 2, 0);
         expect_ne!(p9, p10);
 
-        let p11 = HomogeneousCoord::new(4.0, 2.0, 1.0);
-        let p12 = HomogeneousCoord::new(0.0, 0.0, 0.0);
+        let p11 = HomogeneousCoord::new(4, 2, 1);
+        let p12 = HomogeneousCoord::new(0, 0, 0);
         expect_ne!(p11, p12);
     }
 }
@@ -89,12 +88,12 @@ mod line {
             let x = HomogeneousLine::x_axis();
             let y = HomogeneousLine::y_axis();
             let intersection = x.intersection(y);
-            let expected = HomogeneousCoord::new(0.0, 0.0, 1.0);
+            let expected = HomogeneousCoord::new(0, 0, 1);
             expect_eq!(intersection, expected);
             let x = HomogeneousLine::x_axis();
-            let y = HomogeneousLine::new(1.0, 1.0, 0.0);
+            let y = HomogeneousLine::new(1, 1, 0);
             let intersection = x.intersection(y);
-            let expected = HomogeneousCoord::new(0.0, 0.0, 1.0);
+            let expected = HomogeneousCoord::new(0, 0, 1);
             expect_eq!(intersection, expected);
         }
 
@@ -103,7 +102,7 @@ mod line {
             let x = HomogeneousLine::x_axis();
             let y = HomogeneousLine::new(1, 0, -5);
             let intersection = x.intersection(y).cartesian();
-            let expected = CartesianCoord::new(5.0, 0.0);
+            let expected = CartesianCoord::new(5, 0);
             expect_that!(intersection, ok(eq(&expected)));
         }
 

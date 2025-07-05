@@ -128,6 +128,8 @@ impl AlgrorithmStep for Step {
     }
 
     fn sweep_line(&self) -> Option<CartesianCoord> {
-        self.event.as_ref().map(|v| (v.x, v.y).into())
+        self.event
+            .as_ref()
+            .map(|v| (v.x.clone(), v.y.clone()).into())
     }
 }

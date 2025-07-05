@@ -251,8 +251,8 @@ impl CodeViewer {
             if let Some(intersection) = intersection {
                 let intersection = &state.intersections[intersection];
                 let p1 = intersection.point1();
-                let x = p1.x;
-                let y = p1.y;
+                let x = &p1.x;
+                let y = &p1.y;
                 writeln!(
                     buf,
                     "       // Intersection Point {{ x: {x:.2} y: {y:.2} }}",

@@ -30,15 +30,15 @@ impl Event {
     #[must_use]
     pub fn cheap_copy(&self) -> Self {
         Self {
-            y: self.y,
-            x: self.x,
+            y: self.y.clone(),
+            x: self.x.clone(),
             segments: HashSet::new(),
         }
     }
 
     #[must_use]
     pub fn coord(&self) -> CartesianCoord {
-        (self.x, self.y).into()
+        (self.x.clone(), self.y.clone()).into()
     }
 }
 

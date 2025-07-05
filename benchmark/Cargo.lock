@@ -87,6 +87,7 @@ dependencies = [
  "smallvec",
  "tracing",
  "web-time",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -132,11 +133,11 @@ name = "common"
 version = "1.0.0"
 dependencies = [
  "fraction",
- "num-rational",
  "smallvec",
  "snafu",
  "tracing",
  "typed-index-collections",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -521,6 +522,7 @@ dependencies = [
  "itertools",
  "slotmap",
  "smallvec",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -815,3 +817,7 @@ name = "windows_x86_64_msvc"
 version = "0.53.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "271414315aff87387382ec3d271b52d7ae78726f5d44ac98b4f4030c91880486"
+
+[[package]]
+name = "workspace-hack"
+version = "0.1.0"

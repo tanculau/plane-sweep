@@ -34,7 +34,7 @@ memchr = { version = "2" }
 num = { version = "0.4", default-features = false, features = ["serde", "std"] }
 num-bigint = { version = "0.4", default-features = false, features = ["serde", "std"] }
 num-complex = { version = "0.4", default-features = false, features = ["serde", "std"] }
-num-rational = { version = "0.4", features = ["num-bigint-std", "serde"] }
+num-rational = { version = "0.4", default-features = false, features = ["num-bigint-std", "serde", "std"] }
 num-traits = { version = "0.2", features = ["i128"] }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
@@ -69,15 +69,12 @@ syn = { version = "2", features = ["extra-traits", "full", "visit", "visit-mut"]
 ahash = { version = "0.8" }
 bitflags = { version = "2", default-features = false, features = ["std"] }
 egui-winit = { version = "0.31", default-features = false, features = ["accesskit", "clipboard", "links", "serde", "wayland", "x11"] }
-futures-core = { version = "0.3" }
-futures-util = { version = "0.3", features = ["io", "sink"] }
 glutin = { version = "0.32", default-features = false, features = ["glx", "wayland", "wgl"] }
 glutin-winit = { version = "0.5", default-features = false, features = ["egl", "glx", "wayland", "wgl"] }
 hashbrown = { version = "0.15", default-features = false, features = ["default-hasher"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 libc = { version = "0.2", features = ["extra_traits"] }
 linux-raw-sys = { version = "0.9", default-features = false, features = ["elf", "errno", "general", "if_ether", "ioctl", "net", "netlink", "no_std", "prctl", "xdp"] }
-miniz_oxide = { version = "0.8", features = ["simd"] }
 once_cell = { version = "1" }
 rustix = { version = "1", default-features = false, features = ["event", "fs", "net", "pipe", "process", "std", "time"] }
 smallvec-dff4ba8e3ae991db = { package = "smallvec", version = "1", default-features = false, features = ["const_new", "union"] }
@@ -93,7 +90,6 @@ bitflags = { version = "2", default-features = false, features = ["std"] }
 hashbrown = { version = "0.15", default-features = false, features = ["default-hasher"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 libc = { version = "0.2", features = ["extra_traits"] }
-miniz_oxide = { version = "0.8", features = ["simd"] }
 once_cell = { version = "1" }
 smallvec-dff4ba8e3ae991db = { package = "smallvec", version = "1", default-features = false, features = ["const_new", "union"] }
 syn = { version = "2", default-features = false, features = ["fold"] }

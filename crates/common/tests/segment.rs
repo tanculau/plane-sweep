@@ -202,7 +202,7 @@ mod contains {
     fn middle() {
         let s1 = Segment::new((12, 0), (-12, 0));
 
-        expect_true!(s1.contains(&(0.0 + f64::MIN_POSITIVE, 0).into()));
+        expect_true!(s1.contains(&(0, 0).into()));
     }
 }
 

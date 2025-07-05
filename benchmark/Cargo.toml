@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2024"
 publish = false
 
+[dependencies]
+sweep = {path = "../crates/algorithm/sweep"}
+fastrand = "2.3.0"
+common = {path = "../crates/common"}
+
 [dev-dependencies]
 common = {path = "../crates/common"}
 sweep = {path = "../crates/algorithm/sweep"}
@@ -16,6 +21,7 @@ divan = "0.1.21"
 
 [profile.release]
 lto = "fat"
+dev = "full"
 
 
 [[bench]]

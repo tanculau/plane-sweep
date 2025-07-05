@@ -74,8 +74,8 @@ impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
 
         if s.typ == StepType::PopQ {
             let event = s.event.as_ref().unwrap();
-            let y = event.y;
-            let x = event.x;
+            let y = &event.y;
+            let x = &event.x;
             let seg = format_segment(event.segments.iter(), segments);
 
             let text = RichText::new(format!("4. while Q is not empty, pop the next event point. The next event is ({y}, {x}, ({seg}))")).underline();

@@ -10,13 +10,17 @@ description.workspace = true
 license.workspace = true
 
 [features]
-serde = ["dep:serde", "typed-index-collections/serde", "fraction/with-serde-support", "smallvec/serde"]
+serde = [
+    "dep:serde",
+    "typed-index-collections/serde",
+    "fraction/with-serde-support",
+    "smallvec/serde",
+]
 ui = ["dep:eframe"]
-
+big = []
 [dependencies]
-eframe = { version = "0.31.1", default-features = false, optional = true}
+eframe = { version = "0.31.1", default-features = false, optional = true }
 fraction = { version = "0.15.3", default-features = false, features = ["with-dynaint", "with-approx"] }
-num-rational = { version = "0.4.2", features = ["num-bigint-std"] }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
 smallvec = { version = "2.0.0-alpha.11", features = ["std"] }
 snafu = { version = "0.8.6", features = ["rust_1_81"] }
