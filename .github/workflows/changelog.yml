@@ -1,4 +1,4 @@
-name: Changelog
+name: Changelog + Benchmark
 
 # By default, runs if you push to main. Exclude CHANGELOG so we do not write infinite times.
 on:
@@ -12,7 +12,7 @@ permissions:
   contents: write # for committing to gh-pages branch.
 
 jobs:
-  changelog:
+  changelog_and_benchmark:
     name: Generate changelog
     runs-on: ubuntu-latest
     permissions:
@@ -31,6 +31,19 @@ jobs:
         env:
           OUTPUT: CHANGELOG.md
           GITHUB_REPO: ${{ github.repository }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-hakari
+        uses: taiki-e/install-action@v2 # v2
+        with:
+          tool: cargo-hakari
+      - name: disable hakari
+        run: cargo hakari disable
+      - name: Benchmark
+        working-directory: ./benchmark
+        run: cargo bench -q --benches > out/${{ github.event.repository.updated_at}}-${{github.sha }}
 
       - name: Commit
         run: |
@@ -38,6 +51,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           set +e
+          git add benchmark/out/${{ github.event.repository.updated_at}}-${{github.sha }}
           git add CHANGELOG.md
           git commit -m "chore(cliff): Update changelog"
           git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git ${GITHUB_REF##*/}
