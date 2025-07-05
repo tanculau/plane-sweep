@@ -18,8 +18,8 @@ fn gen_inputs(len: usize) -> impl FnMut() -> (Segments, Intersections) {
         (
             std::iter::from_fn(|| {
                 Some(Segment::new(
-                    (rng.i16(..), rng.i64(..)),
-                    (rng.i16(..), rng.i64(..)),
+                    (rng.i32(..), rng.i32(..)),
+                    (rng.i32(..), rng.i32(..)),
                 ))
             })
             .take(len)
