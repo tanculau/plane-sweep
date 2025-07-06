@@ -46,6 +46,7 @@ All notable changes to this project will be documented in this file.
 - *(fuzzer)* Speedup fuzzer
 - *(bench)* Fix
 - Automatic Benchmarks
+- Fix
 
 ## [1.0.0] - 2025-06-30
 
