@@ -192,7 +192,7 @@ fn many() {
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
-                    coord: eq(&(Float::new(1_u8, 2_u8), Float::new_neg(3_u8, 2_u8)).into())
+                    coord: eq(&(Float::new_neg(1_u8, 2_u8), Float::new_neg(3_u8, 2_u8)).into())
                 }),
                 segments: eq(&InterVec::from_iter([2.into(), 3.into()])),
                 ..
@@ -206,7 +206,7 @@ fn many() {
             }),
             pat!(Intersection {
                 typ: pat!(IntersectionType::Point {
-                    coord: eq(&(Float::new_neg(1_u8, 2_u8), Float::new_neg(9_u8, 2_u8)).into())
+                    coord: eq(&(Float::new_neg(3_u8, 2_u8), Float::new_neg(9_u8, 2_u8)).into())
                 }),
                 segments: eq(&InterVec::from_iter([4.into(), 5.into()])),
                 ..
