@@ -28,6 +28,7 @@ impl Event {
     }
 
     #[must_use]
+    #[allow(clippy::clone_on_copy)]
     pub fn cheap_copy(&self) -> Self {
         Self {
             y: self.y.clone(),
@@ -37,6 +38,7 @@ impl Event {
     }
 
     #[must_use]
+    #[allow(clippy::clone_on_copy)]
     pub fn coord(&self) -> CartesianCoord {
         (self.x.clone(), self.y.clone()).into()
     }
