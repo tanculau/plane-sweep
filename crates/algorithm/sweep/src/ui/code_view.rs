@@ -57,7 +57,7 @@ impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
             let seg = &segments[segment];
 
             let text = RichText::new(format!(
-                "2. Insterting segment s{} with events (y,x,segment) ({:.2}, {:.2}, s{}) and ({:.2}, {:.2}, ()",
+                "2. Insterting segment s{} with events (y,x,segment) ({:.2}, {:.2}, s{}) and ({:.2}, {:.2}, ())",
                 seg.id, seg.upper.y, seg.upper.x, seg.id, seg.lower.y, seg.lower.x
             )).underline();
             ui.label(text);
@@ -149,7 +149,7 @@ impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
             let s_r = format_segment(s_r.iter(), segments);
             let s_dash = s_dash.map(|s_dash| segments[s_dash].id);
             let s_dash_dash = s_dash_dash.map(|s_dash_dash| segments[s_dash_dash].id);
-            let text= RichText::new(format!("10. else Let s' be the leftmost segment of U(p) ∪ C(p) in the StatusQueue. s' = s{s_dash:?}")).underline();
+            let text= RichText::new(format!("10. else Let s' be the leftmost segment of U(p) and C(p) in the StatusQueue. s' = s{s_dash:?}")).underline();
             ui.label(text);
             let text = RichText::new(format!(
                 "10. Let s_l be the left neighbor of s' in the StatusQueue. s_l = ({s_l})"
@@ -157,7 +157,7 @@ impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
             .underline();
             ui.label(text);
             ui.label(RichText::new("11. FindNewEvent(s_l, s', p)").underline());
-            let text= RichText::new(format!("12. Let s'' be the rightmost segment of U(p) ∪ C(p) in the StatusQueue. s'' = s{s_dash_dash:?}")).underline();
+            let text= RichText::new(format!("12. Let s'' be the rightmost segment of U(p) and C(p) in the StatusQueue. s'' = s{s_dash_dash:?}")).underline();
             ui.label(text);
             let text = RichText::new(format!(
                 "12. Let s_r be the right neighbor of s'' in the StatusQueue. s_r = ({s_r})"

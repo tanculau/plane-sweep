@@ -44,7 +44,7 @@ impl<'a> MyWidget<StatusViewState<'a>> for StatusView {
                                     ui.label("X");
                                 });
                                 header.col(|ui| {
-                                    ui.label("Angle");
+                                    ui.label("Slope");
                                 });
                                 header.col(|ui| {
                                     ui.label("Segment");

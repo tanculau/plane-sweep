@@ -36,7 +36,7 @@ impl<'a, 'b> MyWidget<SetViewState<'a, 'b>> for SetView {
                     }
                 })
             });
-        SidePanel::left("l_p")
+        SidePanel::right("l_p")
             .resizable(true)
             .show_inside(ui, |ui| {
                 ui.vertical_centered(|ui| {
