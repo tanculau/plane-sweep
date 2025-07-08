@@ -11,6 +11,7 @@ pub struct App {
     third_party_licences: ToggleAbleWidget<third_party_licenses::ThirdPartyLicences, ()>,
     brute_force: BruteForce,
     plane_sweep: PlaneSweep,
+    plane_sweep_with_lines: sweep_with_lines::ui::PlaneSweepOverlay,
     selected: AlgorithmChoice,
     #[cfg_attr(feature = "serde", serde(skip))]
     tracing: ToggleAbleWidget<tracing_gui::Tracing, ()>,
@@ -97,6 +98,10 @@ impl eframe::App for App {
                     use common::ui::MyWidget;
                     self.plane_sweep.ui(ui, ());
                 }
+                AlgorithmChoice::PlaneSweepWithLines => {
+                    use common::ui::MyWidget;
+                    self.plane_sweep_with_lines.ui(ui, ());
+                }
             }
             self.third_party_licences.view(ui.ctx(), ());
             self.tracing.view(ui.ctx(), ());
@@ -111,16 +116,23 @@ enum AlgorithmChoice {
     None,
     PlaneSweepBruteForce,
     PlaneSweep,
+    PlaneSweepWithLines,
 }
 
 impl AlgorithmChoice {
-    pub const CHOICES: &[Self] = &[Self::None, Self::PlaneSweepBruteForce, Self::PlaneSweep];
+    pub const CHOICES: &[Self] = &[
+        Self::None,
+        Self::PlaneSweepBruteForce,
+        Self::PlaneSweep,
+        Self::PlaneSweepWithLines,
+    ];
 
     pub const fn name(self) -> &'static str {
         match self {
             Self::None => "None",
             Self::PlaneSweepBruteForce => "Plane Sweep - Brute Force",
-            Self::PlaneSweep => "Plane Sweep",
+            Self::PlaneSweep => "Plane Sweep - Textbook",
+            Self::PlaneSweepWithLines => "Plane Sweep - With Overlay",
         }
     }
 }

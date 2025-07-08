@@ -3,6 +3,9 @@ resolver = "3"
 members = [
     "crates/algorithm/brute-force",
     "crates/algorithm/sweep",
+    "crates/algorithm/sweep-fast",
+    "crates/algorithm/sweep-utils",
+    "crates/algorithm/sweep-with-lines",
     "crates/common",
     "crates/plane-sweep",
     "crates/ui/app",

@@ -1,0 +1,32 @@
+[package]
+name = "sweep-utils"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+publish.workspace = true
+repository.workspace = true
+description.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[features]
+default = ["ui"]
+serde = ["dep:serde", "egui_extras?/serde", "common/serde"]
+ui = ["dep:eframe", "dep:egui_extras", "common/ui"]
+
+[dependencies]
+common = { version = "1.0.0", path = "../../common" }
+eframe = { version = "0.31.1", default-features = false, optional = true }
+egui_extras = { version = "0.31.1", default-features = false, optional = true }
+itertools = "0.14.0"
+serde = { version = "1.0.219", features = ["derive"], optional = true }
+slotmap = "1.0.7"
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+
+[dev-dependencies]
+googletest = "0.14.2"
+mutants = "0.0.3"
+
+[lints]
+workspace = true

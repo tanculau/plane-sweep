@@ -1,17 +1,42 @@
-use common::{segment::Segments, ui::MyWidget, ui::WidgetName};
+use common::{
+    math::cartesian::CartesianCoord,
+    segment::{SegmentIdx, Segments},
+    ui::{MyWidget, WidgetName},
+};
 use eframe::egui::{self, Layout};
 use egui_extras::{Column, Size, StripBuilder, TableBuilder};
 
-use crate::{Event, Step};
+use crate::event::EventQueue;
+
+pub trait EventReport {
+    fn event_queue(&self) -> &EventQueue;
+    fn p(&self) -> Option<&CartesianCoord>;
+    fn u_p(&self) -> &[SegmentIdx];
+}
+
+impl<T: EventReport> EventReport for &T {
+    fn event_queue(&self) -> &EventQueue {
+        (*self).event_queue()
+    }
+
+    fn p(&self) -> Option<&CartesianCoord> {
+        (*self).p()
+    }
+
+    fn u_p(&self) -> &[SegmentIdx] {
+        (*self).u_p()
+    }
+}
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct EventsView;
 
 impl EventsView {
-    pub fn table_view(ui: &mut eframe::egui::Ui, step: &Step, segments: &Segments) {
-        let mut events = step.event_queue.queue.iter();
-        let total_rows = step.event_queue.queue.len();
+    #[allow(clippy::missing_panics_doc)]
+    pub fn table_view(ui: &mut eframe::egui::Ui, report: impl EventReport, segments: &Segments) {
+        let mut events = report.event_queue().queue.iter();
+        let total_rows = report.event_queue().queue.len();
         let available_height = ui.available_height();
         let table = TableBuilder::new(ui)
             .striped(true)
@@ -39,15 +64,15 @@ impl EventsView {
             .body(|body| {
                 const ROW_HEIGHT: f32 = 18.0;
                 body.rows(ROW_HEIGHT, total_rows, |mut row| {
-                    let event = events.next().unwrap();
+                    let (p, segs) = events.next().unwrap();
                     row.col(|ui| {
-                        ui.label(event.y.to_string());
+                        ui.label(p.y.to_string());
                     });
                     row.col(|ui| {
-                        ui.label(event.x.to_string());
+                        ui.label(p.x.to_string());
                     });
                     row.col(|ui| {
-                        ui.label(format_segment(event, segments));
+                        ui.label(format_segment(segs.iter().copied(), segments));
                     });
                     row.col(|_| {});
                 });
@@ -59,18 +84,21 @@ impl WidgetName for EventsView {
     const NAME: &'static str = "Events";
 }
 
-pub struct EventsViewState<'a, 'b> {
-    pub step: &'a Step,
+pub struct EventsViewState<'a, 'b, T: EventReport> {
+    pub step: &'a T,
     pub segments: &'b Segments,
 }
 
-impl<'a, 'b> MyWidget<EventsViewState<'a, 'b>> for EventsView {
-    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<EventsViewState<'a, 'b>>) {
+impl<'a, 'b, T: EventReport> MyWidget<EventsViewState<'a, 'b, T>> for EventsView {
+    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<EventsViewState<'a, 'b, T>>) {
         let EventsViewState { step, segments } = state.into();
-        if let Some(event) = &step.event {
+        if let (Some(p), segs) = (step.p(), &step.u_p()) {
             ui.heading("Current Event:");
-            ui.label(format!("Coordinate: ({:.2} , {:.2})", event.x, event.y));
-            ui.label(format!("Segments: {}", format_segment(event, segments)));
+            ui.label(format!("Coordinate: ({:.2} , {:.2})", p.x, p.y));
+            ui.label(format!(
+                "Segments: {}",
+                format_segment(segs.iter().copied(), segments)
+            ));
             ui.separator();
         }
         StripBuilder::new(ui)
@@ -85,16 +113,15 @@ impl<'a, 'b> MyWidget<EventsViewState<'a, 'b>> for EventsView {
     }
 }
 
-fn format_segment(event: &Event, segments: &Segments) -> String {
+fn format_segment(mut iter: impl Iterator<Item = SegmentIdx>, segments: &Segments) -> String {
     use std::fmt::Write;
     let mut buf = String::new();
-    let mut s = event.segments.iter();
 
-    if let Some(s) = s.next() {
-        let _ = write!(&mut buf, "s{}", segments[*s].id);
+    if let Some(s) = iter.next() {
+        let _ = write!(&mut buf, "s{}", segments[s].id);
     }
-    for s in s {
-        let _ = write!(&mut buf, ", s{}", segments[*s].id);
+    for s in iter {
+        let _ = write!(&mut buf, ", s{}", segments[s].id);
     }
 
     buf

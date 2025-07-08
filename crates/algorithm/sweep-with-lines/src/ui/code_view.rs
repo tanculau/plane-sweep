@@ -1,6 +1,6 @@
 use common::{
     AlgoStepIdx, AlgoSteps,
-    intersection::Intersections,
+    intersection::LeanIntersections,
     segment::{SegmentIdx, Segments},
     ui::MyWidget,
     ui::WidgetName,
@@ -18,21 +18,23 @@ impl WidgetName for CodeView {
     const NAME_LONG: &'static str = "Code Viewer";
 }
 #[derive(Debug, Clone)]
-pub struct CodeViewState<'a, 'b, 'c> {
+pub struct CodeViewState<'a, 'b, 'c, 'd> {
     pub step: AlgoStepIdx,
     pub steps: &'a AlgoSteps<Step>,
     pub segments: &'b Segments,
-    pub intersections: &'c Intersections,
+    pub intersections: &'c LeanIntersections,
+    pub merged_intersections: &'d LeanIntersections,
 }
 
-impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
+impl<'a, 'b, 'c, 'd> MyWidget<CodeViewState<'a, 'b, 'c, 'd>> for CodeView {
     #[allow(clippy::too_many_lines)]
-    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<CodeViewState<'a, 'b, 'c>>) {
+    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<CodeViewState<'a, 'b, 'c, 'd>>) {
         let CodeViewState {
             step,
             steps,
             segments,
             intersections,
+            merged_intersections,
         } = state.into();
         let s = &steps[step];
 
@@ -108,7 +110,7 @@ impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
             ui.label("2. Calculate the set U(p) and C(p) and L(p)");
         }
         if let StepType::ReportIntersections { intersection } = s.typ {
-            let intersection = intersections[intersection].step();
+            let intersection = intersections[intersection].step;
             ui.label(RichText::new(format!("4. If U(p) and C(p) and L(p) >= 2, report an intersection. Adding intersection {intersection}")).underline());
         } else {
             ui.label("4. If U(p) and C(p) and L(p) >= 2, report an intersection.");
@@ -204,6 +206,40 @@ impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
             ui.label(text);
         } else {
             ui.label("2. then Insert the intersection point as an event in StatusQueue");
+        }
+
+        ui.separator();
+
+        let text = RichText::new("Merge Intersections").heading();
+        ui.label(if s.typ.is_merging() {
+            text.underline()
+        } else {
+            text
+        });
+        if let StepType::InsertMergeQueue { inter } = &s.typ {
+            let intersection = intersections[*inter].step;
+            let text = RichText::new(format!(
+                "1. Insert Intersection {intersection} into Merge Queue"
+            ))
+            .underline();
+            ui.label(text);
+        } else {
+            ui.label("1. Insert Intersection into Merge Queue");
+        }
+        if let StepType::Merge {
+            seg,
+            points,
+            result,
+        } = &s.typ
+        {
+            let seg1 = segments[seg[0]].id;
+            let seg2 = segments[seg[1]].id;
+            let res = &merged_intersections[*result].coord;
+
+            let text = RichText::new(format!("2. Merging points: {points:?} at intersection between s{seg1} and {seg2}: result {res:?}")).underline();
+            ui.label(text);
+        } else {
+            ui.label("1. Merging points at intersection");
         }
     }
 }

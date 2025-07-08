@@ -8,6 +8,7 @@ publish.workspace = true
 repository.workspace = true
 description.workspace = true
 license.workspace = true
+rust-version.workspace = true
 
 [features]
 serde = [
@@ -16,11 +17,11 @@ serde = [
     "segment_plotter?/serde",
     "segment_table?/serde",
     "intersection_table?/serde",
+    "sweep-utils/serde",
 ]
 ui = [
     "dep:controller",
     "dep:eframe",
-    "dep:egui_extras",
     "dep:intersection_table",
     "dep:segment_plotter",
     "dep:segment_table",
@@ -32,19 +33,16 @@ bon = { version = "3.6.4", default-features = false }
 common = { path = "../../common" }
 controller = { path = "../../ui/controller", optional = true }
 eframe = { version = "0.31.1", default-features = false, optional = true }
-egui_extras = { version = "0.31.1", default-features = false, optional = true }
 intersection_table = { path = "../../ui/intersection_table", optional = true }
 itertools = "0.14.0"
 segment_plotter = { path = "../../ui/segment_plotter", optional = true }
 segment_table = { path = "../../ui/segment_table", optional = true }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
-slotmap = "1.0.7"
-smallvec = { version = "2.0.0-alpha.11", features = ["std", "serde"] }
+sweep-utils = { version = "1.0.0", path = "../sweep-utils", features = ["ui"] }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 googletest = "0.14.1"
-mutants = "0.0.3"
 rstest = { version = "0.25.0", default-features = false }
 
 [lints]

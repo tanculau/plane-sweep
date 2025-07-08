@@ -3,12 +3,24 @@ use crate::math::{
     homogeneous::{HomogeneousCoord, PointAtInfinity},
 };
 
-#[derive(Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(kani, derive(kani::Arbitrary))]
 pub struct Coord {
     pub x: Float,
     pub y: Float,
+}
+
+impl PartialOrd for Coord {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Coord {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.y.cmp(&other.y).reverse().then(self.x.cmp(&other.x))
+    }
 }
 
 impl core::fmt::Debug for Coord {
@@ -41,6 +53,7 @@ impl Coord {
     }
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
+    #[allow(clippy::clone_on_copy)]
     pub fn array_float(&self) -> [f64; 2] {
         [
             self.x.clone().try_into().unwrap(),

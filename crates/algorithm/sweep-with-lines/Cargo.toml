@@ -1,5 +1,5 @@
 [package]
-name = "brute-force"
+name = "sweep-with-lines"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -14,38 +14,33 @@ rust-version.workspace = true
 serde = [
     "dep:serde",
     "common/serde",
-    "controller?/serde",
-    "intersection_table?/serde",
     "segment_plotter?/serde",
     "segment_table?/serde",
+    "intersection_table?/serde",
+    "sweep-utils/serde",
 ]
 ui = [
     "dep:controller",
+    "dep:eframe",
     "dep:intersection_table",
     "dep:segment_plotter",
     "dep:segment_table",
-    "dep:eframe",
-    "dep:egui_extras",
     "common/ui",
 ]
 
 [dependencies]
-auto_enums = { version = "0.8.7", default-features = false }
+bon = { version = "3.6.4", default-features = false }
 common = { path = "../../common" }
 controller = { path = "../../ui/controller", optional = true }
 eframe = { version = "0.31.1", default-features = false, optional = true }
-egui_extras = { version = "0.31.1", default-features = false, optional = true }
+indexmap = "2.10.0"
 intersection_table = { path = "../../ui/intersection_table", optional = true }
+itertools = "0.14.0"
 segment_plotter = { path = "../../ui/segment_plotter", optional = true }
 segment_table = { path = "../../ui/segment_table", optional = true }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
-smallvec = { version = "2.0.0-alpha.11", features = ["std", "serde"] }
-tracing = "0.1.41"
-web-time = "1.1.0"
+sweep-utils = { version = "1.0.0", path = "../sweep-utils", features = ["ui"] }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
-
-[dev-dependencies]
-googletest = "0.14.1"
 
 [lints]
 workspace = true

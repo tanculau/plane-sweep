@@ -1,32 +1,43 @@
-use common::{segment::Segments, ui::MyWidget, ui::WidgetName};
+use crate::status::intersection;
+use common::{
+    math::cartesian::CartesianCoord,
+    segment::{SegmentIdx, Segments},
+    ui::{MyWidget, WidgetName},
+};
 use eframe::egui::{self, Layout};
 use egui_extras::{Column, Size, StripBuilder, TableBuilder};
-
-use crate::{Step, status::intersection};
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct StatusView;
 
+pub trait StatusReport {
+    fn status_queue(&self) -> &[SegmentIdx];
+    fn p(&self) -> Option<&CartesianCoord>;
+}
+
 impl WidgetName for StatusView {
     const NAME: &'static str = "Status Queue";
 }
 
-pub struct StatusViewState<'a> {
-    pub step: &'a Step,
+pub struct StatusViewState<'a, T: StatusReport> {
+    pub step: &'a T,
     pub segments: &'a Segments,
 }
 
-impl<'a> MyWidget<StatusViewState<'a>> for StatusView {
-    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<StatusViewState<'a>>) {
-        let StatusViewState { step, segments } = state.into();
+impl<'a, T: StatusReport> MyWidget<StatusViewState<'a, T>> for StatusView {
+    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<StatusViewState<'a, T>>) {
+        let StatusViewState {
+            step: report,
+            segments,
+        } = state.into();
         StripBuilder::new(ui)
             .size(Size::remainder().at_least(100.0))
             .vertical(|mut strip| {
                 strip.cell(|ui| {
                     egui::ScrollArea::horizontal().show(ui, |ui| {
-                        let total_rows = step.status_queue.len();
-                        let mut iter = step.status_queue.iter();
+                        let total_rows = report.status_queue().len();
+                        let mut iter = report.status_queue().iter();
                         let available_height = ui.available_height();
                         let table = TableBuilder::new(ui)
                             .striped(true)
@@ -58,11 +69,8 @@ impl<'a> MyWidget<StatusViewState<'a>> for StatusView {
                                     let seg_idx = iter.next().unwrap();
                                     let seg = segments[*seg_idx].clone();
                                     row.col(|ui| {
-                                        if let Some(event) = &step.event {
-                                            let x_intersect = intersection(
-                                                &seg,
-                                                &(event.x.clone(), event.y.clone()).into(),
-                                            );
+                                        if let Some(event) = &report.p() {
+                                            let x_intersect = intersection(&seg, event);
                                             ui.label(format!("{x_intersect:.2}"));
                                         } else {
                                             ui.label("");

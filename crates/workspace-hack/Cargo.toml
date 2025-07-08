@@ -45,6 +45,25 @@ smallvec-474770a3030e73b7 = { package = "smallvec", version = "2.0.0-alpha.11", 
 tracing-core = { version = "0.1" }
 typed-index-collections = { version = "3", features = ["serde"] }
 
+[target.x86_64-unknown-linux-gnu.dependencies]
+ahash = { version = "0.8" }
+bitflags = { version = "2", default-features = false, features = ["std"] }
+egui-winit = { version = "0.31", default-features = false, features = ["accesskit", "clipboard", "links", "serde", "wayland", "x11"] }
+glutin = { version = "0.32", default-features = false, features = ["glx", "wayland", "wgl"] }
+glutin-winit = { version = "0.5", default-features = false, features = ["egl", "glx", "wayland", "wgl"] }
+hashbrown = { version = "0.15", default-features = false, features = ["default-hasher"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
+libc = { version = "0.2", features = ["extra_traits"] }
+linux-raw-sys = { version = "0.9", default-features = false, features = ["elf", "errno", "general", "if_ether", "ioctl", "net", "netlink", "no_std", "prctl", "xdp"] }
+once_cell = { version = "1" }
+rustix = { version = "1", default-features = false, features = ["event", "fs", "net", "pipe", "process", "std", "time"] }
+smallvec-dff4ba8e3ae991db = { package = "smallvec", version = "1", default-features = false, features = ["const_new", "union"] }
+wayland-sys = { version = "0.31", default-features = false, features = ["dlopen", "egl"] }
+winit = { version = "0.30", default-features = false, features = ["rwh_06", "wayland", "x11"] }
+x11rb = { version = "0.13", default-features = false, features = ["dl-libxcb", "randr", "resource_manager", "xinput", "xkb"] }
+x11rb-protocol = { version = "0.13", default-features = false, features = ["randr", "resource_manager", "xinput", "xkb"] }
+xkbcommon-dl = { version = "0.4", default-features = false, features = ["x11"] }
+
 [build-dependencies]
 ahash = { version = "0.8", default-features = false, features = ["no-rng", "serde", "std"] }
 aho-corasick = { version = "1" }
@@ -64,25 +83,6 @@ regex-syntax = { version = "0.8" }
 ron = { version = "0.8", features = ["integer128"] }
 serde = { version = "1", features = ["alloc", "derive", "rc"] }
 syn = { version = "2", features = ["extra-traits", "full", "visit", "visit-mut"] }
-
-[target.x86_64-unknown-linux-gnu.dependencies]
-ahash = { version = "0.8" }
-bitflags = { version = "2", default-features = false, features = ["std"] }
-egui-winit = { version = "0.31", default-features = false, features = ["accesskit", "clipboard", "links", "serde", "wayland", "x11"] }
-glutin = { version = "0.32", default-features = false, features = ["glx", "wayland", "wgl"] }
-glutin-winit = { version = "0.5", default-features = false, features = ["egl", "glx", "wayland", "wgl"] }
-hashbrown = { version = "0.15", default-features = false, features = ["default-hasher"] }
-image = { version = "0.25", default-features = false, features = ["png"] }
-libc = { version = "0.2", features = ["extra_traits"] }
-linux-raw-sys = { version = "0.9", default-features = false, features = ["elf", "errno", "general", "if_ether", "ioctl", "net", "netlink", "no_std", "prctl", "xdp"] }
-once_cell = { version = "1" }
-rustix = { version = "1", default-features = false, features = ["event", "fs", "net", "pipe", "process", "std", "time"] }
-smallvec-dff4ba8e3ae991db = { package = "smallvec", version = "1", default-features = false, features = ["const_new", "union"] }
-wayland-sys = { version = "0.31", default-features = false, features = ["dlopen", "egl"] }
-winit = { version = "0.30", default-features = false, features = ["rwh_06", "wayland", "x11"] }
-x11rb = { version = "0.13", default-features = false, features = ["dl-libxcb", "randr", "resource_manager", "xinput", "xkb"] }
-x11rb-protocol = { version = "0.13", default-features = false, features = ["randr", "resource_manager", "xinput", "xkb"] }
-xkbcommon-dl = { version = "0.4", default-features = false, features = ["x11"] }
 
 [target.x86_64-unknown-linux-gnu.build-dependencies]
 ahash = { version = "0.8" }

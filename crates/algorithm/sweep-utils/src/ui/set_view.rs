@@ -1,14 +1,21 @@
-use common::{segment::Segments, ui::MyWidget, ui::WidgetName};
+use common::{
+    segment::{SegmentIdx, Segments},
+    ui::{MyWidget, WidgetName},
+};
 use eframe::egui::{CentralPanel, SidePanel};
-
-use crate::Step;
 
 #[derive(Debug, Clone, Copy, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SetView;
 
-pub struct SetViewState<'a, 'b> {
-    pub step: &'a Step,
+pub trait SetReport {
+    fn u_p(&self) -> &[SegmentIdx];
+    fn c_p(&self) -> &[SegmentIdx];
+    fn l_p(&self) -> &[SegmentIdx];
+}
+
+pub struct SetViewState<'a, 'b, T: SetReport> {
+    pub step: &'a T,
     pub segments: &'b Segments,
 }
 
@@ -16,14 +23,14 @@ impl WidgetName for SetView {
     const NAME: &'static str = "Set View";
 }
 
-impl<'a, 'b> MyWidget<SetViewState<'a, 'b>> for SetView {
-    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<SetViewState<'a, 'b>>) {
+impl<'a, 'b, T: SetReport> MyWidget<SetViewState<'a, 'b, T>> for SetView {
+    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<SetViewState<'a, 'b, T>>) {
         let state = state.into();
-        let step: &Step = state.step;
+        let step = state.step;
         let segments = state.segments;
-        let u_p = &step.u_p;
-        let c_p = &step.c_p;
-        let l_p = &step.l_p;
+        let u_p = step.u_p();
+        let c_p = step.c_p();
+        let l_p = step.l_p();
 
         SidePanel::left("u_p")
             .resizable(true)

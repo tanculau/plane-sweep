@@ -230,7 +230,9 @@ fn compare(lhs: &Segment, rhs: &Segment, event: &CartesianCoord) -> Ordering {
         })
 }
 
-pub(crate) fn intersection(segment: &Segment, event: &CartesianCoord) -> Float {
+#[allow(clippy::missing_panics_doc)]
+#[must_use]
+pub fn intersection(segment: &Segment, event: &CartesianCoord) -> Float {
     if segment.is_horizontal() && event.y == segment.upper.y {
         event
             .x

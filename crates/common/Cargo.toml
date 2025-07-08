@@ -8,8 +8,10 @@ publish.workspace = true
 repository.workspace = true
 description.workspace = true
 license.workspace = true
+rust-version.workspace = true
 
 [features]
+default = ["big"]
 serde = [
     "dep:serde",
     "typed-index-collections/serde",

@@ -3,7 +3,7 @@ use core::iter;
 use bon::Builder;
 use common::{
     AlgrorithmStep,
-    intersection::{InterVec, IntersectionIdx},
+    intersection::{InterVec, LeanIntersectionIdx},
     math::{Float, cartesian::CartesianCoord},
     segment::SegmentIdx,
 };
@@ -16,6 +16,7 @@ use sweep_utils::{
 #[derive(Builder, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[builder(on(usize, into))]
+#[allow(clippy::struct_field_names)]
 pub struct Step {
     #[builder(start_fn)]
     pub typ: StepType,
@@ -27,6 +28,9 @@ pub struct Step {
     #[builder(default)]
     #[builder(with = FromIterator::from_iter)]
     pub status_queue: Vec<SegmentIdx>,
+    #[builder(default)]
+    #[builder(with = FromIterator::from_iter)]
+    pub merge_queue: Vec<([SegmentIdx; 2], Vec<CartesianCoord>)>,
     #[builder(default)]
     #[builder(with = FromIterator::from_iter)]
     pub u_p: Vec<SegmentIdx>,
@@ -89,7 +93,7 @@ pub enum StepType {
         up_cp_lp: InterVec,
     },
     ReportIntersections {
-        intersection: IntersectionIdx,
+        intersection: LeanIntersectionIdx,
     },
     DeleteLpCp,
     InsertUpCp,
@@ -111,6 +115,14 @@ pub enum StepType {
         s_l: SegmentIdx,
         s_r: SegmentIdx,
         intersection: (Float, Float),
+    },
+    InsertMergeQueue {
+        inter: LeanIntersectionIdx,
+    },
+    Merge {
+        seg: [SegmentIdx; 2],
+        points: Vec<CartesianCoord>,
+        result: LeanIntersectionIdx,
     },
     End,
 }
@@ -146,6 +158,10 @@ impl StepType {
             self,
             Self::FindNewEvent { .. } | Self::InsertIntersectionEvent { .. }
         )
+    }
+
+    pub const fn is_merging(&self) -> bool {
+        matches!(self, Self::Merge { .. } | Self::InsertMergeQueue { .. })
     }
     #[must_use]
     pub const fn is_finished(&self) -> bool {

@@ -2,14 +2,14 @@ mod code_view;
 
 use common::{
     AlgoStepIdx, AlgoSteps,
-    intersection::Intersections,
+    intersection::{LeanIntersections, lean_to_normal},
     segment::{Segment, Segments},
-    ui::MyWidget,
-    ui::WidgetName,
+    ui::{MyWidget, WidgetName},
 };
 use controller::{Controller, ControllerState};
 use eframe::egui::{self, Align, Layout, ScrollArea};
 use intersection_table::{IntersectionTable, IntersectionTableState};
+use itertools::chain;
 use segment_plotter::{SegmentPlotter, SegmentPlotterState};
 use segment_table::SegmentTable;
 use sweep_utils::ui::{
@@ -26,10 +26,12 @@ use crate::{
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[expect(clippy::struct_excessive_bools)]
-pub struct PlaneSweep {
+pub struct PlaneSweepOverlay {
     step: AlgoStepIdx,
     segments: Segments,
-    intersections: Intersections,
+    intersections: LeanIntersections,
+    merged_intersections: LeanIntersections,
+
     steps: AlgoSteps<Step>,
     #[cfg_attr(feature = "serde", serde(skip))]
     controller: Controller,
@@ -50,12 +52,12 @@ pub struct PlaneSweep {
     is_status_view_open: bool,
 }
 
-impl WidgetName for PlaneSweep {
+impl WidgetName for PlaneSweepOverlay {
     const NAME: &'static str = "Plane Sweep";
     const NAME_LONG: &'static str = "Plane Sweep Algorithm";
 }
 
-impl PlaneSweep {
+impl PlaneSweepOverlay {
     fn side_panel_groups(&mut self, ui: &mut egui::Ui) {
         ScrollArea::vertical().show(ui, |ui| {
             ui.with_layout(Layout::top_down_justified(Align::LEFT), |ui| {
@@ -81,7 +83,7 @@ impl PlaneSweep {
     }
 }
 
-impl MyWidget<()> for PlaneSweep {
+impl MyWidget<()> for PlaneSweepOverlay {
     fn ui(&mut self, ui: &mut eframe::egui::Ui, _: impl Into<()>) {
         let ctx = ui.ctx();
         egui::SidePanel::right("Plane Sweep Panel")
@@ -106,14 +108,21 @@ impl MyWidget<()> for PlaneSweep {
         );
         if should_reset {
             self.step = 0.into();
-            calculate_steps(&self.segments, &mut self.intersections, &mut self.steps);
+            calculate_steps(
+                &self.segments,
+                &mut self.intersections,
+                &mut self.merged_intersections,
+                &mut self.steps,
+            );
         }
         self.segment_plotter.show(
             ctx,
             &mut self.is_segment_plotter_open,
             SegmentPlotterState {
                 segments: &self.segments,
-                intersections: &self.intersections,
+                intersections: &{
+                    lean_to_normal(chain!(&self.intersections, &self.merged_intersections))
+                },
                 step: self.step,
                 steps: &self.steps,
             },
@@ -123,7 +132,10 @@ impl MyWidget<()> for PlaneSweep {
             &mut self.is_intersection_table_open,
             IntersectionTableState {
                 segments: &self.segments,
-                intersections: &self.intersections,
+                intersections: &lean_to_normal(chain!(
+                    &self.intersections,
+                    &self.merged_intersections
+                )),
                 step: self.step,
             },
         );
@@ -133,7 +145,10 @@ impl MyWidget<()> for PlaneSweep {
             ControllerState {
                 steps: &mut self.steps,
                 step: &mut self.step,
-                intersections: &mut self.intersections,
+                intersections: &mut lean_to_normal(chain!(
+                    &self.intersections,
+                    &self.merged_intersections
+                )),
             },
         );
         self.set_view.show(
@@ -160,6 +175,7 @@ impl MyWidget<()> for PlaneSweep {
                 steps: &self.steps,
                 segments: &self.segments,
                 intersections: &self.intersections,
+                merged_intersections: &self.merged_intersections,
             },
         );
         self.status_view.show(
@@ -173,7 +189,7 @@ impl MyWidget<()> for PlaneSweep {
     }
 }
 
-impl Default for PlaneSweep {
+impl Default for PlaneSweepOverlay {
     fn default() -> Self {
         let mut out = Self {
             step: 0.into(),
@@ -184,7 +200,8 @@ impl Default for PlaneSweep {
             ]
             .into_iter()
             .collect(),
-            intersections: Intersections::default(),
+            intersections: LeanIntersections::default(),
+            merged_intersections: LeanIntersections::default(),
             steps: AlgoSteps::default(),
             controller: Controller::default(),
             is_controller_open: true,
@@ -203,7 +220,12 @@ impl Default for PlaneSweep {
             status_view: StatusView,
             is_status_view_open: true,
         };
-        calculate_steps(&out.segments, &mut out.intersections, &mut out.steps);
+        calculate_steps(
+            &out.segments,
+            &mut out.intersections,
+            &mut out.merged_intersections,
+            &mut out.steps,
+        );
         out
     }
 }

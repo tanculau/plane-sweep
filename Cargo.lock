@@ -203,6 +203,7 @@ dependencies = [
  "eframe",
  "serde",
  "sweep",
+ "sweep-with-lines",
  "third_party_licenses",
  "tracing-gui",
  "workspace-hack",
@@ -3533,17 +3534,58 @@ dependencies = [
  "common",
  "controller",
  "eframe",
- "egui_extras",
  "googletest",
  "intersection_table",
  "itertools",
- "mutants",
  "rstest",
  "segment_plotter",
  "segment_table",
  "serde",
- "slotmap",
+ "sweep-utils",
+ "workspace-hack",
+]
+
+[[package]]
+name = "sweep-fast"
+version = "1.0.0"
+dependencies = [
+ "common",
+ "itertools",
  "smallvec 2.0.0-alpha.11",
+ "sweep-utils",
+ "workspace-hack",
+]
+
+[[package]]
+name = "sweep-utils"
+version = "1.0.0"
+dependencies = [
+ "common",
+ "eframe",
+ "egui_extras",
+ "googletest",
+ "itertools",
+ "mutants",
+ "serde",
+ "slotmap",
+ "workspace-hack",
+]
+
+[[package]]
+name = "sweep-with-lines"
+version = "1.0.0"
+dependencies = [
+ "bon",
+ "common",
+ "controller",
+ "eframe",
+ "indexmap",
+ "intersection_table",
+ "itertools",
+ "segment_plotter",
+ "segment_table",
+ "serde",
+ "sweep-utils",
  "workspace-hack",
 ]
 

@@ -16,7 +16,7 @@ fn empty() {
     let mut intersections = Intersections::new();
     let mut steps = AlgoSteps::new();
 
-    calculate_steps::<true>(&segments, &mut intersections, &mut steps);
+    calculate_steps(&segments, &mut intersections, &mut steps);
 
     expect_that!(
         steps,
@@ -49,7 +49,7 @@ fn one() {
     let mut intersections = Intersections::new();
     let mut steps = AlgoSteps::new();
 
-    calculate_steps::<true>(&segments, &mut intersections, &mut steps);
+    calculate_steps(&segments, &mut intersections, &mut steps);
 
     expect_that!(
         steps,
@@ -159,7 +159,7 @@ fn many() {
     ]);
     let mut intersections = Intersections::new();
     let mut steps = AlgoSteps::new();
-    calculate_steps::<true>(&segments, &mut intersections, &mut steps);
+    calculate_steps(&segments, &mut intersections, &mut steps);
 
     for i in &mut intersections {
         // The order is not relevant
@@ -231,7 +231,7 @@ fn test_failure() {
     ]);
     let mut intersections = Intersections::new();
     let mut steps = AlgoSteps::new();
-    calculate_steps::<true>(&segments, &mut intersections, &mut steps);
+    calculate_steps(&segments, &mut intersections, &mut steps);
 }
 
 /// Input that caused crashes while fuzzing
@@ -283,5 +283,5 @@ fn crashes<const T: usize>(#[case] segments: [Segment; T]) {
     let segments = Segments::from_iter(segments);
     let mut steps = AlgoSteps::new();
     let mut intersections = Intersections::new();
-    calculate_steps::<false>(&segments, &mut intersections, &mut steps);
+    calculate_steps(&segments, &mut intersections, &mut steps);
 }

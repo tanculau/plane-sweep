@@ -11,10 +11,18 @@ use crate::{
 };
 
 pub type Intersections = TiVec<IntersectionIdx, Intersection>;
+pub type LeanIntersections = TiVec<LeanIntersectionIdx, LeanIntersection>;
+
+#[must_use]
+pub fn lean_to_normal<'a>(lean: impl Iterator<Item = &'a LeanIntersection>) -> Intersections {
+    lean.map(|v| Intersection::new(v.coord.clone(), v.segments.into(), v.step))
+        .collect()
+}
 
 pub type InterVec = SmallVec<SegmentIdx, 4>;
 
 impl_idx!(IntersectionIdx);
+impl_idx!(LeanIntersectionIdx);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -25,9 +33,31 @@ pub struct Intersection {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct IntersectionShort {
-    pub typ: IntersectionType,
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct LeanIntersection {
+    pub coord: IntersectionType,
     pub segments: [SegmentIdx; 2],
+    pub step: usize,
+}
+
+impl LeanIntersection {
+    #[must_use]
+    pub fn new(coord: IntersectionType, mut segments: [SegmentIdx; 2], step: usize) -> Self {
+        segments.sort_unstable();
+        Self {
+            coord,
+            segments,
+            step,
+        }
+    }
+
+    #[must_use]
+    pub const fn point1(&self) -> &CartesianCoord {
+        match &self.coord {
+            IntersectionType::Point { coord } => coord,
+            IntersectionType::Parallel { line } => &line.upper,
+        }
+    }
 }
 
 impl Intersection {
@@ -141,7 +171,7 @@ impl Helper {
 
 #[must_use]
 #[allow(clippy::missing_panics_doc)]
-pub fn to_lines(intersections: &Intersections) -> Vec<IntersectionShort> {
+pub fn to_lines(intersections: &Intersections) -> Vec<LeanIntersection> {
     let mut helper = Helper::new();
     for intersection in intersections {
         let segments = intersection.segments().to_vec();
@@ -158,20 +188,22 @@ pub fn to_lines(intersections: &Intersections) -> Vec<IntersectionShort> {
     for (key, val) in helper.inner {
         match val.len() {
             0 => unreachable!("{key:?}: {val:?}"),
-            1 => out.push(IntersectionShort {
-                typ: IntersectionType::Point {
+            1 => out.push(LeanIntersection {
+                coord: IntersectionType::Point {
                     coord: val[0].clone(),
                 },
                 segments: key,
+                step: 0,
             }),
-            2.. => out.push(IntersectionShort {
-                typ: IntersectionType::Parallel {
+            2.. => out.push(LeanIntersection {
+                coord: IntersectionType::Parallel {
                     line: Segment::new(
                         val.iter().min().unwrap().clone(),
                         val.iter().max().unwrap().clone(),
                     ),
                 },
                 segments: key,
+                step: 0,
             }),
         }
     }

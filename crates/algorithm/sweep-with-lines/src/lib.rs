@@ -1,7 +1,3 @@
-//! Plane Sweep Algorithm
-//! Based on the book "Computational Geometry" from Mark Berg , Otfried Cheong , Marc Kreveld , Mark Overmars. [DOI](https://doi.org/10.1007/978-3-662-04245-8)
-//pub mod status_old;
-pub mod step;
 #[cfg(feature = "ui")]
 pub mod ui;
 
@@ -9,18 +5,20 @@ use std::collections::HashSet;
 
 use common::{
     AlgoSteps,
-    intersection::{InterVec, Intersection, Intersections},
+    intersection::{InterVec, IntersectionType, LeanIntersection, LeanIntersections},
     math::cartesian::CartesianCoord,
     segment::{Segment, SegmentIdx, Segments},
 };
-use itertools::chain;
+use itertools::{Itertools, chain};
 use sweep_utils::{event::EventQueue, status::StatusQueue};
 
 use crate::step::{Step, StepType};
 
+mod step;
+
 struct State<'a, 'b> {
     segments: &'a Segments,
-    intersections: &'b mut Intersections,
+    intersections: &'b mut LeanIntersections,
     event_queue: EventQueue,
     status_queue: StatusQueue,
     p: Option<CartesianCoord>,
@@ -30,7 +28,7 @@ struct State<'a, 'b> {
 }
 
 impl<'a, 'b> State<'a, 'b> {
-    fn new(segments: &'a Segments, intersections: &'b mut Intersections) -> Self {
+    fn new(segments: &'a Segments, intersections: &'b mut LeanIntersections) -> Self {
         intersections.clear();
         Self {
             segments,
@@ -52,6 +50,7 @@ impl<'a, 'b> State<'a, 'b> {
                 .event_queue(self.event_queue.clone())
                 .maybe_u_p(self.u_p.clone())
                 .maybe_p(self.p.clone())
+                .merge_queue(Vec::new())
                 .build(),
         );
     }
@@ -69,11 +68,13 @@ impl<'a, 'b> State<'a, 'b> {
 
 pub fn calculate_steps(
     segments: &Segments,
-    intersections: &mut Intersections,
+    intersections: &mut LeanIntersections,
+    megerd_intersections: &mut LeanIntersections,
     steps: &mut AlgoSteps<Step>,
 ) {
     let mut state = State::new(segments, intersections);
     steps.clear();
+    megerd_intersections.clear();
     state.report(StepType::Init, steps);
 
     // Initialize an empty event queue Q.
@@ -98,8 +99,9 @@ pub fn calculate_steps(
         handle_event_point(&mut state, steps);
         // HANDLE EVENT POINT(p)
     }
-
-    state.report(StepType::End, steps);
+    let _ = state;
+    *megerd_intersections = merge_intersections(intersections, steps);
+    steps.push(Step::builder(StepType::End, steps.len()).build());
 }
 
 #[allow(clippy::too_many_lines, reason = "because capturing status cost a lot")]
@@ -134,18 +136,20 @@ fn handle_event_point(state: &mut State, steps: &mut AlgoSteps<Step>) {
     );
 
     if l_p_and_u_p_and_c_p.len() > 1 {
-        let intersect = Intersection::new(
-            common::intersection::IntersectionType::Point { coord: p.clone() },
-            l_p_and_u_p_and_c_p,
-            steps.len(),
-        );
-        let intersect = state.intersections.push_and_get_key(intersect);
-        state.report(
-            StepType::ReportIntersections {
-                intersection: intersect,
-            },
-            steps,
-        );
+        for (s1, s2) in l_p_and_u_p_and_c_p.iter().tuple_combinations() {
+            let intersect = LeanIntersection::new(
+                common::intersection::IntersectionType::Point { coord: p.clone() },
+                [*s1, *s2],
+                steps.len(),
+            );
+            let intersect = state.intersections.push_and_get_key(intersect);
+            state.report(
+                StepType::ReportIntersections {
+                    intersection: intersect,
+                },
+                steps,
+            );
+        }
         // "[...] then Report p as an intersection, together with L(p), U(p), and C(p)." [1, p. 26]
     }
 
@@ -227,4 +231,69 @@ fn find_new_event(
             .event_queue
             .insert(intersection.point1().clone(), None);
     }
+}
+
+fn merge_intersections(
+    intersections: &LeanIntersections,
+    steps: &mut AlgoSteps<Step>,
+) -> LeanIntersections {
+    let mut map: indexmap::IndexMap<[SegmentIdx; 2], Vec<&CartesianCoord>> =
+        indexmap::IndexMap::new();
+    for (idx, intersection) in intersections.iter_enumerated() {
+        steps.push(
+            Step::builder(StepType::InsertMergeQueue { inter: idx }, steps.len())
+                .merge_queue(
+                    map.iter()
+                        .map(|(l, r)| (*l, r.iter().copied().cloned().collect::<Vec<_>>())),
+                )
+                .build(),
+        );
+        map.entry(intersection.segments)
+            .and_modify(|v| v.push(intersection.point1()))
+            .or_insert(vec![&intersection.point1()]);
+    }
+    let mut result = LeanIntersections::new();
+    for (seg, points) in &map {
+        match points.len() {
+            0 => unreachable!(),
+            1 => {
+                result.push(LeanIntersection::new(
+                    IntersectionType::Point {
+                        coord: points[0].clone(),
+                    },
+                    *seg,
+                    steps.len(),
+                ));
+            }
+            _ => {
+                let a = result.push_and_get_key(LeanIntersection::new(
+                    IntersectionType::Parallel {
+                        line: Segment::new(
+                            points[0].clone(),
+                            points.last().copied().cloned().unwrap(),
+                        ),
+                    },
+                    *seg,
+                    steps.len(),
+                ));
+                steps.push(
+                    Step::builder(
+                        StepType::Merge {
+                            seg: *seg,
+                            points: points.iter().copied().cloned().collect_vec(),
+                            result: a,
+                        },
+                        steps.len(),
+                    )
+                    .merge_queue(
+                        map.iter()
+                            .map(|(l, r)| (*l, r.iter().copied().cloned().collect::<Vec<_>>())),
+                    )
+                    .build(),
+                );
+            }
+        }
+    }
+
+    result
 }

@@ -22,19 +22,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           components: clippy
       - uses: Swatinem/rust-cache@v2
       - name: Lint (clippy)
-        run: cargo clippy --all-features --all-targets --profile ci
+        run: cargo clippy --all-features --all-targets --profile ci -- -Dwarnings
 
   lint_rustfmt:
     name: Lint (rustfmt)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
@@ -57,6 +61,8 @@ jobs:
           - windows-11-arm
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
@@ -73,6 +79,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
@@ -91,6 +99,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly-2025-06-27
@@ -107,13 +117,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.sha }}
     - uses: EmbarkStudios/cargo-deny-action@v2
 
   workspace-hack-check:
     name: Check workspace-hack
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # v4
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }} # v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Install cargo-hakari
         uses: taiki-e/install-action@v2 # v2

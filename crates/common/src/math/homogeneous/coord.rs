@@ -61,6 +61,7 @@ impl Coord {
     ///
     /// # Errors
     /// [`PointAtInfinity`] if `z` is 0.0
+    #[allow(clippy::op_ref)]
     pub fn cartesian(&self) -> Result<CartesianCoord, PointAtInfinity> {
         if self.z == 0.into() {
             return PointAtInfinitySnafu.fail();

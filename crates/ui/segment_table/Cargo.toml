@@ -8,6 +8,7 @@ publish.workspace = true
 repository.workspace = true
 description.workspace = true
 license.workspace = true
+rust-version.workspace = true
 
 [features]
 serde = ["dep:serde", "common/serde", "egui_extras/serde"]
