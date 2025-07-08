@@ -1,6 +1,6 @@
 use common::{intersection::Intersections, segment::{Segment, Segments}};
 use fastrand::Rng;
-use sweep::calculate;
+use sweep_fast::calculate;
 
 
 fn main() {

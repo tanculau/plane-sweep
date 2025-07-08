@@ -1,4 +1,4 @@
-use sweep::calculate;
+use sweep_fast::calculate;
 use common::{
     intersection::Intersections,
     segment::{Segment, Segments},
