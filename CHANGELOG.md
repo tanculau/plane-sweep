@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - *(check)* Unused var
 - Overflow if input was greater than i16
 - Typos in UI
+- Lint for copy
 
 ### 💼 Other
 
