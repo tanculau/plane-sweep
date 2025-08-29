@@ -17,7 +17,7 @@ eframe = { version = "0.31.1", default-features = false }
 egui_tracing = { git = "https://github.com/tanculau/egui_tracing", branch = "dev" }
 #egui_tracing = {path = "../../../../egui_tracing/egui-tracing"}
 tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 tracing-wasm = "0.2.1"
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
