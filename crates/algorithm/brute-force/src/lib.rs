@@ -1,9 +1,12 @@
+use core::fmt::Debug;
+
 use web_time::Instant;
 
 use auto_enums::auto_enum;
 use common::{
     PushStep,
     intersection::{IntersectionIdx, Intersections},
+    math::A,
     segment::{Segment, SegmentIdx, Segments},
 };
 use tracing::{info, instrument};
@@ -43,7 +46,7 @@ impl AlgorithmStep {
     }
 }
 
-impl common::AlgrorithmStep for AlgorithmStep {
+impl<T: A> common::AlgrorithmStep<T> for AlgorithmStep {
     #[auto_enum(Iterator)]
     fn segments(&self) -> impl Iterator<Item = SegmentIdx> {
         match self {
@@ -66,10 +69,10 @@ impl common::AlgrorithmStep for AlgorithmStep {
 }
 
 #[instrument(name = "brute_force", skip_all)]
-pub fn calculate_steps<T: PushStep<AlgorithmStep>>(
-    segments: &Segments,
-    intersections: &mut Intersections,
-    steps: &mut T,
+pub fn calculate_steps<T: A, STEPS: PushStep<AlgorithmStep>>(
+    segments: &Segments<T>,
+    intersections: &mut Intersections<T>,
+    steps: &mut STEPS,
 ) {
     let time = Instant::now();
     intersections.clear();
@@ -85,10 +88,8 @@ pub fn calculate_steps<T: PushStep<AlgorithmStep>>(
             let segment_j = j.into();
 
             let found_intersections = Segment::intersect(segment_i, segment_j, segments, step);
-            let mut key = None;
-            if let Some(intersection) = found_intersections {
-                key = Some(intersections.push_and_get_key(intersection));
-            }
+            let key = found_intersections
+                .map(|intersection| intersections.push_and_get_key(intersection));
             steps.push(AlgorithmStep::Running {
                 step,
                 i,
@@ -111,7 +112,7 @@ pub fn calculate_steps<T: PushStep<AlgorithmStep>>(
     );
 }
 
-pub fn calculate(segments: &Segments, intersections: &mut Intersections) {
+pub fn calculate<T: A>(segments: &Segments<T>, intersections: &mut Intersections<T>) {
     intersections.clear();
 
     let len = segments.len();

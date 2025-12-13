@@ -5,7 +5,7 @@ members = [
     "crates/algorithm/sweep",
     "crates/algorithm/sweep-fast",
     "crates/algorithm/sweep-utils",
-    "crates/algorithm/sweep-with-lines",
+    "crates/algorithm/sweep-with-lines", "crates/algorithm/voronoi",
     "crates/common",
     "crates/plane-sweep",
     "crates/ui/app",
@@ -15,6 +15,7 @@ members = [
     "crates/ui/segment_table",
     "crates/ui/third_party_licenses",
     "crates/ui/tracing-gui",
+        "crates/ui/site_table",
     "crates/workspace-hack",
 ]
 exclude = ["benchmark", "fuzzer"]

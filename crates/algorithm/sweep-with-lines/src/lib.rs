@@ -1,12 +1,15 @@
+// Based on the book "Computational Geometry" from Mark Berg , Otfried Cheong , Marc Kreveld , Mark Overmars. [DOI](https://doi.org/10.1007/978-3-662-04245-8)
+
 #[cfg(feature = "ui")]
 pub mod ui;
 
+use core::{cmp::Ordering, fmt::Display};
 use std::collections::HashSet;
 
 use common::{
     AlgoSteps,
     intersection::{InterVec, IntersectionType, LeanIntersection, LeanIntersections},
-    math::cartesian::CartesianCoord,
+    math::{A, cartesian::CartesianCoord},
     segment::{Segment, SegmentIdx, Segments},
 };
 use itertools::{Itertools, chain};
@@ -16,19 +19,19 @@ use crate::step::{Step, StepType};
 
 mod step;
 
-struct State<'a, 'b> {
-    segments: &'a Segments,
-    intersections: &'b mut LeanIntersections,
-    event_queue: EventQueue,
-    status_queue: StatusQueue,
-    p: Option<CartesianCoord>,
+struct State<'a, 'b, T: A> {
+    segments: &'a Segments<T>,
+    intersections: &'b mut LeanIntersections<T>,
+    event_queue: EventQueue<T>,
+    status_queue: StatusQueue<T>,
+    p: Option<CartesianCoord<T>>,
     u_p: Option<HashSet<SegmentIdx>>,
     c_p: Option<Vec<SegmentIdx>>,
     l_p: Option<Vec<SegmentIdx>>,
 }
 
-impl<'a, 'b> State<'a, 'b> {
-    fn new(segments: &'a Segments, intersections: &'b mut LeanIntersections) -> Self {
+impl<'a, 'b, T: A> State<'a, 'b, T> {
+    fn new(segments: &'a Segments<T>, intersections: &'b mut LeanIntersections<T>) -> Self {
         intersections.clear();
         Self {
             segments,
@@ -41,7 +44,7 @@ impl<'a, 'b> State<'a, 'b> {
             status_queue: StatusQueue::new(),
         }
     }
-    fn report(&self, step: StepType, steps: &mut AlgoSteps<Step>) {
+    fn report(&self, step: StepType<T>, steps: &mut AlgoSteps<Step<T>>) {
         steps.push(
             Step::builder(step, steps.len())
                 .maybe_c_p(self.c_p.clone())
@@ -54,7 +57,7 @@ impl<'a, 'b> State<'a, 'b> {
                 .build(),
         );
     }
-    fn set_event(&mut self, (p, u_p): (CartesianCoord, HashSet<SegmentIdx>)) {
+    fn set_event(&mut self, (p, u_p): (CartesianCoord<T>, HashSet<SegmentIdx>)) {
         self.p = Some(p);
         self.u_p = Some(u_p);
     }
@@ -66,11 +69,11 @@ impl<'a, 'b> State<'a, 'b> {
     }
 }
 
-pub fn calculate_steps(
-    segments: &Segments,
-    intersections: &mut LeanIntersections,
-    megerd_intersections: &mut LeanIntersections,
-    steps: &mut AlgoSteps<Step>,
+pub fn calculate_steps<T: A>(
+    segments: &Segments<T>,
+    intersections: &mut LeanIntersections<T>,
+    megerd_intersections: &mut LeanIntersections<T>,
+    steps: &mut AlgoSteps<Step<T>>,
 ) {
     let mut state = State::new(segments, intersections);
     steps.clear();
@@ -96,7 +99,7 @@ pub fn calculate_steps(
         state.reset();
         state.set_event(event);
         state.report(StepType::PopQ, steps);
-        handle_event_point(&mut state, steps);
+        handle_event_point::<T>(&mut state, steps);
         // HANDLE EVENT POINT(p)
     }
     let _ = state;
@@ -109,7 +112,7 @@ pub fn calculate_steps(
     clippy::too_many_arguments,
     reason = "because capturing status cost a lot"
 )]
-fn handle_event_point(state: &mut State, steps: &mut AlgoSteps<Step>) {
+fn handle_event_point<T: A>(state: &mut State<T>, steps: &mut AlgoSteps<Step<T>>) {
     let p = state.p.as_ref().expect("Must be set");
     // "Let U(p) be the set of segments whose upper endpoint is p; these segments
     // are stored with the event point p. (For horizontal segments, the upper
@@ -177,7 +180,7 @@ fn handle_event_point(state: &mut State, steps: &mut AlgoSteps<Step>) {
         state.report(StepType::UpCpEmpty { s_l: l_r, s_r: u_r }, steps);
 
         if let (Some(left), Some(right)) = (l_r, u_r) {
-            find_new_event(left, right, state, steps);
+            find_new_event::<T>(left, right, state, steps);
         }
     } else {
         let s_dash = state.status_queue.left_most(state.segments, p);
@@ -203,11 +206,11 @@ fn handle_event_point(state: &mut State, steps: &mut AlgoSteps<Step>) {
     }
 }
 
-fn find_new_event(
+fn find_new_event<T: A>(
     s_l: SegmentIdx,
     s_r: SegmentIdx,
-    state: &mut State,
-    steps: &mut AlgoSteps<Step>,
+    state: &mut State<T>,
+    steps: &mut AlgoSteps<Step<T>>,
 ) {
     state.report(StepType::FindNewEvent { s_l, s_r }, steps);
     let p = state.p.as_ref().expect("Must be set");
@@ -233,45 +236,29 @@ fn find_new_event(
     }
 }
 
-fn merge_intersections(
-    intersections: &LeanIntersections,
-    steps: &mut AlgoSteps<Step>,
-) -> LeanIntersections {
-    let mut map: indexmap::IndexMap<[SegmentIdx; 2], Vec<&CartesianCoord>> =
+fn merge_intersections<T: A>(
+    intersections: &LeanIntersections<T>,
+    steps: &mut AlgoSteps<Step<T>>,
+) -> LeanIntersections<T> {
+    let mut map: indexmap::IndexMap<[SegmentIdx; 2], SortedIntersections<T>> =
         indexmap::IndexMap::new();
     for (idx, intersection) in intersections.iter_enumerated() {
         steps.push(
-            Step::builder(StepType::InsertMergeQueue { inter: idx }, steps.len())
-                .merge_queue(
-                    map.iter()
-                        .map(|(l, r)| (*l, r.iter().copied().cloned().collect::<Vec<_>>())),
-                )
+            Step::builder(StepType::InsertMergeQueue { idx }, steps.len())
+                .merge_queue(map.iter().map(|(l, r)| (*l, r.clone())))
                 .build(),
         );
         map.entry(intersection.segments)
-            .and_modify(|v| v.push(intersection.point1()))
-            .or_insert(vec![&intersection.point1()]);
+            .and_modify(|v| v.add(intersection.clone()))
+            .or_insert(SortedIntersections::new(intersection.clone()));
     }
     let mut result = LeanIntersections::new();
-    for (seg, points) in &map {
-        match points.len() {
-            0 => unreachable!(),
-            1 => {
-                result.push(LeanIntersection::new(
-                    IntersectionType::Point {
-                        coord: points[0].clone(),
-                    },
-                    *seg,
-                    steps.len(),
-                ));
-            }
-            _ => {
+    for (seg, si @ SortedIntersections { min, max }) in &map {
+        match max {
+            None => {
                 let a = result.push_and_get_key(LeanIntersection::new(
-                    IntersectionType::Parallel {
-                        line: Segment::new(
-                            points[0].clone(),
-                            points.last().copied().cloned().unwrap(),
-                        ),
+                    IntersectionType::Point {
+                        coord: min.point1().clone(),
                     },
                     *seg,
                     steps.len(),
@@ -280,15 +267,33 @@ fn merge_intersections(
                     Step::builder(
                         StepType::Merge {
                             seg: *seg,
-                            points: points.iter().copied().cloned().collect_vec(),
-                            result: a,
+                            result: si.clone(),
+                            idx: a,
                         },
                         steps.len(),
                     )
-                    .merge_queue(
-                        map.iter()
-                            .map(|(l, r)| (*l, r.iter().copied().cloned().collect::<Vec<_>>())),
+                    .merge_queue(map.iter().map(|(l, r)| (*l, r.clone())))
+                    .build(),
+                );
+            }
+            Some(max) => {
+                let a = result.push_and_get_key(LeanIntersection::new(
+                    IntersectionType::Parallel {
+                        line: Segment::new(min.point1().clone(), max.point1().clone()),
+                    },
+                    *seg,
+                    steps.len(),
+                ));
+                steps.push(
+                    Step::builder(
+                        StepType::Merge {
+                            seg: *seg,
+                            result: si.clone(),
+                            idx: a,
+                        },
+                        steps.len(),
                     )
+                    .merge_queue(map.iter().map(|(l, r)| (*l, r.clone())))
                     .build(),
                 );
             }
@@ -296,4 +301,59 @@ fn merge_intersections(
     }
 
     result
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct SortedIntersections<T: A> {
+    min: LeanIntersection<T>,
+    max: Option<LeanIntersection<T>>,
+}
+
+impl<T: A> Display for SortedIntersections<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(ref max) = self.max {
+            write!(
+                f,
+                "Points ({:.2}, {:.2}) and ({:.2}, {:.2})",
+                self.min.point1().x,
+                self.min.point1().y,
+                max.point1().x,
+                max.point1().y
+            )
+        } else {
+            write!(
+                f,
+                "Point ({:.2}, {:.2})",
+                self.min.point1().x,
+                self.min.point1().y
+            )
+        }
+    }
+}
+
+impl<T: A> SortedIntersections<T> {
+    pub const fn new(min: LeanIntersection<T>) -> Self {
+        Self { min, max: None }
+    }
+    pub fn add(&mut self, inter: LeanIntersection<T>) {
+        if let Some(max) = self.max.clone() {
+            if lean_cmp(&inter, &self.min).is_le() {
+                self.min = inter;
+            } else if lean_cmp(&max, &inter).is_le() {
+                self.max = Some(inter);
+            }
+        } else {
+            let mut a = [self.min.clone(), inter];
+            a.sort_by(|l, r| lean_cmp(l, r));
+            let [l, r] = a;
+
+            self.min = l;
+            self.max = Some(r);
+        }
+    }
+}
+
+fn lean_cmp<T: A>(l: &LeanIntersection<T>, r: &LeanIntersection<T>) -> Ordering {
+    (r.point1().y.cmp(&l.point1().y)).then(l.point1().x.cmp(&r.point1().x))
 }

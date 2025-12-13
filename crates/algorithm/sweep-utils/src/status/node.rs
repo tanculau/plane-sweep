@@ -1,7 +1,9 @@
-use core::cmp::Ordering;
+// Based on the book "Computational Geometry" from Mark Berg , Otfried Cheong , Marc Kreveld , Mark Overmars. [DOI](https://doi.org/10.1007/978-3-662-04245-8)
+
+use core::{cmp::Ordering, marker::PhantomData};
 
 use common::{
-    math::cartesian::CartesianCoord,
+    math::{A, cartesian::CartesianCoord},
     segment::{SegmentIdx, Segments},
 };
 use itertools::Itertools;
@@ -9,22 +11,25 @@ use slotmap::Key;
 
 use crate::status::{SQDebug, SQKey, Storage, compare, compare3, intersection};
 
-#[derive(Debug, Clone, Copy)]
-pub enum Node {
+#[derive(Debug, Clone)]
+pub enum Node<T: A> {
     Node {
         data: SegmentIdx,
         parent: Option<SQKey>,
         left: SQKey,
         right: SQKey,
         height: usize,
+        phantom: PhantomData<T>,
     },
     Leaf {
         parent: Option<SQKey>,
     },
 }
 
-impl Node {
-    pub fn empty(parent: impl Into<Option<SQKey>>, storage: &mut Storage) -> SQKey {
+impl<T: A> Copy for Node<T> {}
+
+impl<T: A> Node<T> {
+    pub fn empty(parent: impl Into<Option<SQKey>>, storage: &mut Storage<T>) -> SQKey {
         let node = Self::Leaf {
             parent: parent.into(),
         };
@@ -33,7 +38,7 @@ impl Node {
     fn node(
         data: impl Into<SegmentIdx>,
         parent: impl Into<Option<SQKey>>,
-        storage: &mut Storage,
+        storage: &mut Storage<T>,
     ) -> SQKey {
         let node = Self::Node {
             data: data.into(),
@@ -41,6 +46,7 @@ impl Node {
             left: SQKey::null(),
             right: SQKey::null(),
             height: 1,
+            phantom: PhantomData,
         };
         let ret = storage.insert(node);
         let dummy1 = Self::empty(ret, storage);
@@ -112,7 +118,7 @@ impl Node {
     }
 
     /// Will always return a Leaf
-    pub fn left_most(key: SQKey, storage: &Storage) -> SQKey {
+    pub fn left_most(key: SQKey, storage: &Storage<T>) -> SQKey {
         let mut curr = key;
 
         while let Some(left) = storage[curr].left() {
@@ -120,7 +126,7 @@ impl Node {
         }
         curr
     }
-    pub fn left_most_node(key: SQKey, storage: &Storage) -> SQKey {
+    pub fn left_most_node(key: SQKey, storage: &Storage<T>) -> SQKey {
         let mut curr = key;
 
         while let Some(left) = storage[curr].left() {
@@ -129,7 +135,7 @@ impl Node {
         storage[curr].parent().unwrap_or(curr)
     }
     /// Will always return a Leaf
-    fn right_most(key: SQKey, storage: &Storage) -> SQKey {
+    fn right_most(key: SQKey, storage: &Storage<T>) -> SQKey {
         let mut curr = key;
 
         while let Some(right) = storage[curr].right() {
@@ -162,7 +168,7 @@ impl Node {
     }
 
     #[allow(clippy::cast_possible_wrap)]
-    fn balance(self, storage: &Storage) -> isize {
+    fn balance(self, storage: &Storage<T>) -> isize {
         match self {
             Self::Node { left, right, .. } => {
                 storage[left].height() as isize - storage[right].height() as isize
@@ -173,14 +179,14 @@ impl Node {
 
     pub fn find_left_of_event(
         curr_key: SQKey,
-        storage: &Storage,
-        segments: &Segments,
-        event: &CartesianCoord,
+        storage: &Storage<T>,
+        segments: &Segments<T>,
+        event: &CartesianCoord<T>,
     ) -> Option<SQKey> {
         let curr = storage[curr_key];
 
         if let Some(seg) = curr.data() {
-            match intersection(&segments[seg], event).cmp(&event.x) {
+            match intersection::<T>(&segments[seg], event).cmp(&event.x) {
                 Ordering::Less => {
                     if let Some(right) = curr.right()
                         && let Some(v) = Self::find_left_of_event(right, storage, segments, event)
@@ -199,14 +205,14 @@ impl Node {
 
     pub fn find_right_of_event(
         curr_key: SQKey,
-        storage: &Storage,
-        segments: &Segments,
-        event: &CartesianCoord,
+        storage: &Storage<T>,
+        segments: &Segments<T>,
+        event: &CartesianCoord<T>,
     ) -> Option<SQKey> {
         let curr = storage[curr_key];
 
         if let Some(seg) = curr.data() {
-            match intersection(&segments[seg], event).cmp(&event.x) {
+            match intersection::<T>(&segments[seg], event).cmp(&event.x) {
                 Ordering::Equal | Ordering::Less => {
                     return Self::find_right_of_event(curr.right()?, storage, segments, event);
                 }
@@ -225,13 +231,13 @@ impl Node {
 
     pub fn find_left_most(
         curr_key: SQKey,
-        storage: &Storage,
-        segments: &Segments,
-        event: &CartesianCoord,
+        storage: &Storage<T>,
+        segments: &Segments<T>,
+        event: &CartesianCoord<T>,
     ) -> Option<SQKey> {
         let curr = storage[curr_key];
         if let Some(seg) = curr.data() {
-            match intersection(&segments[seg], event).cmp(&event.x) {
+            match intersection::<T>(&segments[seg], event).cmp(&event.x) {
                 Ordering::Less => {
                     return Self::find_left_most(curr.right()?, storage, segments, event);
                 }
@@ -254,9 +260,9 @@ impl Node {
 
     pub fn find_right_most(
         curr_key: SQKey,
-        storage: &Storage,
-        segments: &Segments,
-        event: &CartesianCoord,
+        storage: &Storage<T>,
+        segments: &Segments<T>,
+        event: &CartesianCoord<T>,
     ) -> Option<SQKey> {
         let curr = storage[curr_key];
         if let Some(seg) = curr.data() {
@@ -283,10 +289,10 @@ impl Node {
 
     pub fn delete(
         curr_key: SQKey,
-        storage: &mut Storage,
+        storage: &mut Storage<T>,
         s_idx: SegmentIdx,
-        segments: &Segments,
-        event: &CartesianCoord,
+        segments: &Segments<T>,
+        event: &CartesianCoord<T>,
     ) -> SQKey {
         let curr = storage[curr_key];
         let (Some(curr_seg), Some(left_key), Some(right_key)) =
@@ -296,7 +302,7 @@ impl Node {
         };
         //Self::verify_with_event(curr_key, storage, segments, event);
 
-        match compare3(curr_seg, s_idx, segments, event) {
+        match compare3::<T>(curr_seg, s_idx, segments, event) {
             Ordering::Less => {
                 let right = Self::delete(right_key, storage, s_idx, segments, event);
                 let tmp = storage[curr_key].set_right(right);
@@ -345,10 +351,10 @@ impl Node {
 
     pub fn insert(
         curr: SQKey,
-        storage: &mut Storage,
+        storage: &mut Storage<T>,
         s_idx: SegmentIdx,
-        segments: &Segments,
-        event: &CartesianCoord,
+        segments: &Segments<T>,
+        event: &CartesianCoord<T>,
     ) -> SQKey {
         // Already in
         if let Some(data) = storage[curr].data()
@@ -371,7 +377,7 @@ impl Node {
                 let curr_seg = &segments[data];
                 let insert_seg = &segments[s_idx];
 
-                match compare(insert_seg, curr_seg, event) {
+                match compare::<T>(insert_seg, curr_seg, event) {
                     Ordering::Less => {
                         let new_left = Self::insert(left, storage, s_idx, segments, event);
                         let tmp = storage[curr].set_left(new_left);
@@ -402,7 +408,7 @@ impl Node {
         }
     }
 
-    fn right_rotate(curr: SQKey, storage: &mut Storage) -> SQKey {
+    fn right_rotate(curr: SQKey, storage: &mut Storage<T>) -> SQKey {
         let old_parent = storage[curr].parent();
         let y = curr;
         let x = storage[y].left().unwrap();
@@ -419,7 +425,7 @@ impl Node {
         storage[x].set_parent(old_parent);
         x
     }
-    fn left_rotate(curr: SQKey, storage: &mut Storage) -> SQKey {
+    fn left_rotate(curr: SQKey, storage: &mut Storage<T>) -> SQKey {
         Self::verify(curr, storage);
         let old_parent = storage[curr].parent();
         let x = curr;
@@ -439,7 +445,7 @@ impl Node {
         y
     }
 
-    fn update_balance(curr: SQKey, storage: &mut Storage) -> SQKey {
+    fn update_balance(curr: SQKey, storage: &mut Storage<T>) -> SQKey {
         let curr_node = storage[curr];
         let Self::Node {
             left: left_key,
@@ -494,7 +500,7 @@ impl Node {
         curr
     }
 
-    fn update_height(curr: SQKey, storage: &mut Storage) {
+    fn update_height(curr: SQKey, storage: &mut Storage<T>) {
         let val = if let Self::Node { left, right, .. } = storage[curr] {
             1 + storage[left].height() + storage[right].height()
         } else {
@@ -504,7 +510,7 @@ impl Node {
     }
 
     #[inline]
-    pub fn verify(curr: SQKey, storage: &Storage) {
+    pub fn verify(curr: SQKey, storage: &Storage<T>) {
         if cfg!(debug_assertions) {
             let node = storage[curr];
             match node {
@@ -552,17 +558,17 @@ impl Node {
 }
 
 #[derive(Debug, Clone)]
-pub struct NodeCursor<'a> {
+pub struct NodeCursor<'a, T: A> {
     curr: SQKey,
-    storage: &'a Storage,
+    storage: &'a Storage<T>,
 }
 
-impl<'a> NodeCursor<'a> {
-    pub const fn new(curr: SQKey, storage: &'a Storage) -> Self {
+impl<'a, T: A> NodeCursor<'a, T> {
+    pub const fn new(curr: SQKey, storage: &'a Storage<T>) -> Self {
         Self { curr, storage }
     }
 
-    pub fn access(&self) -> Node {
+    pub fn access(&self) -> Node<T> {
         self.storage[self.curr]
     }
 
@@ -649,7 +655,7 @@ impl<'a> NodeCursor<'a> {
     }
 }
 
-// fn debug_iter(curr: SQKey, storage: &Storage) -> impl Iterator<Item = (SegmentIdx, SQKey)> + Unpin {
+// fn debug_iter(curr: SQKey, storage: &Storage<T>) -> impl Iterator<Item = (SegmentIdx, SQKey)> + Unpin {
 //     gen move {
 //         if let Some(left) = storage[curr].left() {
 //             let mut iter = Box::pin(debug_iter(left, storage));

@@ -1,9 +1,9 @@
-use std::collections::HashSet;
+use std::collections::{BTreeSet, HashSet};
 
 use bolero::{TypeGenerator, check};
 use common::{
     AlgoSteps,
-    intersection::{IntersectionShort, Intersections},
+    intersection::{Intersections, LeanIntersection},
     segment::Segment,
 };
 
@@ -18,24 +18,26 @@ fn main() {
                 .filter(|s| s.upper != s.lower)
                 .collect();
             let mut sweep_intersections = Intersections::new();
-            sweep::calculate(&segments, &mut sweep_intersections);
+            sweep_fast::calculate(&segments, &mut sweep_intersections);
             let mut brute_intersections = Intersections::new();
             brute_force::calculate(&segments, &mut brute_intersections);
-            let sweep = HashSet::<IntersectionShort>::from_iter(common::intersection::to_lines(
-                &sweep_intersections,
-            ));
-            let brute = HashSet::<IntersectionShort>::from_iter(common::intersection::to_lines(
-                &brute_intersections,
-            ));
+            let sweep: BTreeSet<LeanIntersection> =
+                common::intersection::to_lines(&sweep_intersections)
+                    .into_iter()
+                    .collect();
+            let brute: BTreeSet<LeanIntersection> =
+                (common::intersection::to_lines(&brute_intersections)
+                    .into_iter()
+                    .collect());
             assert_eq!(sweep, brute);
         });
 }
 #[derive(TypeGenerator)]
 pub struct Input {
-    upper_x: i8,
-    upper_y: i8,
-    lower_x: i8,
-    lower_y: i8,
+    upper_x: i32,
+    upper_y: i32,
+    lower_x: i32,
+    lower_y: i32,
 }
 
 impl core::fmt::Debug for Input {

@@ -1,25 +1,25 @@
 use common::{
     AlgoStepIdx, AlgoSteps,
     intersection::Intersections,
+    math::A,
     segment::{Segment, Segments},
-    ui::MyWidget,
-    ui::WidgetName,
+    ui::{MyWidget, WidgetName},
 };
 use controller::{Controller, ControllerState};
 use eframe::egui::{self, Align, Layout, ScrollArea};
 use intersection_table::{IntersectionTable, IntersectionTableState};
 use segment_plotter::{SegmentPlotter, SegmentPlotterState};
-use segment_table::SegmentTable;
+use segment_table::{SegmentTable, SegmentTableState};
 
 use crate::{AlgorithmStep, calculate_steps};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[expect(clippy::struct_excessive_bools)]
-pub struct BruteForce {
+pub struct BruteForce<T: A> {
     step: AlgoStepIdx,
-    segments: Segments,
-    intersections: Intersections,
+    segments: Segments<T>,
+    intersections: Intersections<T>,
     steps: AlgoSteps<AlgorithmStep>,
     controller: Controller,
     is_controller_open: bool,
@@ -34,7 +34,7 @@ pub struct BruteForce {
     is_code_viewer_open: bool,
 }
 
-impl Default for BruteForce {
+impl<T: A> Default for BruteForce<T> {
     fn default() -> Self {
         let mut ret = Self {
             step: 0.into(),
@@ -63,7 +63,7 @@ impl Default for BruteForce {
         ret
     }
 }
-impl BruteForce {
+impl<T: A> BruteForce<T> {
     fn side_panel_groups(&mut self, ui: &mut egui::Ui) {
         ScrollArea::vertical().show(ui, |ui| {
             ui.with_layout(Layout::top_down_justified(Align::LEFT), |ui| {
@@ -87,12 +87,12 @@ impl BruteForce {
     }
 }
 
-impl WidgetName for BruteForce {
+impl<T: A> WidgetName for BruteForce<T> {
     const NAME: &'static str = "Brute Force";
     const NAME_LONG: &'static str = "Brute Force Algorithm";
 }
 
-impl MyWidget<()> for BruteForce {
+impl<T: A> MyWidget<()> for BruteForce<T> {
     fn ui(&mut self, ui: &mut eframe::egui::Ui, _state: impl Into<()>) {
         let ctx = ui.ctx();
         egui::SidePanel::right("Brute Force Panel")
@@ -113,7 +113,10 @@ impl MyWidget<()> for BruteForce {
         self.segment_table.show(
             ctx,
             &mut self.is_segment_table_open,
-            (&mut should_reset, &mut self.segments),
+            SegmentTableState {
+                should_reset: &mut should_reset,
+                segments: &mut self.segments,
+            },
         );
         if should_reset {
             self.step = 0.into();
@@ -144,7 +147,6 @@ impl MyWidget<()> for BruteForce {
             ControllerState {
                 steps: &mut self.steps,
                 step: &mut self.step,
-                intersections: &mut self.intersections,
             },
         );
         self.code_viewer.show(
@@ -181,22 +183,25 @@ impl WidgetName for CodeViewer {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct CodeViewerState<'a> {
+pub struct CodeViewerState<'a, T: A> {
     steps: &'a AlgoSteps<AlgorithmStep>,
-    segments: &'a Segments,
-    intersections: &'a Intersections,
+    segments: &'a Segments<T>,
+    intersections: &'a Intersections<T>,
     step: AlgoStepIdx,
 }
 
-impl<'a> MyWidget<CodeViewerState<'a>> for CodeViewer {
-    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<CodeViewerState<'a>>) {
+impl<'a, T: A> MyWidget<CodeViewerState<'a, T>> for CodeViewer {
+    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<CodeViewerState<'a, T>>) {
         self.code(state.into());
         show_code(ui, &self.buf);
     }
 }
 
+// Coide View implemented with the help of the example of egui https://github.com/emilk/egui/blob/a0bb4cfef82dd9b50f990f607b7c7c4f28eb8589/crates/egui_demo_lib/src/demo/code_example.rs
+
 impl CodeViewer {
-    pub fn code(&mut self, state: CodeViewerState<'_>) {
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn code<T: A>(&mut self, state: CodeViewerState<'_, T>) {
         use std::fmt::Write;
 
         // Step already calculated
@@ -291,6 +296,7 @@ fn show_code(ui: &mut egui::Ui, code: &str) {
     rust_view_ui(ui, &code);
 }
 
+// Source https://github.com/emilk/egui/blob/a0bb4cfef82dd9b50f990f607b7c7c4f28eb8589/crates/egui_demo_lib/src/demo/code_example.rs#L153
 #[allow(clippy::trivially_copy_pass_by_ref, reason = "will be inlined anyway")]
 #[inline(always)]
 fn remove_leading_indentation(code: &str) -> String {
@@ -314,6 +320,7 @@ fn remove_leading_indentation(code: &str) -> String {
     }
     out
 }
+// Soruce https://github.com/emilk/egui/blob/a0bb4cfef82dd9b50f990f607b7c7c4f28eb8589/crates/egui_demo_lib/src/lib.rs#L22
 pub(crate) fn rust_view_ui(ui: &mut egui::Ui, code: &str) {
     let language = "rs";
     let theme = egui_extras::syntax_highlighting::CodeTheme::from_memory(ui.ctx(), ui.style());

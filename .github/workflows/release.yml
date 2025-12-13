@@ -2,34 +2,33 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+#    tags:
+#      - "v*.*.*"
 
 jobs:
-  changelog:
-    name: Generate changelog
-    runs-on: ubuntu-latest
-    outputs:
-        release_body: ${{ steps.git-cliff.outputs.content }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.sha }}
-      - name: Generate a changelog
-        uses: orhun/git-cliff-action@v4
-        id: git-cliff
-        with:
-          config: cliff.toml
-          args: -vv --latest --strip header
-        env:
-          OUTPUT: CHANGES.md
-          GITHUB_REPO: ${{ github.repository }}
+#  changelog:
+#    name: Generate changelog
+#    runs-on: ubuntu-latest
+#    outputs:
+#        release_body: ${{ steps.git-cliff.outputs.content }}
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#          ref: ${{ github.sha }}
+#      - name: Generate a changelog
+#        uses: orhun/git-cliff-action@v4
+#        id: git-cliff
+#        with:
+#          config: cliff.toml
+#          args: -vv --latest --strip header
+#        env:
+#          OUTPUT: CHANGES.md
+#          GITHUB_REPO: ${{ github.repository }}
 
   publish:
     name: Publish
-    needs: changelog
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -39,8 +38,6 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.sha }}
     - uses: ncipollo/release-action@v1
-      with:
-          body: ${{ needs.changelog.outputs.release_body }}
 
   build-windows:
     name: Build for ${{ matrix.os }}

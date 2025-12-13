@@ -57,7 +57,9 @@ fn cargo_about_installed() -> Result<(), Box<dyn std::error::Error>> {
             println!("cargo:warning=Error while executing cargo-about");
             write_file(FALLBACK)?;
         }
-        if !err.is_empty() && features.contains("warnings") {
+        if !err.is_empty()
+        //&& features.contains("warnings")
+        {
             for line in err.lines() {
                 println!("cargo:warning={line}");
             }

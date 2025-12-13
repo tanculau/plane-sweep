@@ -1,6 +1,6 @@
 use crate::status::intersection;
 use common::{
-    math::cartesian::CartesianCoord,
+    math::{A, cartesian::CartesianCoord},
     segment::{SegmentIdx, Segments},
     ui::{MyWidget, WidgetName},
 };
@@ -11,22 +11,22 @@ use egui_extras::{Column, Size, StripBuilder, TableBuilder};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct StatusView;
 
-pub trait StatusReport {
+pub trait StatusReport<T: A> {
     fn status_queue(&self) -> &[SegmentIdx];
-    fn p(&self) -> Option<&CartesianCoord>;
+    fn p(&self) -> Option<&CartesianCoord<T>>;
 }
 
 impl WidgetName for StatusView {
     const NAME: &'static str = "Status Queue";
 }
 
-pub struct StatusViewState<'a, T: StatusReport> {
+pub struct StatusViewState<'a, T: StatusReport<TT>, TT: A> {
     pub step: &'a T,
-    pub segments: &'a Segments,
+    pub segments: &'a Segments<TT>,
 }
 
-impl<'a, T: StatusReport> MyWidget<StatusViewState<'a, T>> for StatusView {
-    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<StatusViewState<'a, T>>) {
+impl<'a, T: StatusReport<TT>, TT: A> MyWidget<StatusViewState<'a, T, TT>> for StatusView {
+    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<StatusViewState<'a, T, TT>>) {
         let StatusViewState {
             step: report,
             segments,
@@ -70,7 +70,7 @@ impl<'a, T: StatusReport> MyWidget<StatusViewState<'a, T>> for StatusView {
                                     let seg = segments[*seg_idx].clone();
                                     row.col(|ui| {
                                         if let Some(event) = &report.p() {
-                                            let x_intersect = intersection(&seg, event);
+                                            let x_intersect = intersection::<TT>(&seg, event);
                                             ui.label(format!("{x_intersect:.2}"));
                                         } else {
                                             ui.label("");

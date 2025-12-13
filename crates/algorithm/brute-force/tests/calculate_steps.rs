@@ -1,12 +1,15 @@
 use brute_force::{AlgorithmStep, calculate_steps};
-use common::intersection::{Intersection, IntersectionIdx, IntersectionType};
-use common::{
-    AlgoSteps,
-    intersection::Intersections,
-    segment::{Segment, Segments},
-};
+use common::AlgoSteps;
+use common::intersection::{IntersectionIdx, IntersectionType};
+use common::math::Rational;
 use googletest::prelude::*;
 use smallvec::smallvec;
+
+type Segment = common::segment::Segment<Rational>;
+type Segments = common::segment::Segments<Rational>;
+type Intersections = common::intersection::Intersections<Rational>;
+type Intersection = common::intersection::Intersection<Rational>;
+
 #[gtest]
 fn empty() {
     let segments = Segments::new();

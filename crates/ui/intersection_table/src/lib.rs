@@ -1,9 +1,11 @@
+// Based on https://github.com/emilk/egui/blob/a0bb4cfef82dd9b50f990f607b7c7c4f28eb8589/crates/egui_demo_lib/src/demo/table_demo.rs
+
 use common::{
     AlgoStepIdx,
     intersection::{Intersection, Intersections},
+    math::A,
     segment::Segments,
-    ui::MyWidget,
-    ui::WidgetName,
+    ui::{MyWidget, WidgetName},
 };
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
@@ -19,14 +21,14 @@ impl WidgetName for IntersectionTable {
     const NAME: &'static str = "Intersection Table";
 }
 
-impl<'segments, 'intersections> MyWidget<IntersectionTableState<'segments, 'intersections>>
+impl<'segments, 'intersections, T: A> MyWidget<IntersectionTableState<'segments, 'intersections, T>>
     for IntersectionTable
 {
     #[allow(clippy::too_many_lines)]
     fn ui(
         &mut self,
         ui: &mut eframe::egui::Ui,
-        state: impl Into<IntersectionTableState<'segments, 'intersections>>,
+        state: impl Into<IntersectionTableState<'segments, 'intersections, T>>,
     ) {
         let state = state.into();
         let step = state.step;
@@ -34,7 +36,7 @@ impl<'segments, 'intersections> MyWidget<IntersectionTableState<'segments, 'inte
         let intersections = state
             .intersections
             .iter()
-            .filter(|i: &&Intersection| AlgoStepIdx::from(i.step()) <= step)
+            .filter(|i: &&Intersection<_>| AlgoStepIdx::from(i.step()) <= step)
             .collect::<Vec<_>>();
         let len = intersections.len();
         let available_height = ui.available_height();
@@ -167,8 +169,8 @@ impl<'segments, 'intersections> MyWidget<IntersectionTableState<'segments, 'inte
 }
 
 #[derive(Debug)]
-pub struct IntersectionTableState<'segments, 'intersections> {
-    pub segments: &'segments Segments,
-    pub intersections: &'intersections Intersections,
+pub struct IntersectionTableState<'segments, 'intersections, T: A> {
+    pub segments: &'segments Segments<T>,
+    pub intersections: &'intersections Intersections<T>,
     pub step: AlgoStepIdx,
 }

@@ -1,5 +1,7 @@
 //! [`ThirdPartyLicences`] is a widget that displays all third party licenses used in the application.
 
+// Based on https://github.com/EmbarkStudios/cargo-about
+
 use common::ui::{MyWidget, WidgetName};
 use eframe::egui;
 

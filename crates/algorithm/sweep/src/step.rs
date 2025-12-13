@@ -4,7 +4,7 @@ use bon::Builder;
 use common::{
     AlgrorithmStep,
     intersection::{InterVec, IntersectionIdx},
-    math::{Float, cartesian::CartesianCoord},
+    math::{A, cartesian::CartesianCoord},
     segment::SegmentIdx,
 };
 use itertools::chain;
@@ -16,14 +16,14 @@ use sweep_utils::{
 #[derive(Builder, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[builder(on(usize, into))]
-pub struct Step {
+pub struct Step<T: A> {
     #[builder(start_fn)]
-    pub typ: StepType,
+    pub typ: StepType<T>,
     #[builder(start_fn)]
     pub step: usize,
-    pub p: Option<CartesianCoord>,
+    pub p: Option<CartesianCoord<T>>,
     #[builder(default)]
-    pub event_queue: EventQueue,
+    pub event_queue: EventQueue<T>,
     #[builder(default)]
     #[builder(with = FromIterator::from_iter)]
     pub status_queue: Vec<SegmentIdx>,
@@ -38,21 +38,21 @@ pub struct Step {
     pub l_p: Vec<SegmentIdx>,
 }
 
-impl StatusReport for Step {
+impl<T: A> StatusReport<T> for Step<T> {
     fn status_queue(&self) -> &[SegmentIdx] {
         &self.status_queue
     }
 
-    fn p(&self) -> Option<&CartesianCoord> {
+    fn p(&self) -> Option<&CartesianCoord<T>> {
         self.p.as_ref()
     }
 }
-impl EventReport for Step {
-    fn event_queue(&self) -> &EventQueue {
+impl<T: A> EventReport<T> for Step<T> {
+    fn event_queue(&self) -> &EventQueue<T> {
         &self.event_queue
     }
 
-    fn p(&self) -> Option<&CartesianCoord> {
+    fn p(&self) -> Option<&CartesianCoord<T>> {
         self.p.as_ref()
     }
 
@@ -60,7 +60,7 @@ impl EventReport for Step {
         &self.u_p
     }
 }
-impl SetReport for Step {
+impl<T: A> SetReport for Step<T> {
     fn u_p(&self) -> &[SegmentIdx] {
         &self.u_p
     }
@@ -76,7 +76,7 @@ impl SetReport for Step {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum StepType {
+pub enum StepType<T: A> {
     Init,
     StartInitQ,
     InitQ {
@@ -110,11 +110,11 @@ pub enum StepType {
     InsertIntersectionEvent {
         s_l: SegmentIdx,
         s_r: SegmentIdx,
-        intersection: (Float, Float),
+        intersection: (T, T),
     },
     End,
 }
-impl StepType {
+impl<T: A> StepType<T> {
     #[must_use]
     pub const fn is_init(&self) -> bool {
         matches!(self, Self::Init)
@@ -153,7 +153,7 @@ impl StepType {
     }
 }
 
-impl AlgrorithmStep for Step {
+impl<T: A> AlgrorithmStep<T> for Step<T> {
     fn segments(&self) -> impl Iterator<Item = common::segment::SegmentIdx> {
         chain!(&self.u_p, &self.c_p, &self.l_p).copied()
     }
@@ -162,7 +162,7 @@ impl AlgrorithmStep for Step {
         iter::empty()
     }
 
-    fn sweep_line(&self) -> Option<CartesianCoord> {
+    fn sweep_line(&self) -> Option<CartesianCoord<T>> {
         self.p.clone()
     }
 }

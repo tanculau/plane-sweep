@@ -1,3 +1,5 @@
+// Based on https://github.com/emilk/eframe_template
+
 #[cfg(all(feature = "mimalloc", not(target_arch = "wasm32")))]
 #[global_allocator]
 pub static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
@@ -32,7 +34,7 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "Plane Sweep Algorithm",
         native_options,
-        Box::new(|cc| Ok(Box::new(app::App::new(cc)))),
+        Box::new(|cc| Ok(Box::new(app::AppRational::new(cc)))),
     )
 }
 
@@ -62,7 +64,7 @@ fn main() {
             .start(
                 canvas,
                 web_options,
-                Box::new(|cc| Ok(Box::new(app::App::new(cc)))),
+                Box::new(|cc| Ok(Box::new(app::AppRational::new(cc)))),
             )
             .await;
 

@@ -1,15 +1,17 @@
+// Based on the book "Computational Geometry" from Mark Berg , Otfried Cheong , Marc Kreveld , Mark Overmars. [DOI](https://doi.org/10.1007/978-3-662-04245-8)
+
 use std::collections::HashSet;
 
 use common::{
     intersection::{Intersection, Intersections},
-    math::cartesian::CartesianCoord,
+    math::{A, cartesian::CartesianCoord},
     segment::{Segment, SegmentIdx, Segments},
 };
 use itertools::{Itertools, chain};
 use smallvec::SmallVec;
 use sweep_utils::{event::EventQueue, status::StatusQueue};
 
-pub fn calculate(segments: &Segments, intersections: &mut Intersections) {
+pub fn calculate<T: A>(segments: &Segments<T>, intersections: &mut Intersections<T>) {
     intersections.clear();
     let mut event_queue = EventQueue::new();
     for (id, segment) in segments.iter_enumerated() {
@@ -36,12 +38,12 @@ pub fn calculate(segments: &Segments, intersections: &mut Intersections) {
     clippy::too_many_arguments,
     reason = "because capturing status cost a lot"
 )]
-fn handle_event_point_fast(
-    (p, u_p): (CartesianCoord, HashSet<SegmentIdx>),
-    event_queue: &mut EventQueue,
-    segments: &Segments,
-    intersections: &mut Intersections,
-    status_queue: &mut StatusQueue,
+fn handle_event_point_fast<T: A>(
+    (p, u_p): (CartesianCoord<T>, HashSet<SegmentIdx>),
+    event_queue: &mut EventQueue<T>,
+    segments: &Segments<T>,
+    intersections: &mut Intersections<T>,
+    status_queue: &mut StatusQueue<T>,
 ) {
     let (l_p, c_p): (SmallVec<_, 10>, SmallVec<_, 10>) = status_queue
         .iter_contains(segments, &p)
@@ -98,12 +100,12 @@ fn handle_event_point_fast(
     }
 }
 
-fn find_new_event_fast(
+fn find_new_event_fast<T: A>(
     s_l: SegmentIdx,
     s_r: SegmentIdx,
-    event: &CartesianCoord,
-    segments: &Segments,
-    event_queue: &mut EventQueue,
+    event: &CartesianCoord<T>,
+    segments: &Segments<T>,
+    event_queue: &mut EventQueue<T>,
 ) {
     if let Some(intersection) = Segment::intersect(s_l, s_r, segments, 0)
         && intersection.typ().is_point()

@@ -46,6 +46,8 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 googletest = "0.14.1"
+common = { path = "../../common", features = ["rational"]}
+
 
 [lints]
 workspace = true

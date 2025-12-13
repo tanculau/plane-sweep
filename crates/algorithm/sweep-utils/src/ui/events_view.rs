@@ -1,5 +1,5 @@
 use common::{
-    math::cartesian::CartesianCoord,
+    math::{A, cartesian::CartesianCoord},
     segment::{SegmentIdx, Segments},
     ui::{MyWidget, WidgetName},
 };
@@ -8,18 +8,18 @@ use egui_extras::{Column, Size, StripBuilder, TableBuilder};
 
 use crate::event::EventQueue;
 
-pub trait EventReport {
-    fn event_queue(&self) -> &EventQueue;
-    fn p(&self) -> Option<&CartesianCoord>;
+pub trait EventReport<T: A> {
+    fn event_queue(&self) -> &EventQueue<T>;
+    fn p(&self) -> Option<&CartesianCoord<T>>;
     fn u_p(&self) -> &[SegmentIdx];
 }
 
-impl<T: EventReport> EventReport for &T {
-    fn event_queue(&self) -> &EventQueue {
+impl<TT: A, T: EventReport<TT>> EventReport<TT> for &T {
+    fn event_queue(&self) -> &EventQueue<TT> {
         (*self).event_queue()
     }
 
-    fn p(&self) -> Option<&CartesianCoord> {
+    fn p(&self) -> Option<&CartesianCoord<TT>> {
         (*self).p()
     }
 
@@ -34,7 +34,11 @@ pub struct EventsView;
 
 impl EventsView {
     #[allow(clippy::missing_panics_doc)]
-    pub fn table_view(ui: &mut eframe::egui::Ui, report: impl EventReport, segments: &Segments) {
+    pub fn table_view<T: A>(
+        ui: &mut eframe::egui::Ui,
+        report: impl EventReport<T>,
+        segments: &Segments<T>,
+    ) {
         let mut events = report.event_queue().queue.iter();
         let total_rows = report.event_queue().queue.len();
         let available_height = ui.available_height();
@@ -84,13 +88,13 @@ impl WidgetName for EventsView {
     const NAME: &'static str = "Events";
 }
 
-pub struct EventsViewState<'a, 'b, T: EventReport> {
+pub struct EventsViewState<'a, 'b, T: EventReport<TT>, TT: A> {
     pub step: &'a T,
-    pub segments: &'b Segments,
+    pub segments: &'b Segments<TT>,
 }
 
-impl<'a, 'b, T: EventReport> MyWidget<EventsViewState<'a, 'b, T>> for EventsView {
-    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<EventsViewState<'a, 'b, T>>) {
+impl<'a, 'b, T: EventReport<TT>, TT: A> MyWidget<EventsViewState<'a, 'b, T, TT>> for EventsView {
+    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<EventsViewState<'a, 'b, T, TT>>) {
         let EventsViewState { step, segments } = state.into();
         if let (Some(p), segs) = (step.p(), &step.u_p()) {
             ui.heading("Current Event:");
@@ -113,7 +117,10 @@ impl<'a, 'b, T: EventReport> MyWidget<EventsViewState<'a, 'b, T>> for EventsView
     }
 }
 
-fn format_segment(mut iter: impl Iterator<Item = SegmentIdx>, segments: &Segments) -> String {
+fn format_segment<T: A>(
+    mut iter: impl Iterator<Item = SegmentIdx>,
+    segments: &Segments<T>,
+) -> String {
     use std::fmt::Write;
     let mut buf = String::new();
 

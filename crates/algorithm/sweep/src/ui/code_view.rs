@@ -1,9 +1,11 @@
+// Based on the book "Computational Geometry" from Mark Berg , Otfried Cheong , Marc Kreveld , Mark Overmars. [DOI](https://doi.org/10.1007/978-3-662-04245-8)
+
 use common::{
     AlgoStepIdx, AlgoSteps,
     intersection::Intersections,
+    math::A,
     segment::{SegmentIdx, Segments},
-    ui::MyWidget,
-    ui::WidgetName,
+    ui::{MyWidget, WidgetName},
 };
 use eframe::egui::RichText;
 
@@ -18,16 +20,16 @@ impl WidgetName for CodeView {
     const NAME_LONG: &'static str = "Code Viewer";
 }
 #[derive(Debug, Clone)]
-pub struct CodeViewState<'a, 'b, 'c> {
+pub struct CodeViewState<'a, 'b, 'c, T: A> {
     pub step: AlgoStepIdx,
-    pub steps: &'a AlgoSteps<Step>,
-    pub segments: &'b Segments,
-    pub intersections: &'c Intersections,
+    pub steps: &'a AlgoSteps<Step<T>>,
+    pub segments: &'b Segments<T>,
+    pub intersections: &'c Intersections<T>,
 }
 
-impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
+impl<'a, 'b, 'c, T: A> MyWidget<CodeViewState<'a, 'b, 'c, T>> for CodeView {
     #[allow(clippy::too_many_lines)]
-    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<CodeViewState<'a, 'b, 'c>>) {
+    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<CodeViewState<'a, 'b, 'c, T>>) {
         let CodeViewState {
             step,
             steps,
@@ -208,7 +210,10 @@ impl<'a, 'b, 'c> MyWidget<CodeViewState<'a, 'b, 'c>> for CodeView {
     }
 }
 
-fn format_segment<'a>(a: impl Iterator<Item = &'a SegmentIdx>, segments: &Segments) -> String {
+fn format_segment<'a, T: A>(
+    a: impl Iterator<Item = &'a SegmentIdx>,
+    segments: &Segments<T>,
+) -> String {
     use std::fmt::Write;
     let mut buf = String::new();
     let mut s = a;

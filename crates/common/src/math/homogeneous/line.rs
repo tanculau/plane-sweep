@@ -1,19 +1,33 @@
-use core::ops::Neg;
+// Based on Geometriekalküle from  Jürgen Richter-Gebert, Thorsten Orendt https://doi.org/10.1007/978-3-642-02530-3
+
+use core::{fmt::Display, ops::Neg};
 
 use tracing::{debug, instrument};
 
-use crate::math::{
-    CrossProduct, DotProduct, Float, calculate_multiple, homogeneous::HomogeneousCoord,
-};
+use crate::math::{A, CrossProduct, DotProduct, calculate_multiple, homogeneous::HomogeneousCoord};
 
-#[derive(Debug, Clone, PartialOrd)]
-pub struct Line {
-    pub a: Float,
-    pub b: Float,
-    pub c: Float,
+#[derive(Debug, Clone, Copy)]
+pub struct Line<T: A> {
+    pub a: T,
+    pub b: T,
+    pub c: T,
 }
 
-impl Neg for Line {
+impl<T: A> PartialOrd for Line<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match self.a.partial_cmp(&other.a) {
+            Some(core::cmp::Ordering::Equal) => {}
+            ord => return ord,
+        }
+        match self.b.partial_cmp(&other.b) {
+            Some(core::cmp::Ordering::Equal) => {}
+            ord => return ord,
+        }
+        self.c.partial_cmp(&other.c)
+    }
+}
+
+impl<T: A> Neg for Line<T> {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
@@ -25,7 +39,7 @@ impl Neg for Line {
     }
 }
 
-impl PartialEq for Line {
+impl<T: A> PartialEq for Line<T> {
     fn eq(&self, other: &Self) -> bool {
         let a = calculate_multiple(&self.a, &other.a);
         let b = calculate_multiple(&self.b, &other.b);
@@ -35,22 +49,22 @@ impl PartialEq for Line {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Slope {
-    ThirdQuadrant(Float),
+pub enum Slope<T> {
+    ThirdQuadrant(T),
     Vertical,
-    FourthQuadrant(Float),
+    FourthQuadrant(T),
     Horizontal,
     Infinity,
 }
-impl core::fmt::Display for Slope {
+impl<T: Display> Display for Slope<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ThirdQuadrant(generic_fraction) => {
-                write!(f, "3. Quadrant({generic_fraction:.2})")
+            Self::ThirdQuadrant(float) => {
+                write!(f, "3. Quadrant({float:.2})")
             }
             Self::Vertical => write!(f, "Vertical"),
-            Self::FourthQuadrant(generic_fraction) => {
-                write!(f, "4. Quadrant({generic_fraction:.2})")
+            Self::FourthQuadrant(float) => {
+                write!(f, "4. Quadrant({float:.2})")
             }
             Self::Horizontal => write!(f, "Horizontal"),
             Self::Infinity => write!(f, "Infinity"),
@@ -58,7 +72,7 @@ impl core::fmt::Display for Slope {
     }
 }
 
-impl Line {
+impl<T: A> Line<T> {
     #[must_use]
     pub fn x_axis() -> Self {
         Self {
@@ -75,7 +89,7 @@ impl Line {
             c: 0.into(),
         }
     }
-    pub fn new(a: impl Into<Float>, b: impl Into<Float>, c: impl Into<Float>) -> Self {
+    pub fn new(a: impl Into<T>, b: impl Into<T>, c: impl Into<T>) -> Self {
         Self {
             a: a.into(),
             b: b.into(),
@@ -83,53 +97,57 @@ impl Line {
         }
     }
 
-    pub fn horizontal(y: impl Into<Float>) -> Self {
+    pub fn horizontal(y: impl Into<T>) -> Self {
         Self::new(0, -1, y.into())
     }
 
-    pub fn vertical(x: impl Into<Float>) -> Self {
+    pub fn vertical(x: impl Into<T>) -> Self {
         Self::new(-1, 0, x.into())
     }
 
     #[must_use]
-    pub const fn is_finite(&self) -> bool {
-        self.a.is_finite() && self.b.is_finite() && self.c.is_finite()
-    }
-
-    #[must_use]
-    pub const fn tuple(&self) -> (&Float, &Float, &Float) {
+    pub const fn tuple(&self) -> (&T, &T, &T) {
         (&self.a, &self.b, &self.c)
     }
+    #[must_use]
+    pub fn tuple_owned(&self) -> (T, T, T) {
+        (self.a.clone(), self.b.clone(), self.c.clone())
+    }
 
     #[must_use]
-    pub const fn array(&self) -> [&Float; 3] {
+    pub const fn array(&self) -> [&T; 3] {
         [&self.a, &self.b, &self.c]
     }
+}
 
-    #[instrument(name = "Line::contains_coord", skip(self, coord))]
-    pub fn contains_coord(self, coord: impl Into<HomogeneousCoord>) -> bool {
-        let coord = coord.into();
-        let res = self.tuple().dot_product(coord.tuple());
-        let res = res == 0.into();
-        debug!("Line contains coord: {coord:?} on line {self:?} -> {res}");
-        res
-    }
-
+impl<T: A> Line<T> {
     #[must_use]
-    pub fn intersection(self, other: Self) -> HomogeneousCoord {
+    pub fn intersection(self, other: Self) -> HomogeneousCoord<T> {
         self.cross_product(other)
     }
+}
 
+impl<T: A> Line<T> {
+    #[instrument(name = "Line::contains_coord", skip(self, coord))]
+    pub fn contains_coord(self, coord: impl Into<HomogeneousCoord<T>>) -> bool {
+        let coord = coord.into();
+        let res = self.tuple_owned().dot_product(coord.tuple());
+
+        res == 0.into()
+    }
+}
+
+impl<T: A> Line<T> {
     #[must_use]
-    pub fn slope(self) -> Slope {
-        match ((self.a == 0.into()), (self.b == 0.into())) {
+    pub fn slope(self) -> Slope<T> {
+        match ((self.a.is_zero()), (self.b.is_zero())) {
             (true, true) => Slope::Infinity,
             (true, false) => Slope::Horizontal,
             (false, true) => Slope::Vertical,
             (false, false) => {
-                let slope = -self.a / self.b;
+                let slope = -self.a / &self.b;
 
-                if slope.is_sign_positive() {
+                if slope > 0.into() {
                     Slope::ThirdQuadrant(slope)
                 } else {
                     Slope::FourthQuadrant(slope)
@@ -137,15 +155,17 @@ impl Line {
             }
         }
     }
+}
 
+impl<T: A> Line<T> {
     #[must_use]
-    pub fn angle(self) -> Float {
+    pub fn angle(self) -> T {
         let Self { a: a1, b: b1, .. } = self;
-        -a1 / b1
+        -a1 / &b1
     }
 }
 
-impl<TA: Into<Float>, TB: Into<Float>, TC: Into<Float>> From<(TA, TB, TC)> for Line {
+impl<T: A, TA: Into<T>, TB: Into<T>, TC: Into<T>> From<(TA, TB, TC)> for Line<T> {
     fn from((a, b, c): (TA, TB, TC)) -> Self {
         Self {
             a: a.into(),
@@ -155,20 +175,20 @@ impl<TA: Into<Float>, TB: Into<Float>, TC: Into<Float>> From<(TA, TB, TC)> for L
     }
 }
 
-impl CrossProduct for Line {
-    type Output = HomogeneousCoord;
+impl<T: A> CrossProduct for Line<T> {
+    type Output = HomogeneousCoord<T>;
 
     fn cross_product(self, rhs: Self) -> Self::Output {
-        let result = self.tuple().cross_product(rhs.tuple()).into();
+        let result = self.tuple_owned().cross_product(rhs.tuple()).into();
         debug!("Cross product of lines {self:?} and {rhs:?} is {result:?}");
         result
     }
 }
 
-impl DotProduct for Line {
-    type Output = Float;
+impl<T: A> DotProduct for Line<T> {
+    type Output = T;
 
     fn dot_product(self, rhs: Self) -> Self::Output {
-        self.tuple().dot_product(rhs.tuple())
+        self.tuple_owned().dot_product(rhs.tuple())
     }
 }

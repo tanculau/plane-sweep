@@ -19,7 +19,7 @@ default = ["persistence", "accesskit", "mimalloc", "x11", "wayland"]
 "better-panic" = ["dep:better-panic"]
 
 [dependencies]
-app = { path = "../ui/app" }
+app = { path = "../ui/app", features = ["rational"]}
 eframe = { version = "0.31", default-features = false, features = [
     "default_fonts", # Embed the default egui fonts.
     "glow",          # Use the glow rendering backend. Alternative: "wgpu".

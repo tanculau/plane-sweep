@@ -7,6 +7,8 @@ accepted = [
     "Zlib",
     "ISC",
     "Unlicense",
+    "LGPL-3.0-only",
+    "MPL-2.0",
 ]
 
 ignore-build-dependencies = true

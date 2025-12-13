@@ -1,4 +1,4 @@
-use common::{intersection::Intersections, segment::{Segment, Segments}};
+use common::{intersection::Intersections, math::Rational, segment::{Segment, Segments}};
 use fastrand::Rng;
 use sweep_fast::calculate;
 
@@ -11,15 +11,15 @@ fn main() {
 }
 
 
-fn gen_inputs(len: usize) -> impl FnMut() -> (Segments, Intersections) {
+fn gen_inputs(len: usize) -> impl FnMut() -> (Segments<Rational>, Intersections<Rational>) {
     let mut rng = Rng::with_seed(len as u64);
 
     move || {
         (
             std::iter::from_fn(|| {
                 Some(Segment::new(
-                    (rng.i16(..), rng.i16(..)),
-                    (rng.i16(..), rng.i16(..)),
+                    (rng.i64(..), rng.i64(..)),
+                    (rng.i64(..), rng.i64(..)),
                 ))
             })
             .take(len)

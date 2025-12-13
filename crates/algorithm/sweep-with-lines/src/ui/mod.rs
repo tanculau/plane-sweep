@@ -1,8 +1,11 @@
 mod code_view;
+mod merge_queue;
+use core::fmt::Debug;
 
 use common::{
     AlgoStepIdx, AlgoSteps,
     intersection::{LeanIntersections, lean_to_normal},
+    math::A,
     segment::{Segment, Segments},
     ui::{MyWidget, WidgetName},
 };
@@ -11,7 +14,7 @@ use eframe::egui::{self, Align, Layout, ScrollArea};
 use intersection_table::{IntersectionTable, IntersectionTableState};
 use itertools::chain;
 use segment_plotter::{SegmentPlotter, SegmentPlotterState};
-use segment_table::SegmentTable;
+use segment_table::{SegmentTable, SegmentTableState};
 use sweep_utils::ui::{
     events_view::{EventsView, EventsViewState},
     set_view::{SetView, SetViewState},
@@ -20,19 +23,22 @@ use sweep_utils::ui::{
 
 use crate::{
     Step, calculate_steps,
-    ui::code_view::{CodeView, CodeViewState},
+    ui::{
+        code_view::{CodeView, CodeViewState},
+        merge_queue::{MergeQueueView, MergeQueueViewState},
+    },
 };
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[expect(clippy::struct_excessive_bools)]
-pub struct PlaneSweepOverlay {
+pub struct PlaneSweepOverlay<T: A> {
     step: AlgoStepIdx,
-    segments: Segments,
-    intersections: LeanIntersections,
-    merged_intersections: LeanIntersections,
+    segments: Segments<T>,
+    intersections: LeanIntersections<T>,
+    merged_intersections: LeanIntersections<T>,
 
-    steps: AlgoSteps<Step>,
+    steps: AlgoSteps<Step<T>>,
     #[cfg_attr(feature = "serde", serde(skip))]
     controller: Controller,
     is_controller_open: bool,
@@ -50,14 +56,16 @@ pub struct PlaneSweepOverlay {
     is_code_view_open: bool,
     status_view: StatusView,
     is_status_view_open: bool,
+    merge_queue: MergeQueueView,
+    is_merge_queue_open: bool,
 }
 
-impl WidgetName for PlaneSweepOverlay {
+impl<T: A> WidgetName for PlaneSweepOverlay<T> {
     const NAME: &'static str = "Plane Sweep";
     const NAME_LONG: &'static str = "Plane Sweep Algorithm";
 }
 
-impl PlaneSweepOverlay {
+impl<T: A> PlaneSweepOverlay<T> {
     fn side_panel_groups(&mut self, ui: &mut egui::Ui) {
         ScrollArea::vertical().show(ui, |ui| {
             ui.with_layout(Layout::top_down_justified(Align::LEFT), |ui| {
@@ -80,10 +88,12 @@ impl PlaneSweepOverlay {
         ui.toggle_value(&mut self.is_set_view_open, self.set_view.name());
         ui.toggle_value(&mut self.is_events_view_open, self.events_view.name());
         ui.toggle_value(&mut self.is_code_view_open, self.code_view.name());
+        ui.toggle_value(&mut self.is_merge_queue_open, self.merge_queue.name());
     }
 }
 
-impl MyWidget<()> for PlaneSweepOverlay {
+impl<T: A> MyWidget<()> for PlaneSweepOverlay<T> {
+    #[allow(clippy::too_many_lines)]
     fn ui(&mut self, ui: &mut eframe::egui::Ui, _: impl Into<()>) {
         let ctx = ui.ctx();
         egui::SidePanel::right("Plane Sweep Panel")
@@ -104,11 +114,14 @@ impl MyWidget<()> for PlaneSweepOverlay {
         self.segment_table.show(
             ctx,
             &mut self.is_segment_table_open,
-            (&mut should_reset, &mut self.segments),
+            SegmentTableState {
+                should_reset: &mut should_reset,
+                segments: &mut self.segments,
+            },
         );
         if should_reset {
             self.step = 0.into();
-            calculate_steps(
+            calculate_steps::<T>(
                 &self.segments,
                 &mut self.intersections,
                 &mut self.merged_intersections,
@@ -145,10 +158,6 @@ impl MyWidget<()> for PlaneSweepOverlay {
             ControllerState {
                 steps: &mut self.steps,
                 step: &mut self.step,
-                intersections: &mut lean_to_normal(chain!(
-                    &self.intersections,
-                    &self.merged_intersections
-                )),
             },
         );
         self.set_view.show(
@@ -178,7 +187,8 @@ impl MyWidget<()> for PlaneSweepOverlay {
                 merged_intersections: &self.merged_intersections,
             },
         );
-        self.status_view.show(
+        MyWidget::<StatusViewState<'_, _, T>>::show(
+            &mut self.status_view,
             ctx,
             &mut self.is_status_view_open,
             StatusViewState {
@@ -186,17 +196,25 @@ impl MyWidget<()> for PlaneSweepOverlay {
                 segments: &self.segments,
             },
         );
+        self.merge_queue.show(
+            ctx,
+            &mut self.is_merge_queue_open,
+            MergeQueueViewState {
+                step: &self.steps[self.step].merge_queue,
+                segments: &self.segments,
+            },
+        );
     }
 }
 
-impl Default for PlaneSweepOverlay {
+impl<T: A> Default for PlaneSweepOverlay<T> {
     fn default() -> Self {
         let mut out = Self {
             step: 0.into(),
             segments: [
-                Segment::new((2, 2), (-2, -2)),
-                Segment::new((-2, 2), (2, -2)),
-                Segment::new((-1, 2), (-1, -2)),
+                Segment::new((2_i8, 2_i8), (-2_i8, -2_i8)),
+                Segment::new((-2_i8, 2_i8), (2_i8, -2_i8)),
+                Segment::new((-1_i8, 2_i8), (-1_i8, -2_i8)),
             ]
             .into_iter()
             .collect(),
@@ -219,8 +237,10 @@ impl Default for PlaneSweepOverlay {
             is_code_view_open: true,
             status_view: StatusView,
             is_status_view_open: true,
+            is_merge_queue_open: true,
+            merge_queue: MergeQueueView,
         };
-        calculate_steps(
+        calculate_steps::<T>(
             &out.segments,
             &mut out.intersections,
             &mut out.merged_intersections,

@@ -1,14 +1,17 @@
-use core::f64::consts::TAU;
+// Based on  https://github.com/emilk/egui_plot/tree/main/examples
+use core::{f64::consts::TAU, fmt::Debug};
 
 use common::{
     AlgoStepIdx, AlgoSteps, AlgrorithmStep,
     intersection::{IntersectionType, Intersections},
+    math::A,
     segment::Segments,
-    ui::MyWidget,
-    ui::WidgetName,
+    ui::{MyWidget, WidgetName},
 };
 use eframe::egui::{self, Color32, ComboBox, DragValue, ScrollArea, TextWrapMode, remap};
-use egui_plot::{CoordinatesFormatter, Corner, HLine, Legend, Line, LineStyle, Plot, PlotPoints};
+use egui_plot::{
+    CoordinatesFormatter, Corner, HLine, Legend, Line, LineStyle, Plot, PlotPoints, Polygon,
+};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -69,23 +72,25 @@ impl SegmentPlotter {
         });
     }
 }
-fn circle(
+
+// SOURCE https://github.com/emilk/egui_plot/blob/ac2d7cb54554cbdd87e298bd324471c9498f6a42/examples/lines/src/app.rs#L115
+fn circle<T: A>(
     radius: f64,
     name: String,
-    coord: &common::math::cartesian::CartesianCoord,
-) -> Line<'static> {
+    coord: &common::math::cartesian::CartesianCoord<T>,
+) -> Polygon<'static> {
     let n = 512;
     let circle_points: PlotPoints<'static> = (0..=n)
         .map(|i| {
             let t: f64 = remap(f64::from(i), 0.0..=f64::from(n), 0.0..=TAU);
             let r: f64 = radius;
             [
-                r.mul_add(t.cos(), coord.x.clone().try_into().unwrap()),
-                r.mul_add(t.sin(), coord.y.clone().try_into().unwrap()),
+                r.mul_add(t.cos(), coord.x.clone().to_float()),
+                r.mul_add(t.sin(), coord.y.clone().to_float()),
             ]
         })
         .collect();
-    Line::new(name, circle_points)
+    Polygon::new(name, circle_points)
 }
 
 impl Default for SegmentPlotter {
@@ -106,13 +111,13 @@ impl WidgetName for SegmentPlotter {
     const NAME: &'static str = "Segment Plotter";
 }
 
-impl<'segments, 'intersections, 'steps, T: AlgrorithmStep>
-    MyWidget<SegmentPlotterState<'segments, 'intersections, 'steps, T>> for SegmentPlotter
+impl<'segments, 'intersections, 'steps, T: AlgrorithmStep<TT>, TT: A>
+    MyWidget<SegmentPlotterState<'segments, 'intersections, 'steps, T, TT>> for SegmentPlotter
 {
     fn ui(
         &mut self,
         ui: &mut eframe::egui::Ui,
-        state: impl Into<SegmentPlotterState<'segments, 'intersections, 'steps, T>>,
+        state: impl Into<SegmentPlotterState<'segments, 'intersections, 'steps, T, TT>>,
     ) {
         let SegmentPlotterState {
             segments,
@@ -139,7 +144,7 @@ impl<'segments, 'intersections, 'steps, T: AlgrorithmStep>
         plot.show(ui, |plot_ui| {
             for segment in segments {
                 if segment.shown {
-                    let mut line = Line::new(
+                    let line = Line::new(
                         format!(
                             "Segment {} {}",
                             segment.id,
@@ -150,9 +155,9 @@ impl<'segments, 'intersections, 'steps, T: AlgrorithmStep>
                             segment.lower.array_float(),
                         ]),
                     );
-                    if segment.mark {
-                        line = line.highlight(true);
-                    }
+                    //if segment.mark {
+                    //    line = line.highlight(true);
+                    //}
                     plot_ui.line(line);
                 }
             }
@@ -165,7 +170,7 @@ impl<'segments, 'intersections, 'steps, T: AlgrorithmStep>
                     IntersectionType::Point { coord } => {
                         //plot_ui.points(Points::new(name, vec![[coord.x, coord.y]]));
                         let line = circle(self.radius, name, coord);
-                        plot_ui.line(line);
+                        plot_ui.polygon(line);
                     }
                     IntersectionType::Parallel { line } => {
                         let line = Line::new(
@@ -181,22 +186,19 @@ impl<'segments, 'intersections, 'steps, T: AlgrorithmStep>
             }
 
             if let Some(sweep) = steps[step].sweep_line() {
-                plot_ui.hline(
-                    HLine::new("Sweep Line", f64::try_from(sweep.y.clone()).unwrap())
-                        .color(Color32::RED),
-                );
+                plot_ui.hline(HLine::new("Sweep Line", sweep.y.to_float()).color(Color32::RED));
                 let line = circle(self.radius * 2.0, "Event Point".to_string(), &sweep)
-                    .color(Color32::RED);
-                plot_ui.line(line);
+                    .fill_color(Color32::RED);
+                plot_ui.polygon(line);
             }
         });
     }
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct SegmentPlotterState<'segments, 'intersections, 'steps, T: AlgrorithmStep> {
-    pub segments: &'segments Segments,
-    pub intersections: &'intersections Intersections,
+pub struct SegmentPlotterState<'segments, 'intersections, 'steps, T: AlgrorithmStep<TT>, TT: A> {
+    pub segments: &'segments Segments<TT>,
+    pub intersections: &'intersections Intersections<TT>,
     pub step: AlgoStepIdx,
     pub steps: &'steps AlgoSteps<T>,
 }

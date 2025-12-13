@@ -1,4 +1,7 @@
-use common::{AlgoStepIdx, AlgoSteps, intersection::Intersections, ui::MyWidget, ui::WidgetName};
+use common::{
+    AlgoStepIdx, AlgoSteps,
+    ui::{MyWidget, WidgetName},
+};
 use eframe::egui::{self, Window};
 use tracing::{info, instrument};
 
@@ -23,15 +26,14 @@ impl WidgetName for Controller {
 }
 
 #[derive(Debug)]
-pub struct ControllerState<'a, 'b, 'c, T> {
-    pub steps: &'a mut AlgoSteps<T>,
+pub struct ControllerState<'a, 'b, STEPS> {
+    pub steps: &'a mut AlgoSteps<STEPS>,
     pub step: &'b mut AlgoStepIdx,
-    pub intersections: &'c mut Intersections,
 }
 
-impl<'a, 'b, 'c, T> MyWidget<ControllerState<'a, 'b, 'c, T>> for Controller {
+impl<'a, 'b, STEPS> MyWidget<ControllerState<'a, 'b, STEPS>> for Controller {
     #[instrument(name = "Controller", skip_all)]
-    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<ControllerState<'a, 'b, 'c, T>>) {
+    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<ControllerState<'a, 'b, STEPS>>) {
         let state = state.into();
         ui.vertical(|ui| {
             let text = match state.step.into() {
@@ -88,7 +90,7 @@ impl<'a, 'b, 'c, T> MyWidget<ControllerState<'a, 'b, 'c, T>> for Controller {
         &mut self,
         ctx: &eframe::egui::Context,
         open: &mut bool,
-        state: impl Into<ControllerState<'a, 'b, 'c, T>>,
+        state: impl Into<ControllerState<'a, 'b, STEPS>>,
     ) {
         Window::new(Self::NAME_LONG)
             .open(open)

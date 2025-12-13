@@ -26,16 +26,17 @@ egui = { version = "0.31", features = ["accesskit", "bytemuck", "log", "persiste
 egui_extras = { version = "0.31", default-features = false, features = ["file", "image", "serde"] }
 egui_glow = { version = "0.31", default-features = false, features = ["wayland", "x11"] }
 egui_plot = { version = "0.32", features = ["serde"] }
+either = { version = "1", default-features = false, features = ["use_std"] }
 emath = { version = "0.31", default-features = false, features = ["bytemuck", "serde"] }
 epaint = { version = "0.31", default-features = false, features = ["bytemuck", "default_fonts", "log", "serde"] }
-fraction = { version = "0.15", default-features = false, features = ["with-approx", "with-dynaint", "with-serde-support"] }
+hashbrown = { version = "0.15", default-features = false, features = ["default-hasher", "inline-more"] }
+itertools = { version = "0.14" }
 log = { version = "0.4", default-features = false, features = ["std"] }
+malachite = { version = "0.6", default-features = false, features = ["enable_serde", "naturals_and_integers", "rationals"] }
+malachite-nz = { version = "0.6", default-features = false, features = ["enable_serde", "float_helpers"] }
+malachite-q = { version = "0.6", default-features = false, features = ["enable_serde"] }
 memchr = { version = "2" }
-num = { version = "0.4", default-features = false, features = ["serde", "std"] }
-num-bigint = { version = "0.4", default-features = false, features = ["serde", "std"] }
-num-complex = { version = "0.4", default-features = false, features = ["serde", "std"] }
-num-rational = { version = "0.4", default-features = false, features = ["num-bigint-std", "serde", "std"] }
-num-traits = { version = "0.2", features = ["i128"] }
+num-traits = { version = "0.2" }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -55,9 +56,10 @@ egui = { version = "0.31", features = ["accesskit", "bytemuck", "log", "persiste
 egui_extras = { version = "0.31", default-features = false, features = ["file", "image", "serde"] }
 emath = { version = "0.31", default-features = false, features = ["bytemuck", "serde"] }
 epaint = { version = "0.31", default-features = false, features = ["bytemuck", "default_fonts", "log", "serde"] }
+hashbrown = { version = "0.15", default-features = false, features = ["default-hasher", "inline-more"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
-num-traits = { version = "0.2", features = ["i128"] }
+num-traits = { version = "0.2" }
 regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa", "perf", "unicode"] }
 regex-syntax = { version = "0.8" }
@@ -71,7 +73,6 @@ bitflags = { version = "2", default-features = false, features = ["std"] }
 egui-winit = { version = "0.31", default-features = false, features = ["accesskit", "clipboard", "links", "serde", "wayland", "x11"] }
 glutin = { version = "0.32", default-features = false, features = ["glx", "wayland", "wgl"] }
 glutin-winit = { version = "0.5", default-features = false, features = ["egl", "glx", "wayland", "wgl"] }
-hashbrown = { version = "0.15", default-features = false, features = ["default-hasher"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 libc = { version = "0.2", features = ["extra_traits"] }
 linux-raw-sys = { version = "0.9", default-features = false, features = ["elf", "errno", "general", "if_ether", "ioctl", "net", "netlink", "no_std", "prctl", "xdp"] }
@@ -87,7 +88,6 @@ xkbcommon-dl = { version = "0.4", default-features = false, features = ["x11"] }
 [target.x86_64-unknown-linux-gnu.build-dependencies]
 ahash = { version = "0.8" }
 bitflags = { version = "2", default-features = false, features = ["std"] }
-hashbrown = { version = "0.15", default-features = false, features = ["default-hasher"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 libc = { version = "0.2", features = ["extra_traits"] }
 once_cell = { version = "1" }

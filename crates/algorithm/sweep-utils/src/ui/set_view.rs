@@ -1,4 +1,5 @@
 use common::{
+    math::A,
     segment::{SegmentIdx, Segments},
     ui::{MyWidget, WidgetName},
 };
@@ -14,17 +15,17 @@ pub trait SetReport {
     fn l_p(&self) -> &[SegmentIdx];
 }
 
-pub struct SetViewState<'a, 'b, T: SetReport> {
+pub struct SetViewState<'a, 'b, T: SetReport, TT: A> {
     pub step: &'a T,
-    pub segments: &'b Segments,
+    pub segments: &'b Segments<TT>,
 }
 
 impl WidgetName for SetView {
     const NAME: &'static str = "Set View";
 }
 
-impl<'a, 'b, T: SetReport> MyWidget<SetViewState<'a, 'b, T>> for SetView {
-    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<SetViewState<'a, 'b, T>>) {
+impl<'a, 'b, T: SetReport, TT: A> MyWidget<SetViewState<'a, 'b, T, TT>> for SetView {
+    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<SetViewState<'a, 'b, T, TT>>) {
         let state = state.into();
         let step = state.step;
         let segments = state.segments;

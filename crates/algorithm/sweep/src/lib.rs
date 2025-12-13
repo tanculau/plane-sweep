@@ -1,6 +1,6 @@
-//! Plane Sweep Algorithm
-//! Based on the book "Computational Geometry" from Mark Berg , Otfried Cheong , Marc Kreveld , Mark Overmars. [DOI](https://doi.org/10.1007/978-3-662-04245-8)
-//pub mod status_old;
+// Plane Sweep Algorithm
+// Based on the book "Computational Geometry" from Mark Berg , Otfried Cheong , Marc Kreveld , Mark Overmars. [DOI](https://doi.org/10.1007/978-3-662-04245-8)
+
 pub mod step;
 #[cfg(feature = "ui")]
 pub mod ui;
@@ -10,7 +10,7 @@ use std::collections::HashSet;
 use common::{
     AlgoSteps,
     intersection::{InterVec, Intersection, Intersections},
-    math::cartesian::CartesianCoord,
+    math::{A, cartesian::CartesianCoord},
     segment::{Segment, SegmentIdx, Segments},
 };
 use itertools::chain;
@@ -18,19 +18,19 @@ use sweep_utils::{event::EventQueue, status::StatusQueue};
 
 use crate::step::{Step, StepType};
 
-struct State<'a, 'b> {
-    segments: &'a Segments,
-    intersections: &'b mut Intersections,
-    event_queue: EventQueue,
-    status_queue: StatusQueue,
-    p: Option<CartesianCoord>,
+struct State<'a, 'b, T: A> {
+    segments: &'a Segments<T>,
+    intersections: &'b mut Intersections<T>,
+    event_queue: EventQueue<T>,
+    status_queue: StatusQueue<T>,
+    p: Option<CartesianCoord<T>>,
     u_p: Option<HashSet<SegmentIdx>>,
     c_p: Option<Vec<SegmentIdx>>,
     l_p: Option<Vec<SegmentIdx>>,
 }
 
-impl<'a, 'b> State<'a, 'b> {
-    fn new(segments: &'a Segments, intersections: &'b mut Intersections) -> Self {
+impl<'a, 'b, T: A> State<'a, 'b, T> {
+    fn new(segments: &'a Segments<T>, intersections: &'b mut Intersections<T>) -> Self {
         intersections.clear();
         Self {
             segments,
@@ -43,7 +43,7 @@ impl<'a, 'b> State<'a, 'b> {
             status_queue: StatusQueue::new(),
         }
     }
-    fn report(&self, step: StepType, steps: &mut AlgoSteps<Step>) {
+    fn report(&self, step: StepType<T>, steps: &mut AlgoSteps<Step<T>>) {
         steps.push(
             Step::builder(step, steps.len())
                 .maybe_c_p(self.c_p.clone())
@@ -55,7 +55,7 @@ impl<'a, 'b> State<'a, 'b> {
                 .build(),
         );
     }
-    fn set_event(&mut self, (p, u_p): (CartesianCoord, HashSet<SegmentIdx>)) {
+    fn set_event(&mut self, (p, u_p): (CartesianCoord<T>, HashSet<SegmentIdx>)) {
         self.p = Some(p);
         self.u_p = Some(u_p);
     }
@@ -67,10 +67,10 @@ impl<'a, 'b> State<'a, 'b> {
     }
 }
 
-pub fn calculate_steps(
-    segments: &Segments,
-    intersections: &mut Intersections,
-    steps: &mut AlgoSteps<Step>,
+pub fn calculate_steps<T: A>(
+    segments: &Segments<T>,
+    intersections: &mut Intersections<T>,
+    steps: &mut AlgoSteps<Step<T>>,
 ) {
     let mut state = State::new(segments, intersections);
     steps.clear();
@@ -95,7 +95,7 @@ pub fn calculate_steps(
         state.reset();
         state.set_event(event);
         state.report(StepType::PopQ, steps);
-        handle_event_point(&mut state, steps);
+        handle_event_point::<T>(&mut state, steps);
         // HANDLE EVENT POINT(p)
     }
 
@@ -107,7 +107,7 @@ pub fn calculate_steps(
     clippy::too_many_arguments,
     reason = "because capturing status cost a lot"
 )]
-fn handle_event_point(state: &mut State, steps: &mut AlgoSteps<Step>) {
+fn handle_event_point<T: A>(state: &mut State<T>, steps: &mut AlgoSteps<Step<T>>) {
     let p = state.p.as_ref().expect("Must be set");
     // "Let U(p) be the set of segments whose upper endpoint is p; these segments
     // are stored with the event point p. (For horizontal segments, the upper
@@ -199,11 +199,11 @@ fn handle_event_point(state: &mut State, steps: &mut AlgoSteps<Step>) {
     }
 }
 
-fn find_new_event(
+fn find_new_event<T: A>(
     s_l: SegmentIdx,
     s_r: SegmentIdx,
-    state: &mut State,
-    steps: &mut AlgoSteps<Step>,
+    state: &mut State<T>,
+    steps: &mut AlgoSteps<Step<T>>,
 ) {
     state.report(StepType::FindNewEvent { s_l, s_r }, steps);
     let p = state.p.as_ref().expect("Must be set");

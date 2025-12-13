@@ -1,5 +1,7 @@
-use common::segment::Segment;
+use common::math::Rational;
 use googletest::prelude::*;
+
+type Segment = common::segment::Segment<Rational>;
 
 #[gtest]
 fn new() {
@@ -55,9 +57,11 @@ fn vertical_horizontal() {
 mod intersection {
     use common::{
         intersection::{InterVec, Intersection, IntersectionType},
-        segment::{Segment, Segments},
+        segment::Segments,
     };
     use googletest::prelude::*;
+
+    use crate::Segment;
 
     #[gtest]
     fn none() {
@@ -181,8 +185,9 @@ mod intersection {
 }
 
 mod contains {
-    use common::segment::Segment;
     use googletest::prelude::*;
+
+    use crate::Segment;
 
     #[gtest]
     fn not() {

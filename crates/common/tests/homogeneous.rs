@@ -1,87 +1,109 @@
+#![cfg(feature = "rational")]
+#![cfg(feature = "float")]
+
 mod point {
-    use common::math::homogeneous::*;
+    use common::math::{A, homogeneous::*};
     use googletest::prelude::*;
+    use malachite::rational::Rational;
+
+    type HomogeneousCoordRational = common::math::homogeneous::HomogeneousCoord<Rational>;
 
     #[gtest]
     fn equal() {
-        fn check(a: usize, b: usize, c: usize) {
-            let p1 = HomogeneousCoord::new(a, b, c);
-            let p2 = HomogeneousCoord::new(a * 2, b * 2, c * 2);
+        fn check<T: A>(a: u8, b: u8, c: u8) {
+            let p1 = HomogeneousCoord::<T>::new(a, b, c);
+            let p2 = HomogeneousCoord::<T>::new(a * 2, b * 2, c * 2);
             expect_eq!(p1, p2);
         }
-        let p1 = HomogeneousCoord::new(4, 2, 1);
+        let p1 = HomogeneousCoord::<Rational>::new(4, 2, 1);
         expect_eq!(p1, p1);
-        check(4, 2, 1);
-        check(0, 2, 1);
-        check(4, 0, 1);
-        check(4, 2, 0);
-        check(0, 0, 1);
-        check(0, 2, 0);
-        check(4, 0, 0);
-        check(0, 0, 0);
+        let p1 = HomogeneousCoord::<ordered_float::OrderedFloat<f64>>::new(4, 2, 1);
+        expect_eq!(p1, p1);
+        check::<Rational>(4, 2, 1);
+        check::<Rational>(0, 2, 1);
+        check::<Rational>(4, 0, 1);
+        check::<Rational>(4, 2, 0);
+        check::<Rational>(0, 0, 1);
+        check::<Rational>(0, 2, 0);
+        check::<Rational>(4, 0, 0);
+        check::<Rational>(0, 0, 0);
+        check::<ordered_float::OrderedFloat<f64>>(4, 2, 1);
+        check::<ordered_float::OrderedFloat<f64>>(0, 2, 1);
+        check::<ordered_float::OrderedFloat<f64>>(4, 0, 1);
+        check::<ordered_float::OrderedFloat<f64>>(4, 2, 0);
+        check::<ordered_float::OrderedFloat<f64>>(0, 0, 1);
+        check::<ordered_float::OrderedFloat<f64>>(0, 2, 0);
+        check::<ordered_float::OrderedFloat<f64>>(4, 0, 0);
+        check::<ordered_float::OrderedFloat<f64>>(0, 0, 0);
     }
 
     #[gtest]
     fn cartesian() {
         expect_eq!(
-            HomogeneousCoord::new(12, 6, 1).cartesian(),
+            HomogeneousCoordRational::new(12, 6, 1).cartesian(),
             Ok((12, 6).into())
         );
         expect_eq!(
-            HomogeneousCoord::new(24, 12, 2).cartesian(),
+            HomogeneousCoordRational::new(24, 12, 2).cartesian(),
             Ok((12, 6).into())
         );
         expect_eq!(
-            HomogeneousCoord::new(-24, -12, -2).cartesian(),
+            HomogeneousCoordRational::new(-24, -12, -2).cartesian(),
             Ok((12, 6).into())
         );
         expect_eq!(
-            HomogeneousCoord::new(24, -12, -2).cartesian(),
+            HomogeneousCoordRational::new(24, -12, -2).cartesian(),
             Ok((-12, 6).into())
         );
         expect_eq!(
-            HomogeneousCoord::new(0, -12, -2).cartesian(),
+            HomogeneousCoordRational::new(0, -12, -2).cartesian(),
             Ok((0, 6).into())
         );
         expect_eq!(
-            HomogeneousCoord::new(24, -12, 0).cartesian(),
+            HomogeneousCoordRational::new(24, -12, 0).cartesian(),
             Err(PointAtInfinity)
         );
     }
 
     #[gtest]
     fn not_equal() {
-        let p1 = HomogeneousCoord::new(4, 2, 1);
-        let p2 = HomogeneousCoord::new(4, 2, 2);
+        let p1 = HomogeneousCoordRational::new(4, 2, 1);
+        let p2 = HomogeneousCoordRational::new(4, 2, 2);
         expect_ne!(p1, p2);
-        let p3 = HomogeneousCoord::new(4, 2, 1);
-        let p4 = HomogeneousCoord::new(4, 2, 0);
+        let p3 = HomogeneousCoordRational::new(4, 2, 1);
+        let p4 = HomogeneousCoordRational::new(4, 2, 0);
         expect_ne!(p3, p4);
-        let p5 = HomogeneousCoord::new(4, 2, 1);
-        let p6 = HomogeneousCoord::new(4, 0, 1);
+        let p5 = HomogeneousCoordRational::new(4, 2, 1);
+        let p6 = HomogeneousCoordRational::new(4, 0, 1);
         expect_ne!(p5, p6);
-        let p7 = HomogeneousCoord::new(4, 0, 1);
-        let p8 = HomogeneousCoord::new(4, 0, 0);
+        let p7 = HomogeneousCoordRational::new(4, 0, 1);
+        let p8 = HomogeneousCoordRational::new(4, 0, 0);
         expect_ne!(p7, p8);
 
-        let p9 = HomogeneousCoord::new(0, 0, 0);
-        let p10 = HomogeneousCoord::new(4, 2, 0);
+        let p9 = HomogeneousCoordRational::new(0, 0, 0);
+        let p10 = HomogeneousCoordRational::new(4, 2, 0);
         expect_ne!(p9, p10);
 
-        let p11 = HomogeneousCoord::new(4, 2, 1);
-        let p12 = HomogeneousCoord::new(0, 0, 0);
+        let p11 = HomogeneousCoordRational::new(4, 2, 1);
+        let p12 = HomogeneousCoordRational::new(0, 0, 0);
         expect_ne!(p11, p12);
     }
 }
 
 mod line {
 
-    use common::math::homogeneous::HomogeneousLine;
     use googletest::prelude::*;
+    use malachite::rational::Rational;
+
+    use crate::rational;
+
+    type HomogeneousLine = common::math::homogeneous::HomogeneousLine<Rational>;
 
     mod intersection {
         use common::math::{cartesian::CartesianCoord, homogeneous::*};
         use googletest::prelude::*;
+        use malachite::rational::Rational;
+        type HomogeneousLine = common::math::homogeneous::HomogeneousLine<Rational>;
 
         #[gtest]
         fn origin() {
@@ -111,13 +133,18 @@ mod line {
             let x = HomogeneousLine::y_axis();
             let y = HomogeneousLine::vertical(12);
             let intersect = x.intersection(y);
-            expect_that!(intersect, field!(HomogeneousCoord.z, eq(&0.into())));
+            expect_that!(
+                intersect,
+                field!(HomogeneousCoord.z, eq(&Rational::const_from_unsigned(0)))
+            );
         }
     }
 
     mod contains {
-        use common::math::homogeneous::*;
         use googletest::prelude::*;
+        use malachite::rational::Rational;
+        type HomogeneousLine = common::math::homogeneous::HomogeneousLine<Rational>;
+
         #[gtest]
         fn contains() {
             let x = HomogeneousLine::x_axis();
@@ -177,8 +204,10 @@ mod line {
     }
 
     mod slope {
-        use common::math::homogeneous::{HomogeneousLine, Slope};
+        use common::math::homogeneous::Slope;
         use googletest::prelude::*;
+        use malachite::rational::Rational;
+        type HomogeneousLine = common::math::homogeneous::HomogeneousLine<Rational>;
 
         #[gtest]
         fn infinite() {
@@ -213,11 +242,18 @@ mod line {
         expect_that!(
             -l1.clone(),
             pat!(HomogeneousLine {
-                a: eq(&(-2).into()),
-                b: eq(&3.into()),
-                c: eq(&(-4).into())
+                a: eq(&rational!(-2)),
+                b: eq(&rational!(3)),
+                c: eq(&rational!(-4))
             })
         );
         expect_eq!(-l1.clone(), l1);
     }
+}
+
+#[macro_export]
+macro_rules! rational {
+    ($x : expr) => {
+        malachite::rational::Rational::const_from_signed($x)
+    };
 }

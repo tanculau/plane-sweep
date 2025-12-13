@@ -1,17 +1,19 @@
 mod code_view;
 
+use core::fmt::Debug;
+
 use common::{
     AlgoStepIdx, AlgoSteps,
     intersection::Intersections,
+    math::A,
     segment::{Segment, Segments},
-    ui::MyWidget,
-    ui::WidgetName,
+    ui::{MyWidget, WidgetName},
 };
 use controller::{Controller, ControllerState};
 use eframe::egui::{self, Align, Layout, ScrollArea};
 use intersection_table::{IntersectionTable, IntersectionTableState};
 use segment_plotter::{SegmentPlotter, SegmentPlotterState};
-use segment_table::SegmentTable;
+use segment_table::{SegmentTable, SegmentTableState};
 use sweep_utils::ui::{
     events_view::{EventsView, EventsViewState},
     set_view::{SetView, SetViewState},
@@ -26,11 +28,11 @@ use crate::{
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[expect(clippy::struct_excessive_bools)]
-pub struct PlaneSweep {
+pub struct PlaneSweep<T: A> {
     step: AlgoStepIdx,
-    segments: Segments,
-    intersections: Intersections,
-    steps: AlgoSteps<Step>,
+    segments: Segments<T>,
+    intersections: Intersections<T>,
+    steps: AlgoSteps<Step<T>>,
     #[cfg_attr(feature = "serde", serde(skip))]
     controller: Controller,
     is_controller_open: bool,
@@ -50,12 +52,12 @@ pub struct PlaneSweep {
     is_status_view_open: bool,
 }
 
-impl WidgetName for PlaneSweep {
+impl<T: A> WidgetName for PlaneSweep<T> {
     const NAME: &'static str = "Plane Sweep";
     const NAME_LONG: &'static str = "Plane Sweep Algorithm";
 }
 
-impl PlaneSweep {
+impl<T: A> PlaneSweep<T> {
     fn side_panel_groups(&mut self, ui: &mut egui::Ui) {
         ScrollArea::vertical().show(ui, |ui| {
             ui.with_layout(Layout::top_down_justified(Align::LEFT), |ui| {
@@ -81,7 +83,7 @@ impl PlaneSweep {
     }
 }
 
-impl MyWidget<()> for PlaneSweep {
+impl<T: A> MyWidget<()> for PlaneSweep<T> {
     fn ui(&mut self, ui: &mut eframe::egui::Ui, _: impl Into<()>) {
         let ctx = ui.ctx();
         egui::SidePanel::right("Plane Sweep Panel")
@@ -102,11 +104,14 @@ impl MyWidget<()> for PlaneSweep {
         self.segment_table.show(
             ctx,
             &mut self.is_segment_table_open,
-            (&mut should_reset, &mut self.segments),
+            SegmentTableState {
+                should_reset: &mut should_reset,
+                segments: &mut self.segments,
+            },
         );
         if should_reset {
             self.step = 0.into();
-            calculate_steps(&self.segments, &mut self.intersections, &mut self.steps);
+            calculate_steps::<T>(&self.segments, &mut self.intersections, &mut self.steps);
         }
         self.segment_plotter.show(
             ctx,
@@ -133,7 +138,6 @@ impl MyWidget<()> for PlaneSweep {
             ControllerState {
                 steps: &mut self.steps,
                 step: &mut self.step,
-                intersections: &mut self.intersections,
             },
         );
         self.set_view.show(
@@ -173,7 +177,7 @@ impl MyWidget<()> for PlaneSweep {
     }
 }
 
-impl Default for PlaneSweep {
+impl<T: A> Default for PlaneSweep<T> {
     fn default() -> Self {
         let mut out = Self {
             step: 0.into(),
@@ -203,7 +207,7 @@ impl Default for PlaneSweep {
             status_view: StatusView,
             is_status_view_open: true,
         };
-        calculate_steps(&out.segments, &mut out.intersections, &mut out.steps);
+        calculate_steps::<T>(&out.segments, &mut out.intersections, &mut out.steps);
         out
     }
 }

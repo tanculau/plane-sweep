@@ -4,11 +4,7 @@
 
 - Plain Brute Force Algorithm
 - Plane Sweep Algorithm
-- Voronoi Diagrams (Planned)
-
-## Screenshots
-
-## How to use
+- Voronoi Diagrams
 
 ## How to build
 
@@ -61,3 +57,41 @@ You also need [Rust](https://www.rust-lang.org/).
 - The algorithm used here are described in Computational Geometry from Mark Berg , Otfried Cheong , Marc Kreveld , Mark Overmars. [DOI](https://doi.org/10.1007/978-3-662-04245-8). This was also used as reference for this implementation.
 - The project uses [egui](https://github.com/emilk/egui/), [eframe](https://github.com/emilk/egui/tree/main/crates/eframe) for the graphical user interface.
 - Also the [eframe_template](https://github.com/emilk/eframe_template/tree/main) was used as base and got adapted.
+- Geometriekalküle from  Jürgen Richter-Gebert, Thorsten Orendt [DOI](https://doi.org/10.1007/978-3-642-02530-3)
+
+## Libraries used
+
+- malachite
+- auto_enums
+- serde
+- smallvec
+- bon
+- itertools
+- priority-queue
+- num-traits
+- ordered-float
+- snafu
+- typed-index-collections
+- better-panic
+- mimalloc
+- wasm-bindgen-futures
+- web-sys
+- tracing
+- web-time
+- tracing-wasm
+- tracing-subscriber
+- eframe
+- egui_extras
+- egui_plot
+- egui-notify
+- egui_commonmark
+- cargo about
+- egui_tracing (fork)
+- googletest
+- mutants
+- rstest
+- divan
+- fastrand
+- static_assertions
+- bolero
+- workspace hack

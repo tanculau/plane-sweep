@@ -1,14 +1,19 @@
+// Based on the book "Computational Geometry" from Mark Berg , Otfried Cheong , Marc Kreveld , Mark Overmars. [DOI](https://doi.org/10.1007/978-3-662-04245-8)
+
 use std::collections::{BTreeMap, HashSet};
 
-use common::{math::cartesian::CartesianCoord, segment::SegmentIdx};
+use common::{
+    math::{A, cartesian::CartesianCoord},
+    segment::SegmentIdx,
+};
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct EventQueue {
-    pub queue: BTreeMap<CartesianCoord, HashSet<SegmentIdx>>,
+pub struct EventQueue<T: A> {
+    pub queue: BTreeMap<CartesianCoord<T>, HashSet<SegmentIdx>>,
 }
 
-impl EventQueue {
+impl<T: A> EventQueue<T> {
     #[must_use]
     pub const fn new() -> Self {
         Self {
@@ -16,7 +21,11 @@ impl EventQueue {
         }
     }
 
-    pub fn insert(&mut self, coord: impl Into<CartesianCoord>, seg: impl Into<Option<SegmentIdx>>) {
+    pub fn insert(
+        &mut self,
+        coord: impl Into<CartesianCoord<T>>,
+        seg: impl Into<Option<SegmentIdx>>,
+    ) {
         let coord = coord.into();
         let seg = seg.into();
         self.queue
@@ -29,7 +38,7 @@ impl EventQueue {
             .or_insert_with(|| HashSet::from_iter(seg));
     }
 
-    pub fn pop(&mut self) -> Option<(CartesianCoord, HashSet<SegmentIdx>)> {
+    pub fn pop(&mut self) -> Option<(CartesianCoord<T>, HashSet<SegmentIdx>)> {
         self.queue.pop_first()
     }
 }

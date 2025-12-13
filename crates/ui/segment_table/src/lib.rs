@@ -1,9 +1,11 @@
+// Based on https://github.com/emilk/egui/blob/a0bb4cfef82dd9b50f990f607b7c7c4f28eb8589/crates/egui_demo_lib/src/demo/table_demo.rs
+
 use core::time::Duration;
 
 use common::{
+    math::A,
     segment::{Segment, SegmentIdx, Segments},
-    ui::MyWidget,
-    ui::WidgetName,
+    ui::{MyWidget, WidgetName},
 };
 use eframe::egui;
 use egui_extras::{Column, Size, StripBuilder, TableBuilder};
@@ -17,10 +19,10 @@ pub struct SegmentTable {
     scroll_to_row_slider: usize,
     scroll_to_row: Option<SegmentIdx>,
     reversed: bool,
-    new_p1_y: isize,
-    new_p1_x: isize,
-    new_p2_y: isize,
-    new_p2_x: isize,
+    new_p1_y: i32,
+    new_p1_x: i32,
+    new_p2_y: i32,
+    new_p2_x: i32,
     #[cfg_attr(feature = "serde", serde(skip))]
     toasts: Toasts,
 }
@@ -63,12 +65,12 @@ impl SegmentTable {
         name = "segment_table",
         skip(self, ui, disable_all, should_reset, segments)
     )]
-    fn table_ui(
+    fn table_ui<T: A>(
         &mut self,
         ui: &mut egui::Ui,
         disable_all: bool,
         should_reset: &mut bool,
-        segments: &mut Segments,
+        segments: &mut Segments<T>,
     ) {
         if disable_all {
             for segment in segments.iter_mut() {
@@ -148,7 +150,7 @@ impl SegmentTable {
                     } else {
                         row.index()
                     };
-                    let segment: &mut Segment = &mut segments[SegmentIdx::from(row_index)];
+                    let segment: &mut Segment<_> = &mut segments[SegmentIdx::from(row_index)];
 
                     row.set_selected(segment.mark);
 
@@ -234,12 +236,14 @@ impl WidgetName for SegmentTable {
     const NAME: &'static str = "Segment Table";
 }
 
-impl<'reset, 'segment> MyWidget<SegmentTableState<'reset, 'segment>> for SegmentTable {
+impl<'reset, 'segment, T: A + From<i32>> MyWidget<SegmentTableState<'reset, 'segment, T>>
+    for SegmentTable
+{
     #[instrument(name = "segment_table", skip(self, ui, state))]
     fn ui(
         &mut self,
         ui: &mut eframe::egui::Ui,
-        state: impl Into<SegmentTableState<'reset, 'segment>>,
+        state: impl Into<SegmentTableState<'reset, 'segment, T>>,
     ) {
         let SegmentTableState {
             should_reset,
@@ -320,25 +324,7 @@ impl<'reset, 'segment> MyWidget<SegmentTableState<'reset, 'segment>> for Segment
 }
 
 #[derive(Debug)]
-pub struct SegmentTableState<'reset, 'segment> {
-    should_reset: &'reset mut bool,
-    segments: &'segment mut Segments,
-}
-
-impl<'reset, 'segment> From<(&'reset mut bool, &'segment mut Segments)>
-    for SegmentTableState<'reset, 'segment>
-{
-    fn from((should_reset, segments): (&'reset mut bool, &'segment mut Segments)) -> Self {
-        Self::new(should_reset, segments)
-    }
-}
-
-impl<'reset, 'segment> SegmentTableState<'reset, 'segment> {
-    #[must_use]
-    pub const fn new(should_reset: &'reset mut bool, segments: &'segment mut Segments) -> Self {
-        Self {
-            should_reset,
-            segments,
-        }
-    }
+pub struct SegmentTableState<'reset, 'segment, T: A> {
+    pub should_reset: &'reset mut bool,
+    pub segments: &'segment mut Segments<T>,
 }

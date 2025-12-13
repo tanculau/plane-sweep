@@ -1,24 +1,39 @@
+// Based on https://github.com/emilk/eframe_template
+
 use brute_force::ui::BruteForce;
-use common::ui::ToggleAbleWidget;
+use common::{
+    MaybeSerde,
+    math::{A, Float},
+    ui::ToggleAbleWidget,
+};
 use eframe::egui;
 use sweep::ui::PlaneSweep;
+use voronoi::ui::Voron;
+
+#[cfg(feature = "float")]
+pub type AppFloat = App<common::math::Float>;
+
+#[cfg(feature = "rational")]
+pub type AppRational = App<common::math::Rational>;
 
 #[derive(Default, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(default))] // if we add new fields, give them default values when deserializing old state
-pub struct App {
+pub struct App<T: A> {
     #[cfg_attr(feature = "serde", serde(skip))]
     third_party_licences: ToggleAbleWidget<third_party_licenses::ThirdPartyLicences, ()>,
-    brute_force: BruteForce,
-    plane_sweep: PlaneSweep,
-    plane_sweep_with_lines: sweep_with_lines::ui::PlaneSweepOverlay,
+    brute_force: BruteForce<T>,
+    plane_sweep: PlaneSweep<T>,
+    plane_sweep_with_lines: sweep_with_lines::ui::PlaneSweepOverlay<T>,
     selected: AlgorithmChoice,
     #[cfg_attr(feature = "serde", serde(skip))]
     tracing: ToggleAbleWidget<tracing_gui::Tracing, ()>,
     last_id: usize,
+    #[cfg_attr(feature = "serde", serde(skip))]
+    voronoi: Voron<Float>,
 }
 
-impl App {
+impl<T: A + for<'de> MaybeSerde<'de>> App<T> {
     #[must_use]
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         // This is also where you can customize the look and feel of egui using
@@ -39,7 +54,7 @@ impl App {
         Self::default()
     }
 }
-impl eframe::App for App {
+impl<T: A + for<'de> MaybeSerde<'de>> eframe::App for App<T> {
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
         self.last_id = common::segment::get_counter();
         #[cfg(feature = "serde")]
@@ -102,6 +117,10 @@ impl eframe::App for App {
                     use common::ui::MyWidget;
                     self.plane_sweep_with_lines.ui(ui, ());
                 }
+                AlgorithmChoice::Voronoi => {
+                    use common::ui::MyWidget;
+                    self.voronoi.ui(ui, ());
+                }
             }
             self.third_party_licences.view(ui.ctx(), ());
             self.tracing.view(ui.ctx(), ());
@@ -117,6 +136,7 @@ enum AlgorithmChoice {
     PlaneSweepBruteForce,
     PlaneSweep,
     PlaneSweepWithLines,
+    Voronoi,
 }
 
 impl AlgorithmChoice {
@@ -125,6 +145,7 @@ impl AlgorithmChoice {
         Self::PlaneSweepBruteForce,
         Self::PlaneSweep,
         Self::PlaneSweepWithLines,
+        Self::Voronoi,
     ];
 
     pub const fn name(self) -> &'static str {
@@ -133,6 +154,7 @@ impl AlgorithmChoice {
             Self::PlaneSweepBruteForce => "Plane Sweep - Brute Force",
             Self::PlaneSweep => "Plane Sweep - Textbook",
             Self::PlaneSweepWithLines => "Plane Sweep - With Overlay",
+            Self::Voronoi => "Voronoi",
         }
     }
 }

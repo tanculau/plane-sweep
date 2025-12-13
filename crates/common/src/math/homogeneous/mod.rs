@@ -1,3 +1,5 @@
+// Based on Geometriekalküle from  Jürgen Richter-Gebert, Thorsten Orendt https://doi.org/10.1007/978-3-642-02530-3
+
 mod coord;
 mod line;
 

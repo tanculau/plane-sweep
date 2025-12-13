@@ -1,9 +1,9 @@
 use common::{
     AlgoStepIdx, AlgoSteps,
     intersection::LeanIntersections,
+    math::A,
     segment::{SegmentIdx, Segments},
-    ui::MyWidget,
-    ui::WidgetName,
+    ui::{MyWidget, WidgetName},
 };
 use eframe::egui::RichText;
 
@@ -18,17 +18,21 @@ impl WidgetName for CodeView {
     const NAME_LONG: &'static str = "Code Viewer";
 }
 #[derive(Debug, Clone)]
-pub struct CodeViewState<'a, 'b, 'c, 'd> {
+pub struct CodeViewState<'a, 'b, 'c, 'd, T: A> {
     pub step: AlgoStepIdx,
-    pub steps: &'a AlgoSteps<Step>,
-    pub segments: &'b Segments,
-    pub intersections: &'c LeanIntersections,
-    pub merged_intersections: &'d LeanIntersections,
+    pub steps: &'a AlgoSteps<Step<T>>,
+    pub segments: &'b Segments<T>,
+    pub intersections: &'c LeanIntersections<T>,
+    pub merged_intersections: &'d LeanIntersections<T>,
 }
 
-impl<'a, 'b, 'c, 'd> MyWidget<CodeViewState<'a, 'b, 'c, 'd>> for CodeView {
+impl<'a, 'b, 'c, 'd, T: A> MyWidget<CodeViewState<'a, 'b, 'c, 'd, T>> for CodeView {
     #[allow(clippy::too_many_lines)]
-    fn ui(&mut self, ui: &mut eframe::egui::Ui, state: impl Into<CodeViewState<'a, 'b, 'c, 'd>>) {
+    fn ui(
+        &mut self,
+        ui: &mut eframe::egui::Ui,
+        state: impl Into<CodeViewState<'a, 'b, 'c, 'd, T>>,
+    ) {
         let CodeViewState {
             step,
             steps,
@@ -216,8 +220,8 @@ impl<'a, 'b, 'c, 'd> MyWidget<CodeViewState<'a, 'b, 'c, 'd>> for CodeView {
         } else {
             text
         });
-        if let StepType::InsertMergeQueue { inter } = &s.typ {
-            let intersection = intersections[*inter].step;
+        if let StepType::InsertMergeQueue { idx } = &s.typ {
+            let intersection = intersections[*idx].step;
             let text = RichText::new(format!(
                 "1. Insert Intersection {intersection} into Merge Queue"
             ))
@@ -226,25 +230,23 @@ impl<'a, 'b, 'c, 'd> MyWidget<CodeViewState<'a, 'b, 'c, 'd>> for CodeView {
         } else {
             ui.label("1. Insert Intersection into Merge Queue");
         }
-        if let StepType::Merge {
-            seg,
-            points,
-            result,
-        } = &s.typ
-        {
+        if let StepType::Merge { seg, result, idx } = &s.typ {
             let seg1 = segments[seg[0]].id;
             let seg2 = segments[seg[1]].id;
-            let res = &merged_intersections[*result].coord;
+            let res = &merged_intersections[*idx].coord;
 
-            let text = RichText::new(format!("2. Merging points: {points:?} at intersection between s{seg1} and {seg2}: result {res:?}")).underline();
+            let text = RichText::new(format!("2. Merging points: {result} at intersection between s{seg1} and {seg2}: result {res:?}")).underline();
             ui.label(text);
         } else {
-            ui.label("1. Merging points at intersection");
+            ui.label("2. Merging points at intersection");
         }
     }
 }
 
-fn format_segment<'a>(a: impl Iterator<Item = &'a SegmentIdx>, segments: &Segments) -> String {
+fn format_segment<'a, T: A>(
+    a: impl Iterator<Item = &'a SegmentIdx>,
+    segments: &Segments<T>,
+) -> String {
     use std::fmt::Write;
     let mut buf = String::new();
     let mut s = a;

@@ -8,7 +8,7 @@ publish = false
 bolero = "0.13.4"
 brute-force = { version = "1.0.0", path = "../crates/algorithm/brute-force" }
 common = { version = "1.0.0", path = "../crates/common" }
-sweep = { version = "1.0.0", path = "../crates/algorithm/sweep" }
+sweep-fast = { version = "1.0.0", path = "../crates/algorithm/sweep-fast" }
 
 
 [dev-dependencies]

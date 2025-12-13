@@ -1,23 +1,29 @@
+// Implementation based on Geometriekalküle from  Jürgen Richter-Gebert, Thorsten Orendt https://doi.org/10.1007/978-3-642-02530-3
+
 use typed_index_collections::TiVec;
 
-use crate::{intersection::IntersectionIdx, math::cartesian::CartesianCoord, segment::SegmentIdx};
+use crate::{
+    intersection::IntersectionIdx,
+    math::{A, cartesian::CartesianCoord},
+    segment::SegmentIdx,
+};
 
 pub mod intersection;
 pub mod math;
 pub mod segment;
-
+pub mod site;
 #[cfg(feature = "ui")]
 pub mod ui;
 
 /// Common trait to generalize algorithm.
 /// It represents a step in an algorithm that can be iterated over.
-pub trait AlgrorithmStep {
+pub trait AlgrorithmStep<T: A> {
     /// Returns the segment that are currently looked at by the algorithm.
     fn segments(&self) -> impl Iterator<Item = SegmentIdx>;
     /// Returns the intersections that are currently looked at by the algorithm.
     fn intersections(&self) -> impl Iterator<Item = IntersectionIdx>;
 
-    fn sweep_line(&self) -> Option<CartesianCoord> {
+    fn sweep_line(&self) -> Option<CartesianCoord<T>> {
         None
     }
 }
@@ -96,3 +102,15 @@ macro_rules! impl_idx {
         }
     };
 }
+
+#[cfg(feature = "serde")]
+pub trait MaybeSerde<'de>: serde::Deserialize<'de> + serde::Serialize {}
+
+#[cfg(not(feature = "serde"))]
+pub trait MaybeSerde<'de> {}
+
+#[cfg(not(feature = "serde"))]
+impl<'de, T> MaybeSerde<'de> for T {}
+
+#[cfg(feature = "serde")]
+impl<'de, T> MaybeSerde<'de> for T where T: serde::Deserialize<'de> + serde::Serialize {}

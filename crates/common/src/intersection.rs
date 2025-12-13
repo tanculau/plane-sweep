@@ -6,15 +6,17 @@ use typed_index_collections::TiVec;
 
 use crate::{
     impl_idx,
-    math::cartesian::CartesianCoord,
+    math::{A, cartesian::CartesianCoord},
     segment::{Segment, SegmentIdx},
 };
 
-pub type Intersections = TiVec<IntersectionIdx, Intersection>;
-pub type LeanIntersections = TiVec<LeanIntersectionIdx, LeanIntersection>;
+pub type Intersections<T> = TiVec<IntersectionIdx, Intersection<T>>;
+pub type LeanIntersections<T> = TiVec<LeanIntersectionIdx, LeanIntersection<T>>;
 
 #[must_use]
-pub fn lean_to_normal<'a>(lean: impl Iterator<Item = &'a LeanIntersection>) -> Intersections {
+pub fn lean_to_normal<'a, T: A + 'a>(
+    lean: impl Iterator<Item = &'a LeanIntersection<T>>,
+) -> Intersections<T> {
     lean.map(|v| Intersection::new(v.coord.clone(), v.segments.into(), v.step))
         .collect()
 }
@@ -26,23 +28,23 @@ impl_idx!(LeanIntersectionIdx);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Intersection {
-    pub typ: IntersectionType,
+pub struct Intersection<T: A> {
+    pub typ: IntersectionType<T>,
     pub segments: InterVec,
     pub step: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct LeanIntersection {
-    pub coord: IntersectionType,
+pub struct LeanIntersection<T: A> {
+    pub coord: IntersectionType<T>,
     pub segments: [SegmentIdx; 2],
     pub step: usize,
 }
 
-impl LeanIntersection {
+impl<T: A> LeanIntersection<T> {
     #[must_use]
-    pub fn new(coord: IntersectionType, mut segments: [SegmentIdx; 2], step: usize) -> Self {
+    pub fn new(coord: IntersectionType<T>, mut segments: [SegmentIdx; 2], step: usize) -> Self {
         segments.sort_unstable();
         Self {
             coord,
@@ -52,7 +54,7 @@ impl LeanIntersection {
     }
 
     #[must_use]
-    pub const fn point1(&self) -> &CartesianCoord {
+    pub const fn point1(&self) -> &CartesianCoord<T> {
         match &self.coord {
             IntersectionType::Point { coord } => coord,
             IntersectionType::Parallel { line } => &line.upper,
@@ -60,9 +62,9 @@ impl LeanIntersection {
     }
 }
 
-impl Intersection {
+impl<T: A> Intersection<T> {
     #[must_use]
-    pub const fn new(typ: IntersectionType, segments: InterVec, step: usize) -> Self {
+    pub const fn new(typ: IntersectionType<T>, segments: InterVec, step: usize) -> Self {
         Self {
             typ,
             segments,
@@ -71,7 +73,7 @@ impl Intersection {
     }
 
     #[must_use]
-    pub const fn typ(&self) -> &IntersectionType {
+    pub const fn typ(&self) -> &IntersectionType<T> {
         &self.typ
     }
 
@@ -84,14 +86,14 @@ impl Intersection {
         self.step
     }
     #[must_use]
-    pub const fn point1(&self) -> &CartesianCoord {
+    pub const fn point1(&self) -> &CartesianCoord<T> {
         match self.typ() {
             IntersectionType::Point { coord } => coord,
             IntersectionType::Parallel { line } => &line.upper,
         }
     }
     #[must_use]
-    pub const fn point2(&self) -> Option<&CartesianCoord> {
+    pub const fn point2(&self) -> Option<&CartesianCoord<T>> {
         match self.typ() {
             IntersectionType::Point { .. } => None,
             IntersectionType::Parallel { line } => Some(&line.lower),
@@ -101,12 +103,12 @@ impl Intersection {
 
 #[derive(Clone, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub enum IntersectionType {
-    Point { coord: CartesianCoord },
-    Parallel { line: Segment },
+pub enum IntersectionType<T: A> {
+    Point { coord: CartesianCoord<T> },
+    Parallel { line: Segment<T> },
 }
 
-impl core::fmt::Debug for IntersectionType {
+impl<T: A> core::fmt::Debug for IntersectionType<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Point { coord } => write!(f, "Point({},{})", coord.x, coord.y),
@@ -119,7 +121,7 @@ impl core::fmt::Debug for IntersectionType {
     }
 }
 
-impl PartialEq for IntersectionType {
+impl<T: A> PartialEq for IntersectionType<T> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Point { coord: l_coord }, Self::Point { coord: r_coord }) => l_coord == r_coord,
@@ -131,7 +133,7 @@ impl PartialEq for IntersectionType {
     }
 }
 
-impl IntersectionType {
+impl<T: A> IntersectionType<T> {
     /// Returns `true` if the intersection type is [`Point`].
     ///
     /// [`Point`]: IntersectionType::Point
@@ -141,7 +143,7 @@ impl IntersectionType {
     }
 }
 
-impl Display for IntersectionType {
+impl<T: A> Display for IntersectionType<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Point { .. } => write!(f, "Point"),
@@ -150,17 +152,17 @@ impl Display for IntersectionType {
     }
 }
 
-struct Helper {
-    inner: HashMap<[SegmentIdx; 2], Vec<CartesianCoord>>,
+struct Helper<T: A> {
+    inner: HashMap<[SegmentIdx; 2], Vec<CartesianCoord<T>>>,
 }
 
-impl Helper {
+impl<T: A> Helper<T> {
     fn new() -> Self {
         Self {
             inner: HashMap::new(),
         }
     }
-    fn insert(&mut self, mut segment: [SegmentIdx; 2], inter: CartesianCoord) {
+    fn insert(&mut self, mut segment: [SegmentIdx; 2], inter: CartesianCoord<T>) {
         segment.sort_unstable();
         self.inner
             .entry(segment)
@@ -171,7 +173,7 @@ impl Helper {
 
 #[must_use]
 #[allow(clippy::missing_panics_doc)]
-pub fn to_lines(intersections: &Intersections) -> Vec<LeanIntersection> {
+pub fn to_lines<T: A>(intersections: &Intersections<T>) -> Vec<LeanIntersection<T>> {
     let mut helper = Helper::new();
     for intersection in intersections {
         let segments = intersection.segments().to_vec();

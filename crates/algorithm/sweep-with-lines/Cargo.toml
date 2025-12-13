@@ -41,6 +41,7 @@ segment_table = { path = "../../ui/segment_table", optional = true }
 serde = { version = "1.0.219", features = ["derive"], optional = true }
 sweep-utils = { version = "1.0.0", path = "../sweep-utils", features = ["ui"] }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+egui_extras = { version = "0.31.1", default-features = false }
 
 [lints]
 workspace = true
