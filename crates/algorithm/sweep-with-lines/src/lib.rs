@@ -3,7 +3,7 @@
 #[cfg(feature = "ui")]
 pub mod ui;
 
-use core::{cmp::Ordering, fmt::Display};
+use core::{cmp::Ordering, fmt::Display, ops::Deref};
 use std::collections::HashSet;
 
 use common::{
@@ -140,6 +140,8 @@ fn handle_event_point<T: A>(state: &mut State<T>, steps: &mut AlgoSteps<Step<T>>
 
     if l_p_and_u_p_and_c_p.len() > 1 {
         for (s1, s2) in l_p_and_u_p_and_c_p.iter().tuple_combinations() {
+            let mut s = [*s1, *s2];
+            s.sort_unstable();
             let intersect = LeanIntersection::new(
                 common::intersection::IntersectionType::Point { coord: p.clone() },
                 [*s1, *s2],
