@@ -38,7 +38,7 @@ impl DcelView {
                     let (idx, vertex) = vertices.next().unwrap();
                     row.col(|ui| {
                         ui.label(format!(
-                            "Vertex {idx}: ({},{}), incident_edge: {}",
+                            "Vertex {idx}: ({:.2},{:.2}), incident_edge: {}",
                             vertex.x, vertex.y, vertex.incident_edge
                         ));
                     });
