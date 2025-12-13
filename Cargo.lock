@@ -190,7 +190,7 @@ dependencies = [
 
 [[package]]
 name = "app"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "brute-force",
  "common",
@@ -597,7 +597,7 @@ dependencies = [
 
 [[package]]
 name = "brute-force"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "auto_enums",
  "common",
@@ -797,7 +797,7 @@ dependencies = [
 
 [[package]]
 name = "common"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "eframe",
  "googletest",
@@ -837,7 +837,7 @@ dependencies = [
 
 [[package]]
 name = "controller"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "common",
  "eframe",
@@ -2032,7 +2032,7 @@ dependencies = [
 
 [[package]]
 name = "intersection_table"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "common",
  "eframe",
@@ -2973,7 +2973,7 @@ checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
 
 [[package]]
 name = "plane-sweep"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "app",
  "better-panic",
@@ -3365,7 +3365,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "segment_plotter"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "common",
  "eframe",
@@ -3376,7 +3376,7 @@ dependencies = [
 
 [[package]]
 name = "segment_table"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "common",
  "eframe",
@@ -3483,7 +3483,7 @@ checksum = "56199f7ddabf13fe5074ce809e7d3f42b42ae711800501b5b16ea82ad029c39d"
 
 [[package]]
 name = "site_table"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "common",
  "eframe",
@@ -3668,7 +3668,7 @@ dependencies = [
 
 [[package]]
 name = "sweep"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "bon",
  "common",
@@ -3687,7 +3687,7 @@ dependencies = [
 
 [[package]]
 name = "sweep-fast"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "common",
  "itertools",
@@ -3698,7 +3698,7 @@ dependencies = [
 
 [[package]]
 name = "sweep-utils"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "common",
  "eframe",
@@ -3713,7 +3713,7 @@ dependencies = [
 
 [[package]]
 name = "sweep-with-lines"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "bon",
  "common",
@@ -3776,7 +3776,7 @@ dependencies = [
 
 [[package]]
 name = "third_party_licenses"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "common",
  "eframe",
@@ -3922,7 +3922,7 @@ dependencies = [
 
 [[package]]
 name = "tracing-gui"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "common",
  "eframe",
@@ -4083,7 +4083,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "voronoi"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "common",
  "controller",
