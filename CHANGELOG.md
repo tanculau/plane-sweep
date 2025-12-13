@@ -23,6 +23,8 @@ All notable changes to this project will be documented in this file.
 - Lint for copy
 - Benchmark
 - Removed default flags
+- Fix precision
+- Fix dcel formatting
 
 ### 💼 Other
 
