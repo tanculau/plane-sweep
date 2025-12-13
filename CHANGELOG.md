@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- [**breaking**] Added Plane Sweep with support for overlay segments
+
 ### 🐛 Bug Fixes
 
 - *(segment_table)* User is no longer allowed to create illegal Segments
@@ -17,10 +21,14 @@ All notable changes to this project will be documented in this file.
 - Overflow if input was greater than i16
 - Typos in UI
 - Lint for copy
+- Benchmark
+- Removed default flags
 
 ### 💼 Other
 
 - Fmt
+- V1.1.0 voronoi
+- V1.1.0
 
 ### 🚜 Refactor
 
@@ -28,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - Refactor(insection)
 - [**breaking**] Now uses Fraction
 - Ui is now a feature
+- Added sweep-utils, sweep-fast
 
 ### ⚡ Performance
 
@@ -50,6 +59,8 @@ All notable changes to this project will be documented in this file.
 - Automatic Benchmarks
 - Fix
 - *(test)* Fix
+- Fix
+- At rust version to all packages
 
 ## [1.0.0] - 2025-06-30
 
